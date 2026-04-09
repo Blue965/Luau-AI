@@ -785,33 +785,25 @@ let currentModel = 'luauai';
 
 const ROBLOX_PROXY = 'https://users.roblox.com';
 // Note: Roblox APIs block direct browser CORS calls.
-// We use allorigins.win as a CORS proxy for the demo.
-// In production you'd use your own backend.
-const PROXY = 'https://api.allorigins.win/raw?url=';
+// We now use Vercel serverless functions as proxy.
+// =============================================
 
 async function fetchRobloxUser(username) {
-  const url = `https://users.roblox.com/v1/usernames/users`;
-  const resp = await fetch(PROXY + encodeURIComponent(url), {
-    method: 'POST', // allorigins only supports GET so we use alternate
-  }).catch(() => null);
-  // allorigins doesn't support POST — use GET endpoint instead
-  // Try users.roblox.com/v1/users/search
-  const searchUrl = `https://users.roblox.com/v1/users/search?keyword=${encodeURIComponent(username)}&limit=10`;
-  const r = await fetch(PROXY + encodeURIComponent(searchUrl));
-  if (!r.ok) throw new Error('Impossible de contacter Roblox');
+  const r = await fetch('/api/lookup?username=' + encodeURIComponent(username));
+  if (!r.ok) {
+    if (r.status === 404) throw new Error(`Utilisateur "${username}" introuvable`);
+    throw new Error('Impossible de contacter Roblox');
+  }
   const data = await r.json();
-  if (!data.data || data.data.length === 0) throw new Error('Aucun utilisateur trouvé');
-  const match = data.data.find(u => u.name.toLowerCase() === username.toLowerCase());
-  if (!match) throw new Error(`Utilisateur "${username}" introuvable`);
-  return match; // { id, name, displayName }
+  if (data.error) throw new Error(data.error);
+  return data; // { id, name, displayName }
 }
 
 async function fetchRobloxAvatar(userId) {
-  const url = `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=true`;
-  const r = await fetch(PROXY + encodeURIComponent(url));
+  const r = await fetch('/api/avatar?userId=' + userId);
   if (!r.ok) return null;
   const data = await r.json();
-  return data.data?.[0]?.imageUrl || null;
+  return data.imageUrl || null;
 }
 
 // =============================================
