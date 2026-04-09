@@ -871,6 +871,7 @@ function confirmLogin() {
   currentUser = pendingUser;
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app').classList.add('show');
+  resetDailyCredits(); // Vérifier et reset les crédits quotidiens
   updateUI();
   showToast(`✓ Connecté en tant que ${currentUser.username}`);
 }
@@ -968,12 +969,6 @@ function switchModel(m) {
 // CHAT
 // =============================================
 
-const AI_REPLIES = [
-  `Bien sûr ! Voici un script Luau pour ton projet :\n\n[CODE]-- Système de téléportation entre serveurs\nlocal TeleportService = game:GetService("TeleportService")\nlocal Players = game:GetService("Players")\n\nlocal function teleportPlayer(player, placeId)\n    local success, err = pcall(function()\n        TeleportService:TeleportAsync(placeId, {player})\n    end)\n    if not success then\n        warn("Erreur téléportation: " .. err)\n    end\nend\n\n-- Utilisation :\n-- teleportPlayer(game.Players.LocalPlayer, 123456789)[/CODE]\n\nCe script utilise TeleportAsync pour téléporter un joueur vers un autre Place. Tu veux ajouter un écran de chargement ou une confirmation ?`,
-  `Excellente question ! Voici les meilleures pratiques d'optimisation Roblox :\n\n**1. Réduis les appels réseau**\nUtilise RemoteEvents au lieu de RemoteFunctions quand tu n'attends pas de retour.\n\n**2. Streaming enabled**\nActive le Workspace StreamingEnabled pour les grandes maps — ça réduit la charge côté client.\n\n**3. Throttle les boucles**\n\n[CODE]-- Mauvais : boucle chaque frame\ngame:GetService("RunService").Heartbeat:Connect(function()\n    updateAllPlayers() -- trop fréquent !\nend)\n\n-- Bon : throttle à 0.5s\nlocal lastUpdate = 0\ngame:GetService("RunService").Heartbeat:Connect(function(dt)\n    lastUpdate += dt\n    if lastUpdate >= 0.5 then\n        updateAllPlayers()\n        lastUpdate = 0\n    end\nend)[/CODE]\n\nTu veux un audit complet de ton code ?`,
-  `Pour créer un système de GUI professionnel dans Roblox Studio :\n\n[CODE]-- LocalScript dans StarterPlayerScripts\nlocal Players = game:GetService("Players")\nlocal TweenService = game:GetService("TweenService")\nlocal player = Players.LocalPlayer\nlocal gui = player:WaitForChild("PlayerGui")\n\nlocal screen = Instance.new("ScreenGui")\nscreen.Name = "GameUI"\nscreen.ResetOnSpawn = false\nscreen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling\nscreen.Parent = gui\n\nlocal frame = Instance.new("Frame")\nframe.Size = UDim2.new(0, 350, 0, 220)\nframe.Position = UDim2.new(0.5, -175, 0.5, -110)\nframe.BackgroundColor3 = Color3.fromRGB(20, 20, 30)\nframe.BorderSizePixel = 0\nframe.Parent = screen\n\n-- Coins arrondis\nlocal corner = Instance.new("UICorner")\ncorner.CornerRadius = UDim.new(0, 12)\ncorner.Parent = frame\n\n-- Animation d'ouverture\nframe.Size = UDim2.new(0, 0, 0, 0)\nlocal tween = TweenService:Create(frame,\n    TweenInfo.new(0.4, Enum.EasingStyle.Back),\n    {Size = UDim2.new(0, 350, 0, 220)}\n)\ntween:Play()[/CODE]\n\nTu veux que j'ajoute des boutons, des TextLabels ou une barre de vie ?`
-];
-
 function suggest(text) {
   document.getElementById('chat-ta').value = text;
   sendMsg();
@@ -1004,15 +999,34 @@ function renderMsg(m) {
   </div>`;
 }
 
-function sendMsg() {
+function resetDailyCredits() {
+  if (!currentUser || currentUser.plan !== 'Starter') return;
+
+  const lastReset = localStorage.getItem('lastCreditReset');
+  const now = Date.now();
+  const oneDay = 24 * 60 * 60 * 1000; // 24 heures en ms
+
+  if (!lastReset || (now - parseInt(lastReset)) >= oneDay) {
+    currentUser.credits = 10; // Reset à 10 crédits
+    localStorage.setItem('lastCreditReset', now.toString());
+    updateUI();
+    showToast('🔄 10 crédits quotidiens rechargés !', 'info');
+  }
+}
+
+async function sendMsg() {
   if (isTyping) return;
   const ta = document.getElementById('chat-ta');
   const text = ta.value.trim();
   if (!text) return;
 
   if (currentUser && currentUser.plan === 'Starter' && currentUser.credits <= 0) {
-    showToast('❌ Plus de crédits ! Achetez un plan Pro', 'error');
-    showView('shop'); return;
+    resetDailyCredits();
+    // Après reset, vérifier si on a maintenant des crédits
+    if (currentUser.credits <= 0) {
+      showToast('❌ Plus de crédits ! Achetez un plan Pro', 'error');
+      showView('shop'); return;
+    }
   }
 
   ta.value = ''; ta.style.height = '';
@@ -1034,14 +1048,28 @@ function sendMsg() {
   isTyping = true;
   document.getElementById('send-btn').disabled = true;
 
-  setTimeout(() => {
-    const reply = AI_REPLIES[Math.floor(Math.random() * AI_REPLIES.length)];
-    messages.push({ role:'ai', text:reply });
-    isTyping = false;
-    document.getElementById('send-btn').disabled = false;
-    container.innerHTML = messages.map(renderMsg).join('');
-    container.scrollTop = container.scrollHeight;
-  }, 1000 + Math.random() * 900);
+  try {
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: messages.slice(-10) }) // Send last 10 messages for context
+    });
+
+    if (!response.ok) {
+      throw new Error('Erreur IA');
+    }
+
+    const data = await response.json();
+    messages.push({ role: 'ai', text: data.reply });
+  } catch (error) {
+    console.error('AI Error:', error);
+    messages.push({ role: 'ai', text: '❌ Erreur: Impossible de contacter l\'IA. Réessayez plus tard.' });
+  }
+
+  isTyping = false;
+  document.getElementById('send-btn').disabled = false;
+  container.innerHTML = messages.map(renderMsg).join('');
+  container.scrollTop = container.scrollHeight;
 }
 
 function handleKey(e) {
