@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Luau AI — IA pour Roblox Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg0: #0d1117; --bg1: #161b22; --bg2: #1c2333; --bg3: #21262d; --bg4: #2d333b;
+    --border: #30363d; --border2: #3d444d;
+    --blue0: #0969da; --blue1: #1f6feb; --blue2: #388bfd; --blue3: #79c0ff; --blue4: #cae8ff;
+    --cyan: #39d0d8; --cyan2: #a5f3fc;
+    --text0: #e6edf3; --text1: #8b949e; --text2: #6e7681;
+    --green: #3fb950; --green2: #7ee787;
+    --amber: #d29922; --amber2: #ffa657;
+    --purple: #8b5cf6; --pink: #f778ba;
+    --red: #f85149;
+    --radius: 8px; --radius-lg: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg0); color: var(--text0); font-family: 'Outfit', sans-serif; height: 100vh; overflow: hidden; }
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 10px; }
+
+  @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+  @keyframes glow { 0%,100% { box-shadow:0 0 12px rgba(56,139,253,0.35); } 50% { box-shadow:0 0 24px rgba(56,139,253,0.65); } }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+  /* ============================
+     AUTH SCREEN
+  ============================= */
+  #auth-screen {
+    position: fixed; inset: 0; background: var(--bg0);
+    display: flex; align-items: center; justify-content: center; z-index: 1000;
+  }
+  .auth-bg-grid {
+    position: fixed; inset: 0; pointer-events: none;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 48px 48px; opacity: 0.15;
+  }
+  .auth-glow {
+    position: fixed; top: 40%; left: 50%; transform: translate(-50%,-50%);
+    width: 700px; height: 500px;
+    background: radial-gradient(ellipse, rgba(56,139,253,0.10) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .auth-card {
+    position: relative; width: 460px;
+    background: var(--bg1); border: 1px solid var(--border);
+    border-radius: 18px; padding: 44px 40px;
+    animation: slideUp 0.5s ease both;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+  }
+  .auth-logo { display:flex; align-items:center; gap:14px; justify-content:center; margin-bottom:6px; }
+  .auth-logo-icon {
+    width: 50px; height: 50px;
+    background: linear-gradient(135deg, var(--blue1), var(--cyan));
+    border-radius: 12px; display:flex; align-items:center; justify-content:center;
+    font-size: 26px; animation: glow 3s ease infinite;
+  }
+  .auth-logo-text { font-size: 30px; font-weight: 700; letter-spacing: -0.5px; }
+  .auth-logo-text span { color: var(--blue3); }
+  .auth-tagline { text-align:center; color:var(--text1); font-size:14px; margin-bottom:36px; line-height:1.5; }
+
+  /* OAuth Box */
+  .oauth-box {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 20px; margin-bottom: 20px;
+  }
+  .oauth-title { font-size: 13px; font-weight: 600; color: var(--text1); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.6px; }
+  .roblox-oauth-btn {
+    width: 100%; padding: 14px 20px; border-radius: var(--radius);
+    background: linear-gradient(135deg, #c62626, #e03030);
+    border: none; color: white; font-size: 15px; font-weight: 700;
+    cursor: pointer; display:flex; align-items:center; justify-content:center; gap:10px;
+    transition: all 0.2s; font-family: 'Outfit', sans-serif;
+    box-shadow: 0 2px 12px rgba(198,38,38,0.4);
+  }
+  .roblox-oauth-btn:hover { filter:brightness(1.12); transform:translateY(-1px); box-shadow:0 6px 20px rgba(198,38,38,0.5); }
+  .roblox-oauth-btn:active { transform:translateY(0); }
+  .roblox-oauth-btn:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
+  .roblox-svg { width:22px; height:22px; fill:white; flex-shrink:0; }
+
+  .oauth-how {
+    margin-top: 14px; padding: 12px 14px;
+    background: rgba(56,139,253,0.06); border: 1px solid rgba(56,139,253,0.2);
+    border-radius: var(--radius); font-size: 12px; color: var(--text1); line-height: 1.6;
+  }
+  .oauth-how strong { color: var(--blue3); }
+  .oauth-how ol { padding-left: 16px; margin-top: 6px; }
+  .oauth-how li { margin-bottom: 3px; }
+
+  .auth-divider { display:flex; align-items:center; gap:12px; color:var(--text2); font-size:12px; margin: 18px 0; }
+  .auth-divider::before, .auth-divider::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  /* Manual login */
+  .auth-input {
+    width:100%; padding:11px 14px; border-radius:var(--radius);
+    background:var(--bg3); border:1px solid var(--border);
+    color:var(--text0); font-size:14px; font-family:'Outfit',sans-serif;
+    outline:none; transition:border-color 0.2s; margin-bottom:10px;
+  }
+  .auth-input:focus { border-color:var(--blue2); background:var(--bg2); }
+  .auth-input::placeholder { color:var(--text2); }
+  .auth-submit {
+    width:100%; padding:12px; border-radius:var(--radius);
+    background:var(--blue1); border:none; color:white;
+    font-size:14px; font-weight:600; cursor:pointer; transition:all 0.2s;
+    font-family:'Outfit',sans-serif;
+  }
+  .auth-submit:hover { background:var(--blue2); }
+
+  /* Loading overlay */
+  #auth-loading {
+    position: fixed; inset:0; background:rgba(13,17,23,0.85);
+    display:none; align-items:center; justify-content:center; z-index:2000;
+    flex-direction:column; gap:16px;
+  }
+  #auth-loading.show { display:flex; }
+  .spinner { width:40px; height:40px; border:3px solid var(--border); border-top-color:var(--blue2); border-radius:50%; animation:spin 0.8s linear infinite; }
+  .loading-text { font-size:14px; color:var(--text1); }
+
+  /* User info panel (shown after Roblox lookup) */
+  #user-confirm { display:none; }
+  #user-confirm.show { display:block; animation:fadeIn 0.4s ease; }
+  .confirm-card {
+    background:var(--bg2); border:1px solid var(--green2);
+    border-radius:var(--radius-lg); padding:16px 18px;
+    display:flex; align-items:center; gap:14px; margin-bottom:16px;
+  }
+  .confirm-avatar { width:52px; height:52px; border-radius:50%; border:2px solid var(--green2); object-fit:cover; }
+  .confirm-name { font-size:16px; font-weight:700; }
+  .confirm-id { font-size:12px; color:var(--text2); }
+  .confirm-btn {
+    width:100%; padding:12px; border-radius:var(--radius);
+    background:var(--green); border:none; color:#0d1117;
+    font-size:14px; font-weight:700; cursor:pointer;
+    font-family:'Outfit',sans-serif; transition:all 0.2s;
+  }
+  .confirm-btn:hover { background:var(--green2); }
+  .cancel-link { text-align:center; font-size:12px; color:var(--text2); margin-top:10px; cursor:pointer; }
+  .cancel-link:hover { color:var(--text1); }
+
+  .auth-footer { text-align:center; font-size:11px; color:var(--text2); margin-top:20px; }
+  .auth-footer a { color:var(--blue3); cursor:pointer; }
+
+  /* ============================
+     MAIN APP
+  ============================= */
+  #app { display:none; flex-direction:row; height:100vh; }
+  #app.show { display:flex; animation:fadeIn 0.4s ease; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width:264px; min-width:264px; background:var(--bg1);
+    border-right:1px solid var(--border); display:flex; flex-direction:column;
+    height:100vh; overflow:hidden;
+  }
+  .sidebar-header {
+    padding:14px 16px; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .s-logo { display:flex; align-items:center; gap:9px; }
+  .s-logo-icon {
+    width:30px; height:30px; background:linear-gradient(135deg,var(--blue1),var(--cyan));
+    border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:15px;
+  }
+  .s-logo-text { font-size:16px; font-weight:700; }
+  .s-logo-text span { color:var(--blue3); }
+  .new-btn {
+    width:30px; height:30px; background:var(--bg3); border:1px solid var(--border);
+    border-radius:var(--radius); display:flex; align-items:center; justify-content:center;
+    cursor:pointer; font-size:16px; color:var(--text1); transition:all 0.15s;
+  }
+  .new-btn:hover { background:var(--bg4); color:var(--blue3); border-color:var(--blue2); }
+
+  .s-search { padding:10px 14px; }
+  .s-search-inner { position:relative; }
+  .s-search-icon { position:absolute; left:9px; top:50%; transform:translateY(-50%); font-size:13px; color:var(--text2); }
+  .s-search-input {
+    width:100%; padding:7px 10px 7px 30px; background:var(--bg2);
+    border:1px solid var(--border); border-radius:var(--radius);
+    color:var(--text0); font-size:13px; font-family:'Outfit',sans-serif; outline:none;
+  }
+  .s-search-input:focus { border-color:var(--blue2); }
+  .s-search-input::placeholder { color:var(--text2); }
+
+  .s-nav { padding:6px 8px; }
+  .s-nav-item {
+    display:flex; align-items:center; gap:9px; padding:8px 10px;
+    border-radius:var(--radius); cursor:pointer; transition:all 0.15s;
+    font-size:13px; color:var(--text1);
+  }
+  .s-nav-item:hover { background:var(--bg3); color:var(--text0); }
+  .s-nav-item.active { background:var(--bg3); color:var(--blue3); }
+  .s-nav-item .ni { font-size:15px; width:19px; text-align:center; }
+  .s-badge {
+    margin-left:auto; font-size:10px; font-weight:700;
+    padding:2px 7px; border-radius:10px; background:var(--blue1); color:white;
+  }
+  .s-badge.green { background:var(--green); color:#0d1117; }
+
+  .s-section-label { padding:10px 16px 4px; font-size:10px; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:0.8px; }
+  .s-history { flex:1; overflow-y:auto; padding:0 8px 8px; }
+  .s-hist-item {
+    display:flex; align-items:center; gap:7px; padding:7px 10px;
+    border-radius:var(--radius); cursor:pointer; transition:background 0.15s;
+    font-size:12px; color:var(--text1);
+  }
+  .s-hist-item:hover { background:var(--bg3); color:var(--text0); }
+  .s-hist-item .hi { font-size:13px; flex-shrink:0; }
+  .s-hist-item .ht { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
+  .s-hist-item .htime { font-size:10px; color:var(--text2); flex-shrink:0; }
+
+  .s-user {
+    border-top:1px solid var(--border); padding:12px 14px;
+    display:flex; align-items:center; gap:10px; cursor:pointer; transition:background 0.15s;
+  }
+  .s-user:hover { background:var(--bg2); }
+  .s-user-av-wrap { position:relative; flex-shrink:0; }
+  .s-user-av { width:36px; height:36px; border-radius:50%; border:2px solid var(--blue2); object-fit:cover; background:var(--bg3); }
+  .s-user-online { position:absolute; bottom:0; right:0; width:9px; height:9px; background:var(--green); border-radius:50%; border:2px solid var(--bg1); }
+  .s-user-info { flex:1; min-width:0; }
+  .s-user-name { font-size:13px; font-weight:600; color:var(--text0); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .s-user-meta { display:flex; align-items:center; gap:6px; margin-top:1px; }
+  .s-user-plan { font-size:11px; color:var(--text2); }
+  .s-credits { font-size:11px; font-weight:600; color:var(--green2); }
+  .s-credits.low { color:var(--amber2); }
+
+  /* TOP BAR */
+  .top-bar {
+    height:46px; background:var(--bg1); border-bottom:1px solid var(--border);
+    display:flex; align-items:center; padding:0 18px; gap:2px; flex-shrink:0;
+  }
+  .t-tab {
+    padding:5px 13px; border-radius:6px; cursor:pointer; font-size:13px;
+    font-weight:500; color:var(--text1); transition:all 0.15s;
+    border:none; background:none; font-family:'Outfit',sans-serif;
+  }
+  .t-tab:hover { background:var(--bg3); color:var(--text0); }
+  .t-tab.active { background:var(--bg3); color:var(--blue3); }
+  .top-bar-right { margin-left:auto; display:flex; align-items:center; gap:8px; }
+  .credits-chip {
+    display:flex; align-items:center; gap:5px; padding:5px 11px;
+    background:var(--bg2); border:1px solid var(--border); border-radius:20px;
+    font-size:12px; font-weight:600; cursor:pointer; transition:all 0.15s;
+  }
+  .credits-chip:hover { border-color:var(--blue2); color:var(--blue3); }
+  .model-chip {
+    display:flex; align-items:center; gap:6px; padding:5px 11px;
+    background:var(--bg2); border:1px solid var(--border); border-radius:20px;
+    font-size:12px; cursor:pointer; transition:all 0.15s;
+  }
+  .model-chip:hover { border-color:var(--blue2); }
+  .m-dot { width:7px; height:7px; border-radius:50%; background:var(--green); animation:pulse 2s ease infinite; }
+
+  /* MAIN CONTENT */
+  .main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+
+  /* CHAT */
+  #chat-view { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+
+  .welcome {
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:40px 20px; animation:fadeIn 0.5s ease;
+  }
+  .welcome-icon {
+    width:64px; height:64px; background:linear-gradient(135deg,var(--blue1),var(--cyan));
+    border-radius:16px; display:flex; align-items:center; justify-content:center;
+    font-size:32px; margin-bottom:22px; animation:glow 3s ease infinite;
+  }
+  .welcome-title { font-size:30px; font-weight:700; text-align:center; margin-bottom:8px; }
+  .welcome-title span { color:var(--blue3); }
+  .welcome-sub { font-size:15px; color:var(--text1); margin-bottom:36px; text-align:center; }
+  .sug-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; max-width:620px; width:100%; }
+  .sug-card {
+    background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg);
+    padding:14px 15px; cursor:pointer; transition:all 0.2s;
+  }
+  .sug-card:hover { border-color:var(--blue2); background:var(--bg3); transform:translateY(-1px); }
+  .sug-card .si { font-size:20px; margin-bottom:7px; }
+  .sug-card .st { font-size:13px; font-weight:600; margin-bottom:3px; }
+  .sug-card .sd { font-size:12px; color:var(--text2); }
+
+  .msgs { flex:1; overflow-y:auto; padding:18px 20px; display:flex; flex-direction:column; gap:18px; }
+  .msg { display:flex; gap:12px; animation:fadeIn 0.3s ease; max-width:800px; margin:0 auto; width:100%; }
+  .msg.user { flex-direction:row-reverse; }
+  .msg-av { width:34px; height:34px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:15px; overflow:hidden; }
+  .msg-av.ai { background:linear-gradient(135deg,var(--blue1),var(--cyan)); }
+  .msg-av img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+  .msg-bubble { max-width:calc(100% - 50px); padding:11px 15px; border-radius:12px; font-size:14px; line-height:1.65; }
+  .msg.ai .msg-bubble { background:var(--bg2); border:1px solid var(--border); border-radius:4px 12px 12px 12px; }
+  .msg.user .msg-bubble { background:var(--blue1); color:white; border-radius:12px 4px 12px 12px; }
+  .msg-time { font-size:10px; color:var(--text2); margin-top:4px; }
+  .msg.user .msg-time { text-align:right; }
+  .typing-dots { display:flex; gap:4px; align-items:center; }
+  .t-dot { width:6px; height:6px; background:var(--blue3); border-radius:50%; animation:pulse 1.2s ease infinite; }
+  .t-dot:nth-child(2) { animation-delay:0.2s; }
+  .t-dot:nth-child(3) { animation-delay:0.4s; }
+  .code-block {
+    background:var(--bg0); border:1px solid var(--border); border-radius:var(--radius);
+    padding:12px 14px; margin:8px 0; font-family:'JetBrains Mono',monospace;
+    font-size:12px; color:var(--cyan2); overflow-x:auto; white-space:pre;
+  }
+  .code-lang { font-size:10px; color:var(--text2); margin-bottom:6px; text-transform:uppercase; letter-spacing:1px; font-family:'Outfit',sans-serif; }
+
+  .input-area { padding:14px 18px 18px; background:var(--bg0); border-top:1px solid var(--border); flex-shrink:0; }
+  .input-wrap {
+    max-width:800px; margin:0 auto; background:var(--bg2); border:1px solid var(--border);
+    border-radius:var(--radius-lg); overflow:hidden; transition:border-color 0.2s, box-shadow 0.2s;
+  }
+  .input-wrap:focus-within { border-color:var(--blue2); box-shadow:0 0 0 3px rgba(56,139,253,0.1); }
+  .chat-ta {
+    width:100%; padding:13px 15px 8px; background:transparent;
+    border:none; color:var(--text0); font-size:14px; font-family:'Outfit',sans-serif;
+    resize:none; outline:none; min-height:50px; max-height:200px; line-height:1.6;
+  }
+  .chat-ta::placeholder { color:var(--text2); }
+  .input-actions {
+    display:flex; align-items:center; padding:7px 10px; gap:5px;
+    border-top:1px solid var(--border);
+  }
+  .act-btn {
+    padding:5px 10px; border-radius:6px; background:var(--bg3);
+    border:1px solid var(--border); color:var(--text1); font-size:12px;
+    cursor:pointer; transition:all 0.15s; font-family:'Outfit',sans-serif;
+  }
+  .act-btn:hover { color:var(--text0); border-color:var(--border2); }
+  .send-btn {
+    margin-left:auto; padding:7px 16px; border-radius:7px;
+    background:var(--blue1); border:none; color:white; font-size:13px;
+    font-weight:600; cursor:pointer; transition:all 0.2s; font-family:'Outfit',sans-serif;
+  }
+  .send-btn:hover { background:var(--blue2); }
+  .send-btn:disabled { opacity:0.5; cursor:not-allowed; }
+  .input-footer { max-width:800px; margin:7px auto 0; text-align:center; font-size:11px; color:var(--text2); }
+
+  /* SHOP */
+  #shop-view { display:none; flex:1; overflow-y:auto; padding:32px 28px; }
+  #shop-view.show { display:block; animation:fadeIn 0.4s ease; }
+  .shop-head { text-align:center; margin-bottom:40px; }
+  .shop-head h1 { font-size:34px; font-weight:700; margin-bottom:8px; }
+  .shop-head h1 span { color:var(--blue3); }
+  .shop-head p { font-size:15px; color:var(--text1); }
+  .billing-row { display:flex; align-items:center; justify-content:center; gap:12px; margin:22px 0; font-size:14px; }
+  .tgl-track { width:44px; height:24px; background:var(--bg3); border-radius:12px; position:relative; cursor:pointer; transition:background 0.2s; border:1px solid var(--border); }
+  .tgl-track.on { background:var(--blue1); border-color:var(--blue1); }
+  .tgl-thumb { position:absolute; top:2px; left:2px; width:18px; height:18px; background:white; border-radius:50%; transition:transform 0.2s; }
+  .tgl-track.on .tgl-thumb { transform:translateX(20px); }
+  .save-tag { background:var(--green); color:#0d1117; font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; }
+
+  .plans-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; max-width:980px; margin:0 auto 40px; }
+  .plan-card {
+    background:var(--bg1); border:1px solid var(--border);
+    border-radius:16px; padding:26px; position:relative; transition:all 0.2s;
+  }
+  .plan-card:hover { transform:translateY(-3px); border-color:var(--border2); }
+  .plan-card.featured { border-color:var(--blue2); background:linear-gradient(180deg,rgba(31,111,235,0.08),var(--bg1)); }
+  .top-badge {
+    position:absolute; top:-11px; left:50%; transform:translateX(-50%);
+    background:var(--blue1); color:white; font-size:11px; font-weight:700;
+    padding:3px 14px; border-radius:20px; white-space:nowrap;
+  }
+  .plan-icon { font-size:30px; margin-bottom:14px; }
+  .plan-name { font-size:19px; font-weight:700; margin-bottom:3px; }
+  .plan-desc { font-size:13px; color:var(--text1); margin-bottom:18px; }
+  .plan-price { display:flex; align-items:baseline; gap:4px; margin-bottom:5px; }
+  .price-num { font-size:38px; font-weight:700; }
+  .price-unit { font-size:13px; color:var(--text1); }
+  .price-strike { font-size:13px; color:var(--text2); text-decoration:line-through; }
+  .plan-credits-box {
+    display:flex; align-items:center; gap:8px; padding:9px 13px;
+    background:var(--bg2); border-radius:var(--radius); margin-bottom:18px;
+    border:1px solid var(--border); font-size:13px;
+  }
+  .pcr-icon { font-size:17px; }
+  .pcr-amount { font-weight:700; font-size:15px; color:var(--blue3); }
+  .plan-feats { list-style:none; margin-bottom:22px; display:flex; flex-direction:column; gap:7px; }
+  .plan-feats li { display:flex; align-items:center; gap:7px; font-size:13px; color:var(--text1); }
+  .ck { color:var(--green2); }
+  .cx { color:var(--text2); }
+  .plan-btn {
+    width:100%; padding:11px; border-radius:var(--radius);
+    font-size:14px; font-weight:600; cursor:pointer;
+    transition:all 0.2s; font-family:'Outfit',sans-serif;
+    display:flex; align-items:center; justify-content:center; gap:7px;
+  }
+  .plan-btn.free { background:var(--bg3); border:1px solid var(--border); color:var(--text0); }
+  .plan-btn.free:hover { background:var(--bg4); }
+  .plan-btn.blue { background:var(--blue1); border:none; color:white; }
+  .plan-btn.blue:hover { background:var(--blue2); }
+  .plan-btn.prem { background:linear-gradient(135deg,var(--purple),var(--pink)); border:none; color:white; }
+  .plan-btn.prem:hover { filter:brightness(1.1); }
+  .plan-btn.cur { background:var(--bg3); border:1px solid var(--green2); color:var(--green2); cursor:default; }
+
+  .gp-notice {
+    max-width:580px; margin:0 auto 36px; padding:15px 18px;
+    background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg);
+    display:flex; align-items:flex-start; gap:14px; font-size:13px;
+  }
+  .gp-icon { font-size:28px; flex-shrink:0; }
+  .gp-text { color:var(--text1); line-height:1.6; }
+  .gp-text strong { color:var(--text0); }
+  .gp-link { color:var(--blue3); cursor:pointer; text-decoration:underline; }
+
+  .cmp-title { font-size:20px; font-weight:700; margin-bottom:16px; max-width:900px; margin-left:auto; margin-right:auto; }
+  .cmp-table { width:100%; max-width:900px; margin:0 auto 32px; border-collapse:collapse; font-size:13px; }
+  .cmp-table th { padding:11px 14px; text-align:left; background:var(--bg2); border-bottom:1px solid var(--border); color:var(--text1); font-weight:600; }
+  .cmp-table td { padding:10px 14px; border-bottom:1px solid var(--border); color:var(--text0); }
+  .cmp-table tr:hover td { background:var(--bg2); }
+  .hl { color:var(--blue3); font-weight:600; }
+  .tk { color:var(--green2); }
+  .nx { color:var(--text2); }
+
+  /* SETTINGS */
+  #settings-view { display:none; flex:1; overflow-y:auto; padding:32px 28px; }
+  #settings-view.show { display:block; animation:fadeIn 0.4s ease; }
+  .set-title { font-size:22px; font-weight:700; margin-bottom:22px; }
+  .set-profile {
+    background:var(--bg1); border:1px solid var(--border); border-radius:var(--radius-lg);
+    padding:20px; display:flex; align-items:center; gap:16px; margin-bottom:20px; max-width:680px;
+  }
+  .set-av { width:58px; height:58px; border-radius:50%; border:3px solid var(--blue2); object-fit:cover; }
+  .set-uname { font-size:17px; font-weight:700; }
+  .set-umeta { font-size:12px; color:var(--text1); margin-top:3px; }
+  .set-uid { font-size:11px; color:var(--text2); font-family:'JetBrains Mono',monospace; margin-top:2px; }
+  .set-group { background:var(--bg1); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; margin-bottom:14px; max-width:680px; }
+  .set-row { display:flex; align-items:center; padding:14px 18px; border-bottom:1px solid var(--border); }
+  .set-row:last-child { border-bottom:none; }
+  .set-label { flex:1; }
+  .set-ltitle { font-size:14px; font-weight:500; }
+  .set-ldesc { font-size:12px; color:var(--text1); margin-top:2px; }
+  .set-ctrl { flex-shrink:0; }
+  .set-select {
+    background:var(--bg3); border:1px solid var(--border); color:var(--text0);
+    padding:7px 12px; border-radius:var(--radius); font-family:'Outfit',sans-serif;
+    font-size:13px; outline:none;
+  }
+  .logout-btn {
+    background:none; border:none; color:var(--red); font-size:14px; font-weight:500;
+    cursor:pointer; font-family:'Outfit',sans-serif; padding:0;
+  }
+
+  /* TOAST */
+  .toast {
+    position:fixed; bottom:22px; right:22px; z-index:9999;
+    background:var(--bg2); border:1px solid var(--green2);
+    border-radius:var(--radius); padding:11px 16px; font-size:13px; color:var(--green2);
+    animation:slideUp 0.3s ease; box-shadow:0 4px 20px rgba(0,0,0,0.5);
+    display:flex; align-items:center; gap:8px;
+  }
+  .toast.error { border-color:var(--red); color:var(--red); }
+  .toast.info { border-color:var(--blue3); color:var(--blue3); }
+</style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div id="auth-loading">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">Connexion à Roblox...</div>
+</div>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="auth-bg-grid"></div>
+  <div class="auth-glow"></div>
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">🤖</div>
+      <div class="auth-logo-text">Luau<span>AI</span></div>
+    </div>
+    <p class="auth-tagline">L'IA nouvelle génération pour Roblox Studio<br><span style="color:var(--blue3);">Assisté par Claude · Alimenté par Luau</span></p>
+
+    <!-- ROBLOX OAUTH -->
+    <div id="oauth-section">
+      <div class="oauth-box">
+        <div class="oauth-title">🔐 Connexion Roblox OAuth</div>
+        <button class="roblox-oauth-btn" id="roblox-auth-btn" onclick="startRobloxOAuth()">
+          <svg class="roblox-svg" viewBox="0 0 24 24"><path d="M5.065 0L0 18.94l13.93 5.06L19 5.062zm8.603 14.42l-4.51-1.64.52-4.326 4.51 1.636z"/></svg>
+          Se connecter avec Roblox
+        </button>
+        <div class="oauth-how">
+          <strong>Comment ça fonctionne :</strong>
+          <ol>
+            <li>Clique sur le bouton ci-dessus</li>
+            <li>Tu es redirigé vers <strong>roblox.com/login</strong></li>
+            <li>Autorise Luau AI à accéder à ton profil</li>
+            <li>Tu reviens ici connecté avec ton vrai compte ✓</li>
+          </ol>
+          <div style="margin-top:8px;color:var(--text2);">ℹ️ Nous récupérons uniquement : username, userId, et avatar headshot. Aucun mot de passe.</div>
+        </div>
+      </div>
+
+      <!-- Confirm after lookup -->
+      <div id="user-confirm">
+        <div class="confirm-card">
+          <img class="confirm-avatar" id="confirm-avatar" src="" alt="">
+          <div>
+            <div class="confirm-name" id="confirm-name"></div>
+            <div class="confirm-id" id="confirm-id"></div>
+            <div style="font-size:12px;color:var(--green2);margin-top:4px;">✓ Compte Roblox vérifié</div>
+          </div>
+        </div>
+        <button class="confirm-btn" onclick="confirmLogin()">Confirmer et entrer dans Luau AI</button>
+        <div class="cancel-link" onclick="cancelConfirm()">← Changer de compte</div>
+      </div>
+    </div>
+
+    <div class="auth-divider">ou entrez votre username manuellement</div>
+
+    <!-- Manual fallback -->
+    <div id="manual-section">
+      <input class="auth-input" type="text" id="manual-username" placeholder="Username Roblox (ex: Builderman)">
+      <button class="auth-submit" onclick="lookupRobloxUser()">Rechercher mon compte Roblox →</button>
+      <div id="lookup-error" style="font-size:12px;color:var(--red);margin-top:8px;display:none;"></div>
+    </div>
+
+    <div class="auth-footer">En vous connectant, vous acceptez nos <a>Conditions</a> · <a>Confidentialité</a></div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="s-logo">
+        <div class="s-logo-icon">🤖</div>
+        <div class="s-logo-text">Luau<span>AI</span></div>
+      </div>
+      <div class="new-btn" onclick="newChat()" title="Nouveau chat">＋</div>
+    </div>
+    <div class="s-search">
+      <div class="s-search-inner">
+        <span class="s-search-icon">🔍</span>
+        <input class="s-search-input" placeholder="Rechercher...">
+      </div>
+    </div>
+    <div class="s-nav">
+      <div class="s-nav-item active" id="nav-chat" onclick="showView('chat')">
+        <span class="ni">💬</span> Chat IA
+        <span class="s-badge green">EN LIGNE</span>
+      </div>
+      <div class="s-nav-item" id="nav-shop" onclick="showView('shop')">
+        <span class="ni">🛒</span> Boutique
+      </div>
+      <div class="s-nav-item" id="nav-studio" onclick="showStudio()">
+        <span class="ni">🎮</span> Studio Tools
+        <span class="s-badge">BÊTA</span>
+      </div>
+      <div class="s-nav-item" id="nav-settings" onclick="showView('settings')">
+        <span class="ni">⚙️</span> Paramètres
+      </div>
+    </div>
+    <div class="s-section-label">Récent</div>
+    <div class="s-history" id="s-history">
+      <div class="s-hist-item"><span class="hi">⚡</span><span class="ht">Script téléportation entre serveurs</span><span class="htime">2h</span></div>
+      <div class="s-hist-item"><span class="hi">🔧</span><span class="ht">Optimisation FPS Roblox</span><span class="htime">5h</span></div>
+      <div class="s-hist-item"><span class="hi">🎨</span><span class="ht">Système GUI avancé</span><span class="htime">Hier</span></div>
+      <div class="s-hist-item"><span class="hi">⚡</span><span class="ht">RemoteEvents & networking</span><span class="htime">Hier</span></div>
+      <div class="s-hist-item"><span class="hi">🤖</span><span class="ht">NPC IA avec pathfinding</span><span class="htime">2j</span></div>
+    </div>
+    <div class="s-user" onclick="showView('settings')">
+      <div class="s-user-av-wrap">
+        <img class="s-user-av" id="s-avatar" src="" alt="">
+        <div class="s-user-online"></div>
+      </div>
+      <div class="s-user-info">
+        <div class="s-user-name" id="s-username">—</div>
+        <div class="s-user-meta">
+          <span class="s-user-plan" id="s-plan">Starter</span>
+          <span class="s-credits" id="s-credits">💎 100 cr</span>
+        </div>
+      </div>
+      <span style="font-size:14px;color:var(--text2);">⚙️</span>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- TOP BAR -->
+    <div class="top-bar">
+      <button class="t-tab active" id="tab-luauai" onclick="switchModel('luauai')">Luau AI</button>
+      <button class="t-tab" id="tab-studio" onclick="switchModel('studio')">Studio Assist</button>
+      <button class="t-tab" id="tab-debug" onclick="switchModel('debug')">Debug</button>
+      <div class="top-bar-right">
+        <div class="credits-chip" onclick="showView('shop')">
+          💎 <span id="credits-display">100</span> crédits
+        </div>
+        <div class="model-chip">
+          <div class="m-dot"></div>
+          <span id="model-display">Luau AI 2.0</span> ▾
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAT VIEW -->
+    <div id="chat-view">
+      <div class="welcome" id="welcome-screen">
+        <div class="welcome-icon">🤖</div>
+        <div class="welcome-title">Bonjour, <span id="w-name">—</span> !</div>
+        <p class="welcome-sub">Que souhaitez-vous créer dans Roblox Studio ?</p>
+        <div class="sug-grid">
+          <div class="sug-card" onclick="suggest('Écris un script Luau pour un système de téléportation entre serveurs Roblox')">
+            <div class="si">⚡</div><div class="st">Script Luau</div><div class="sd">Génère du code Roblox Studio</div>
+          </div>
+          <div class="sug-card" onclick="suggest('Comment optimiser les performances de mon jeu Roblox pour réduire la latence et améliorer les FPS ?')">
+            <div class="si">🚀</div><div class="st">Optimisation</div><div class="sd">Améliore FPS et latence</div>
+          </div>
+          <div class="sug-card" onclick="suggest('Comment créer un système de GUI complet avec ScreenGui, Frame et boutons animés dans Roblox ?')">
+            <div class="si">🎨</div><div class="st">Interface GUI</div><div class="sd">Menus et interfaces joueur</div>
+          </div>
+          <div class="sug-card" onclick="suggest('Comment déboguer une erreur RemoteEvent dans Roblox Studio ? Donne-moi les meilleures pratiques.')">
+            <div class="si">🔧</div><div class="st">Débogage</div><div class="sd">Résous les bugs Studio</div>
+          </div>
+        </div>
+      </div>
+      <div class="msgs" id="msgs" style="display:none;"></div>
+      <div class="input-area">
+        <div class="input-wrap">
+          <textarea class="chat-ta" id="chat-ta" placeholder="Demande à Luau AI... (Entrée pour envoyer, Shift+Entrée pour nouvelle ligne)" rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          <div class="input-actions">
+            <button class="act-btn">📎 Joindre</button>
+            <button class="act-btn">🎮 Plugin Studio</button>
+            <button class="act-btn">📋 Coller du code</button>
+            <button class="send-btn" id="send-btn" onclick="sendMsg()">Envoyer ↗</button>
+          </div>
+        </div>
+        <div class="input-footer">Luau AI · Chaque message utilise ~1 crédit · Propulsé par Claude</div>
+      </div>
+    </div>
+
+    <!-- SHOP VIEW -->
+    <div id="shop-view">
+      <div class="shop-head">
+        <h1>Choisissez votre <span>Plan Luau AI</span></h1>
+        <p>Débloquez tout le potentiel de l'IA pour Roblox Studio</p>
+        <div class="billing-row">
+          <span style="color:var(--text1)">Mensuel</span>
+          <div class="tgl-track" id="bill-tgl" onclick="toggleBilling()"><div class="tgl-thumb"></div></div>
+          <span style="color:var(--text1)">Annuel</span>
+          <span class="save-tag">−20%</span>
+        </div>
+      </div>
+      <div class="plans-grid">
+        <!-- STARTER -->
+        <div class="plan-card">
+          <div class="plan-icon">🌱</div>
+          <div class="plan-name">Starter</div>
+          <div class="plan-desc">Parfait pour débuter avec l'IA</div>
+          <div class="plan-price"><span class="price-num">0</span><span class="price-unit">R$/mois</span></div>
+          <div class="plan-credits-box"><span class="pcr-icon">💎</span><div><div class="pcr-amount">100</div><div style="font-size:11px;color:var(--text2)">crédits offerts / mois</div></div><div style="margin-left:auto;font-size:11px;color:var(--text2)">Renouvelable</div></div>
+          <ul class="plan-feats">
+            <li><span class="ck">✓</span> 100 crédits gratuits/mois</li>
+            <li><span class="ck">✓</span> Modèle Luau AI Standard</li>
+            <li><span class="ck">✓</span> Historique 7 jours</li>
+            <li><span class="ck">✓</span> Génération de scripts</li>
+            <li><span class="cx">✗</span> <span style="color:var(--text2)">Priorité serveur</span></li>
+            <li><span class="cx">✗</span> <span style="color:var(--text2)">Plugin Studio</span></li>
+          </ul>
+          <button class="plan-btn cur" id="starter-btn">✓ Plan actuel</button>
+        </div>
+        <!-- PRO -->
+        <div class="plan-card featured">
+          <div class="top-badge">⭐ Plus populaire</div>
+          <div class="plan-icon">🚀</div>
+          <div class="plan-name" style="color:var(--blue3)">Pro</div>
+          <div class="plan-desc">Pour les développeurs sérieux</div>
+          <div class="plan-price"><span class="price-num" id="pro-price">800</span><span class="price-unit">R$/mois</span><span class="price-strike" id="pro-strike" style="display:none">1000</span></div>
+          <div class="plan-credits-box"><span class="pcr-icon">💎</span><div><div class="pcr-amount">2 500</div><div style="font-size:11px;color:var(--text2)">crédits / mois</div></div><div style="margin-left:auto;font-size:11px;color:var(--blue3);font-weight:600">+500 bonus</div></div>
+          <ul class="plan-feats">
+            <li><span class="ck">✓</span> 2 500 crédits/mois</li>
+            <li><span class="ck">✓</span> Luau AI Pro (modèle avancé)</li>
+            <li><span class="ck">✓</span> Historique illimité</li>
+            <li><span class="ck">✓</span> Plugin Studio (bientôt)</li>
+            <li><span class="ck">✓</span> Priorité serveur</li>
+            <li><span class="cx">✗</span> <span style="color:var(--text2)">API access</span></li>
+          </ul>
+          <button class="plan-btn blue" onclick="buyGamepass('Pro',800)">🎮 Acheter via Gamepass</button>
+        </div>
+        <!-- ENTERPRISE -->
+        <div class="plan-card">
+          <div class="plan-icon">👑</div>
+          <div class="plan-name" style="color:var(--purple)">Enterprise</div>
+          <div class="plan-desc">Pour les studios et équipes</div>
+          <div class="plan-price"><span class="price-num" id="ent-price">2 500</span><span class="price-unit">R$/mois</span><span class="price-strike" id="ent-strike" style="display:none">3000</span></div>
+          <div class="plan-credits-box"><span class="pcr-icon">💎</span><div><div class="pcr-amount">∞</div><div style="font-size:11px;color:var(--text2)">crédits illimités</div></div><div style="margin-left:auto;font-size:11px;color:var(--purple);font-weight:600">Illimité</div></div>
+          <ul class="plan-feats">
+            <li><span class="ck">✓</span> Crédits illimités</li>
+            <li><span class="ck">✓</span> Luau AI Ultra</li>
+            <li><span class="ck">✓</span> API Access (10K req/j)</li>
+            <li><span class="ck">✓</span> Plugin Studio complet</li>
+            <li><span class="ck">✓</span> Support prioritaire 24/7</li>
+            <li><span class="ck">✓</span> Équipe jusqu'à 10 membres</li>
+          </ul>
+          <button class="plan-btn prem" onclick="buyGamepass('Enterprise',2500)">👑 Acheter via Gamepass</button>
+        </div>
+      </div>
+      <div class="gp-notice">
+        <div class="gp-icon">🎮</div>
+        <div class="gp-text">
+          <strong>Paiement sécurisé via Roblox Gamepass</strong><br>
+          Achetez le Gamepass correspondant sur <span class="gp-link" id="gp-link">notre page Roblox</span>. Votre plan se met à jour automatiquement après l'achat. Aucune carte bancaire requise — paiement 100% en Robux.
+        </div>
+      </div>
+      <div class="cmp-title">Comparaison complète</div>
+      <table class="cmp-table">
+        <thead><tr><th>Fonctionnalité</th><th>Starter</th><th>Pro</th><th>Enterprise</th></tr></thead>
+        <tbody>
+          <tr><td>Crédits / mois</td><td>100</td><td class="hl">2 500</td><td class="hl">∞ Illimité</td></tr>
+          <tr><td>Modèle IA</td><td>Standard</td><td class="hl">Pro</td><td class="hl">Ultra</td></tr>
+          <tr><td>Génération Luau</td><td class="tk">✓</td><td class="tk">✓</td><td class="tk">✓</td></tr>
+          <tr><td>Historique chats</td><td>7 jours</td><td class="hl">Illimité</td><td class="hl">Illimité</td></tr>
+          <tr><td>Plugin Roblox Studio</td><td class="nx">✗</td><td class="tk">✓</td><td class="tk">✓</td></tr>
+          <tr><td>API Access</td><td class="nx">✗</td><td class="nx">✗</td><td class="tk">✓</td></tr>
+          <tr><td>Support</td><td>Communauté</td><td>Email</td><td class="hl">24/7 Prioritaire</td></tr>
+          <tr><td>Membres équipe</td><td>1</td><td>1</td><td class="hl">Jusqu'à 10</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SETTINGS VIEW -->
+    <div id="settings-view">
+      <div class="set-title">Paramètres du compte</div>
+      <div class="set-profile">
+        <img class="set-av" id="set-avatar" src="" alt="">
+        <div>
+          <div class="set-uname" id="set-uname">—</div>
+          <div class="set-umeta" id="set-umeta">Plan Starter · 100 crédits</div>
+          <div class="set-uid" id="set-uid">ID Roblox: —</div>
+        </div>
+        <button style="margin-left:auto;padding:8px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text0);font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif;" onclick="showView('shop')">Gérer le plan</button>
+      </div>
+      <div class="set-group">
+        <div class="set-row">
+          <div class="set-label"><div class="set-ltitle">Thème</div><div class="set-ldesc">Apparence de l'interface</div></div>
+          <select class="set-select"><option>Sombre (VS Code)</option><option>Sombre Bleu</option><option>Clair</option></select>
+        </div>
+        <div class="set-row">
+          <div class="set-label"><div class="set-ltitle">Langue IA</div><div class="set-ldesc">Langue de réponse de Luau AI</div></div>
+          <select class="set-select"><option>Français</option><option>Anglais</option><option>Espagnol</option></select>
+        </div>
+        <div class="set-row">
+          <div class="set-label"><div class="set-ltitle">Coloration syntaxique Luau</div><div class="set-ldesc">Mise en forme du code dans le chat</div></div>
+          <div class="tgl-track on" style="cursor:pointer;" onclick="this.classList.toggle('on');this.querySelector('.tgl-thumb').style.transform=this.classList.contains('on')?'translateX(20px)':''"><div class="tgl-thumb" style="transform:translateX(20px)"></div></div>
+        </div>
+      </div>
+      <div class="set-group">
+        <div class="set-row" style="cursor:pointer;" onclick="doLogout()">
+          <div class="set-label">
+            <div class="set-ltitle" style="color:var(--red)">Se déconnecter</div>
+            <div class="set-ldesc">Retourner à l'écran de connexion Roblox</div>
+          </div>
+          <span style="color:var(--red);">→</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// =============================================
+// STATE
+// =============================================
+let currentUser = null;
+let messages = [];
+let isTyping = false;
+let billingAnnual = false;
+let currentModel = 'luauai';
+
+// =============================================
+// ROBLOX API HELPERS
+// Roblox has public APIs that don't need auth:
+//   - users/v1/users (lookup by username)
+//   - thumbnails/v1/users/avatar-headshot (avatar image)
+// These are CORS-accessible from browsers.
+// =============================================
+
+const ROBLOX_PROXY = 'https://users.roblox.com';
+// Note: Roblox APIs block direct browser CORS calls.
+// We use allorigins.win as a CORS proxy for the demo.
+// In production you'd use your own backend.
+const PROXY = 'https://api.allorigins.win/raw?url=';
+
+async function fetchRobloxUser(username) {
+  const url = `https://users.roblox.com/v1/usernames/users`;
+  const resp = await fetch(PROXY + encodeURIComponent(url), {
+    method: 'POST', // allorigins only supports GET so we use alternate
+  }).catch(() => null);
+  // allorigins doesn't support POST — use GET endpoint instead
+  // Try users.roblox.com/v1/users/search
+  const searchUrl = `https://users.roblox.com/v1/users/search?keyword=${encodeURIComponent(username)}&limit=10`;
+  const r = await fetch(PROXY + encodeURIComponent(searchUrl));
+  if (!r.ok) throw new Error('Impossible de contacter Roblox');
+  const data = await r.json();
+  if (!data.data || data.data.length === 0) throw new Error('Aucun utilisateur trouvé');
+  const match = data.data.find(u => u.name.toLowerCase() === username.toLowerCase());
+  if (!match) throw new Error(`Utilisateur "${username}" introuvable`);
+  return match; // { id, name, displayName }
+}
+
+async function fetchRobloxAvatar(userId) {
+  const url = `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=true`;
+  const r = await fetch(PROXY + encodeURIComponent(url));
+  if (!r.ok) return null;
+  const data = await r.json();
+  return data.data?.[0]?.imageUrl || null;
+}
+
+// =============================================
+// OAUTH FLOW
+// Real Roblox OAuth requires a registered app at
+// create.roblox.com/dashboard/credentials
+// Since this is a standalone HTML file, we simulate
+// the flow by asking the username then fetching
+// the REAL profile data from Roblox public API.
+// Full OAuth (with code exchange) needs a backend.
+// =============================================
+
+let pendingUser = null;
+
+function startRobloxOAuth() {
+  // In a real deployment, redirect to:
+  // https://apis.roblox.com/oauth/v1/authorize?client_id=YOUR_ID&redirect_uri=YOUR_URI&scope=openid+profile&response_type=code&state=xyz
+  // Since this is a client-only file, we ask for username then query real Roblox APIs
+  document.getElementById('oauth-section').style.display = 'none';
+  document.getElementById('manual-section').style.display = 'block';
+  document.getElementById('manual-username').placeholder = 'Ton username Roblox exact...';
+  document.getElementById('manual-username').focus();
+  showToast('ℹ️ Entrez votre username pour la vérification Roblox', 'info');
+}
+
+async function lookupRobloxUser() {
+  const username = document.getElementById('manual-username').value.trim();
+  if (!username) { setLookupError('Entrez un username Roblox.'); return; }
+
+  document.getElementById('lookup-error').style.display = 'none';
+  showLoading('Recherche sur Roblox...');
+
+  try {
+    const user = await fetchRobloxUser(username);
+    setLoadingText('Chargement de l\'avatar...');
+    const avatarUrl = await fetchRobloxAvatar(user.id);
+
+    pendingUser = {
+      id: user.id,
+      username: user.name,
+      displayName: user.displayName || user.name,
+      avatarUrl: avatarUrl || generateFallbackAvatar(user.name),
+      plan: 'Starter',
+      credits: 100
+    };
+
+    hideLoading();
+    showUserConfirm(pendingUser);
+  } catch (err) {
+    hideLoading();
+    setLookupError(err.message || 'Erreur lors de la recherche. Vérifie le username.');
+  }
+}
+
+function showUserConfirm(user) {
+  document.getElementById('confirm-avatar').src = user.avatarUrl;
+  document.getElementById('confirm-name').textContent = user.displayName + (user.displayName !== user.username ? ` (@${user.username})` : '');
+  document.getElementById('confirm-id').textContent = `ID Roblox: ${user.id}`;
+  document.getElementById('user-confirm').classList.add('show');
+  document.getElementById('manual-section').style.display = 'none';
+}
+
+function confirmLogin() {
+  if (!pendingUser) return;
+  currentUser = pendingUser;
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').classList.add('show');
+  updateUI();
+  showToast(`✓ Connecté en tant que ${currentUser.username}`);
+}
+
+function cancelConfirm() {
+  document.getElementById('user-confirm').classList.remove('show');
+  document.getElementById('oauth-section').style.display = 'block';
+  document.getElementById('manual-section').style.display = 'block';
+  pendingUser = null;
+}
+
+function generateFallbackAvatar(name) {
+  // Returns a data URL canvas avatar as fallback
+  const canvas = document.createElement('canvas');
+  canvas.width = 150; canvas.height = 150;
+  const ctx = canvas.getContext('2d');
+  const colors = ['#1f6feb','#8b5cf6','#3fb950','#39d0d8','#f778ba'];
+  ctx.fillStyle = colors[name.charCodeAt(0) % colors.length];
+  ctx.fillRect(0,0,150,150);
+  ctx.fillStyle = 'white';
+  ctx.font = 'bold 60px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(name[0].toUpperCase(), 75, 75);
+  return canvas.toDataURL();
+}
+
+function setLookupError(msg) {
+  const el = document.getElementById('lookup-error');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+function showLoading(text) {
+  document.getElementById('loading-text').textContent = text;
+  document.getElementById('auth-loading').classList.add('show');
+}
+function setLoadingText(t) { document.getElementById('loading-text').textContent = t; }
+function hideLoading() { document.getElementById('auth-loading').classList.remove('show'); }
+
+// =============================================
+// UI UPDATES
+// =============================================
+
+function updateUI() {
+  if (!currentUser) return;
+  const u = currentUser;
+  document.getElementById('s-avatar').src = u.avatarUrl;
+  document.getElementById('s-avatar').onerror = () => { document.getElementById('s-avatar').src = generateFallbackAvatar(u.username); };
+  document.getElementById('s-username').textContent = u.username;
+  document.getElementById('s-plan').textContent = 'Plan ' + u.plan;
+  const cr = u.credits >= 99999 ? '∞' : u.credits;
+  const credEl = document.getElementById('s-credits');
+  credEl.textContent = '💎 ' + cr + ' cr';
+  credEl.className = 's-credits' + (u.credits < 20 ? ' low' : '');
+  document.getElementById('credits-display').textContent = cr;
+  document.getElementById('w-name').textContent = u.displayName || u.username;
+  document.getElementById('set-avatar').src = u.avatarUrl;
+  document.getElementById('set-uname').textContent = u.displayName + (u.displayName !== u.username ? ` (@${u.username})` : '');
+  document.getElementById('set-umeta').textContent = `Plan ${u.plan} · ${cr} crédits restants`;
+  document.getElementById('set-uid').textContent = `ID Roblox: ${u.id}`;
+}
+
+// =============================================
+// VIEWS
+// =============================================
+
+function showView(v) {
+  ['chat','shop','settings'].forEach(x => {
+    document.getElementById(x+'-view').classList.remove('show');
+    document.getElementById(x+'-view').style.display = 'none';
+    document.getElementById('nav-'+x)?.classList.remove('active');
+  });
+  if (v === 'chat') {
+    document.getElementById('chat-view').style.display = 'flex';
+  } else {
+    document.getElementById(v+'-view').style.display = 'block';
+    document.getElementById(v+'-view').classList.add('show');
+  }
+  document.getElementById('nav-'+v)?.classList.add('active');
+}
+
+function showStudio() {
+  showToast('🎮 Plugin Studio — Bientôt disponible !', 'info');
+}
+
+function switchModel(m) {
+  currentModel = m;
+  ['luauai','studio','debug'].forEach(x => document.getElementById('tab-'+x)?.classList.remove('active'));
+  document.getElementById('tab-'+m)?.classList.add('active');
+  const names = { luauai:'Luau AI 2.0', studio:'Studio Assist', debug:'Debug Mode' };
+  document.getElementById('model-display').textContent = names[m];
+}
+
+// =============================================
+// CHAT
+// =============================================
+
+const AI_REPLIES = [
+  `Bien sûr ! Voici un script Luau pour ton projet :\n\n[CODE]-- Système de téléportation entre serveurs\nlocal TeleportService = game:GetService("TeleportService")\nlocal Players = game:GetService("Players")\n\nlocal function teleportPlayer(player, placeId)\n    local success, err = pcall(function()\n        TeleportService:TeleportAsync(placeId, {player})\n    end)\n    if not success then\n        warn("Erreur téléportation: " .. err)\n    end\nend\n\n-- Utilisation :\n-- teleportPlayer(game.Players.LocalPlayer, 123456789)[/CODE]\n\nCe script utilise TeleportAsync pour téléporter un joueur vers un autre Place. Tu veux ajouter un écran de chargement ou une confirmation ?`,
+  `Excellente question ! Voici les meilleures pratiques d'optimisation Roblox :\n\n**1. Réduis les appels réseau**\nUtilise RemoteEvents au lieu de RemoteFunctions quand tu n'attends pas de retour.\n\n**2. Streaming enabled**\nActive le Workspace StreamingEnabled pour les grandes maps — ça réduit la charge côté client.\n\n**3. Throttle les boucles**\n\n[CODE]-- Mauvais : boucle chaque frame\ngame:GetService("RunService").Heartbeat:Connect(function()\n    updateAllPlayers() -- trop fréquent !\nend)\n\n-- Bon : throttle à 0.5s\nlocal lastUpdate = 0\ngame:GetService("RunService").Heartbeat:Connect(function(dt)\n    lastUpdate += dt\n    if lastUpdate >= 0.5 then\n        updateAllPlayers()\n        lastUpdate = 0\n    end\nend)[/CODE]\n\nTu veux un audit complet de ton code ?`,
+  `Pour créer un système de GUI professionnel dans Roblox Studio :\n\n[CODE]-- LocalScript dans StarterPlayerScripts\nlocal Players = game:GetService("Players")\nlocal TweenService = game:GetService("TweenService")\nlocal player = Players.LocalPlayer\nlocal gui = player:WaitForChild("PlayerGui")\n\nlocal screen = Instance.new("ScreenGui")\nscreen.Name = "GameUI"\nscreen.ResetOnSpawn = false\nscreen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling\nscreen.Parent = gui\n\nlocal frame = Instance.new("Frame")\nframe.Size = UDim2.new(0, 350, 0, 220)\nframe.Position = UDim2.new(0.5, -175, 0.5, -110)\nframe.BackgroundColor3 = Color3.fromRGB(20, 20, 30)\nframe.BorderSizePixel = 0\nframe.Parent = screen\n\n-- Coins arrondis\nlocal corner = Instance.new("UICorner")\ncorner.CornerRadius = UDim.new(0, 12)\ncorner.Parent = frame\n\n-- Animation d'ouverture\nframe.Size = UDim2.new(0, 0, 0, 0)\nlocal tween = TweenService:Create(frame,\n    TweenInfo.new(0.4, Enum.EasingStyle.Back),\n    {Size = UDim2.new(0, 350, 0, 220)}\n)\ntween:Play()[/CODE]\n\nTu veux que j'ajoute des boutons, des TextLabels ou une barre de vie ?`
+];
+
+function suggest(text) {
+  document.getElementById('chat-ta').value = text;
+  sendMsg();
+}
+
+function newChat() {
+  messages = [];
+  document.getElementById('welcome-screen').style.display = 'flex';
+  document.getElementById('msgs').style.display = 'none';
+  document.getElementById('msgs').innerHTML = '';
+  showView('chat');
+}
+
+function renderMsg(m) {
+  const isUser = m.role === 'user';
+  const avHtml = isUser
+    ? `<img src="${currentUser.avatarUrl}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid var(--blue2);" onerror="this.src='${generateFallbackAvatar(currentUser.username)}';">`
+    : '🤖';
+  let text = m.text
+    .replace(/\[CODE\]([\s\S]*?)\[\/CODE\]/g, (_,c) => `<div class="code-block"><div class="code-lang">Luau</div>${c.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`)
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\n/g,'<br>');
+  const now = new Date();
+  const t = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  return `<div class="msg ${isUser?'user':'ai'}">
+    <div class="msg-av ${isUser?'':'ai'}">${avHtml}</div>
+    <div><div class="msg-bubble">${text}</div><div class="msg-time">${t}</div></div>
+  </div>`;
+}
+
+function sendMsg() {
+  if (isTyping) return;
+  const ta = document.getElementById('chat-ta');
+  const text = ta.value.trim();
+  if (!text) return;
+
+  if (currentUser && currentUser.plan === 'Starter' && currentUser.credits <= 0) {
+    showToast('❌ Plus de crédits ! Achetez un plan Pro', 'error');
+    showView('shop'); return;
+  }
+
+  ta.value = ''; ta.style.height = '';
+  messages.push({ role:'user', text });
+  if (currentUser && currentUser.credits < 99999) currentUser.credits = Math.max(0, currentUser.credits - 1);
+  updateUI();
+
+  const container = document.getElementById('msgs');
+  document.getElementById('welcome-screen').style.display = 'none';
+  container.style.display = 'flex';
+  container.innerHTML = messages.map(renderMsg).join('');
+
+  const tid = 'typing-'+Date.now();
+  container.innerHTML += `<div class="msg ai" id="${tid}">
+    <div class="msg-av ai">🤖</div>
+    <div><div class="msg-bubble"><div class="typing-dots"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div></div></div>
+  </div>`;
+  container.scrollTop = container.scrollHeight;
+  isTyping = true;
+  document.getElementById('send-btn').disabled = true;
+
+  setTimeout(() => {
+    const reply = AI_REPLIES[Math.floor(Math.random() * AI_REPLIES.length)];
+    messages.push({ role:'ai', text:reply });
+    isTyping = false;
+    document.getElementById('send-btn').disabled = false;
+    container.innerHTML = messages.map(renderMsg).join('');
+    container.scrollTop = container.scrollHeight;
+  }, 1000 + Math.random() * 900);
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+}
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 200) + 'px';
+}
+
+// =============================================
+// SHOP
+// =============================================
+
+function toggleBilling() {
+  billingAnnual = !billingAnnual;
+  const t = document.getElementById('bill-tgl');
+  t.classList.toggle('on', billingAnnual);
+  t.querySelector('.tgl-thumb').style.transform = billingAnnual ? 'translateX(20px)' : '';
+  document.getElementById('pro-price').textContent = billingAnnual ? '640' : '800';
+  document.getElementById('ent-price').textContent = billingAnnual ? '2 000' : '2 500';
+  document.getElementById('pro-strike').style.display = billingAnnual ? 'inline' : 'none';
+  document.getElementById('ent-strike').style.display = billingAnnual ? 'inline' : 'none';
+}
+
+function buyGamepass(plan, price) {
+  // Replace GAMEPASS_ID with your actual Roblox Gamepass IDs
+  const GAMEPASS_IDS = { Pro: 'VOTRE_ID_GAMEPASS_PRO', Enterprise: 'VOTRE_ID_GAMEPASS_ENTERPRISE' };
+  const gpId = GAMEPASS_IDS[plan];
+  showToast(`🎮 Redirection vers le Gamepass Roblox — ${plan} (${price} R$)`, 'info');
+  // Uncomment to redirect to real Roblox Gamepass:
+  // window.open(`https://www.roblox.com/game-pass/${gpId}`, '_blank');
+}
+
+// =============================================
+// LOGOUT
+// =============================================
+
+function doLogout() {
+  currentUser = null; messages = [];
+  document.getElementById('app').classList.remove('show');
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('oauth-section').style.display = 'block';
+  document.getElementById('manual-section').style.display = 'block';
+  document.getElementById('user-confirm').classList.remove('show');
+  document.getElementById('manual-username').value = '';
+  document.getElementById('lookup-error').style.display = 'none';
+  pendingUser = null;
+}
+
+// =============================================
+// TOAST
+// =============================================
+
+function showToast(msg, type='success') {
+  document.querySelectorAll('.toast').forEach(t => t.remove());
+  const t = document.createElement('div');
+  t.className = 'toast' + (type !== 'success' ? ' ' + type : '');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// Init: show chat view by default
+showView('chat');
+</script>
+</body>
+</html>
