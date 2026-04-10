@@ -42,7 +42,9 @@ function loadEnvKey(key) {
 export default async function handler(req, res) {
   const apiKey = loadEnvKey('HUGGINGFACE_API_KEY') || loadEnvKey('HF_API_KEY');
   if (!apiKey) {
-    return res.status(500).json({ error: 'API key not configured' });
+    return res.status(500).json({
+      error: 'API key not configured. Configure HUGGINGFACE_API_KEY or HF_API_KEY in environment or .env.'
+    });
   }
 
   const model = loadEnvKey('HF_MODEL') || 'Roblox-Coder-Llama-7B-v1';
