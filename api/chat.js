@@ -56,69 +56,98 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'API key not configured' });
   }
 
-  const model = loadEnvKey('HF_MODEL') || 'allenai/Olmo-3-7B-Instruct';
+  const model = loadEnvKey('HF_MODEL') || 'Roblox-Coder-Llama-7B-v1';
 
   console.log('=== DEBUG API CALL ===');
   console.log('Received messages:', JSON.stringify(messages, null, 2));
   console.log('API Key exists:', !!apiKey);
-  console.log('API Key starts with:', apiKey.substring(0, 10) + '...');
   console.log('Using model:', model);
 
+  const systemMessage = {
+    role: 'system',
+    content: 'Tu es Luau AI, un assistant IA expert en scripting Roblox avec le langage Luau. Tu aides les utilisateurs à créer des scripts, déboguer du code, optimiser les performances et fournir des conseils sur le développement Roblox. Réponds toujours en français de manière claire et utile. Fournis des exemples de code précis et fonctionnels.'
+  };
+
+  const chatMessages = [
+    systemMessage,
+    ...messages.map(m => ({
+      role: m.role === 'user' ? 'user' : 'assistant',
+      content: m.text
+    }))
+  ];
+
+  function extractReply(data) {
+    if (!data) return undefined;
+    if (typeof data.choices?.[0]?.message?.content === 'string') return data.choices[0].message.content;
+    if (typeof data.choices?.[0]?.text === 'string') return data.choices[0].text;
+    if (typeof data.generated_text === 'string') return data.generated_text;
+    if (Array.isArray(data) && typeof data[0]?.generated_text === 'string') return data[0].generated_text;
+    return undefined;
+  }
+
+  async function callTextFallback(prompt) {
+    console.log('Trying text fallback for model:', model);
+    const fallbackResponse = await fetch(`https://api-inference.huggingface.co/models/${encodeURIComponent(model)}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        inputs: prompt,
+        parameters: {
+          max_new_tokens: 600,
+          temperature: 0.7,
+          return_full_text: false
+        }
+      })
+    });
+
+    if (!fallbackResponse.ok) {
+      const fallbackErr = await fallbackResponse.text();
+      console.error('Text fallback failed:', fallbackResponse.status, fallbackErr);
+      throw new Error(`Fallback text completion failed: ${fallbackResponse.status} ${fallbackErr}`);
+    }
+
+    const fallbackData = await fallbackResponse.json();
+    console.log('Text fallback response:', JSON.stringify(fallbackData, null, 2));
+    const fallbackText = extractReply(fallbackData);
+    if (!fallbackText) {
+      throw new Error('No answer from text fallback');
+    }
+    return fallbackText;
+  }
+
   try {
-    const response = await fetch(
-      'https://router.huggingface.co/v1/chat/completions',
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            {
-              role: 'system',
-              content: 'Tu es Luau AI, un assistant IA expert en scripting Roblox avec le langage Luau. Tu aides les utilisateurs à créer des scripts, déboguer du code, optimiser les performances et fournir des conseils sur le développement Roblox. Réponds toujours en français de manière claire et utile. Fournis des exemples de code précis et fonctionnels.'
-            },
-            ...messages.map(m => ({
-              role: m.role === 'user' ? 'user' : 'assistant',
-              content: m.text
-            }))
-          ],
-          max_tokens: 2000,
-          temperature: 0.7
-        })
-      }
-    );
+    const response = await fetch('https://router.huggingface.co/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model,
+        messages: chatMessages,
+        max_tokens: 2000,
+        temperature: 0.7
+      })
+    });
 
     console.log('Response status:', response.status);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('=== API ERROR ===');
-      console.error('Status:', response.status);
-      console.error('Status Text:', response.statusText);
-      console.error('Response Body:', errorText);
-      console.error('================');
-      return res.status(response.status).json({
-        error: `AI service error: ${response.status} - ${errorText}`
-      });
-    }
 
     const data = await response.json();
     console.log('Success response:', JSON.stringify(data, null, 2));
 
-    const reply = data?.choices?.[0]?.message?.content;
-
+    let reply = extractReply(data);
     if (!reply) {
-      console.error('No reply in response');
-      return res.status(500).json({ error: 'No response from AI' });
+      const prompt = chatMessages.map(m => `${m.role === 'system' ? 'System' : m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n') + '\nAssistant:';
+      reply = await callTextFallback(prompt);
     }
 
-    console.log('Final reply:', reply ? reply.substring(0, 100) + '...' : 'undefined');
+    console.log('Final reply:', reply?.substring(0, 100) + '...');
     res.status(200).json({ reply });
   } catch (error) {
     console.error('Error calling Hugging Face:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: error.message || 'Internal server error' });
   }
 }
