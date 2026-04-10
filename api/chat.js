@@ -56,7 +56,7 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'API key not configured' });
   }
 
-  const model = loadEnvKey('HF_MODEL') || 'openai/gpt-oss-120b';
+  const model = loadEnvKey('HF_MODEL') || 'allenai/Olmo-3-7B-Instruct';
 
   console.log('=== DEBUG API CALL ===');
   console.log('Received messages:', JSON.stringify(messages, null, 2));

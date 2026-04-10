@@ -45,7 +45,7 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'API key not configured' });
   }
 
-  const model = loadEnvKey('HF_MODEL') || 'openai/gpt-oss-120b';
+  const model = loadEnvKey('HF_MODEL') || 'allenai/Olmo-3-7B-Instruct';
 
   try {
     // Test simple avec le routeur Hugging Face OpenAI-compatible
