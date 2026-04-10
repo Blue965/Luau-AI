@@ -1147,6 +1147,7 @@ async function sendMsg() {
 
   renderMessages();
 
+  const container = document.getElementById('msgs');
   const tid = 'typing-'+Date.now();
   container.innerHTML += `<div class="msg ai" id="${tid}">
     <div class="msg-av ai">🤖</div>
