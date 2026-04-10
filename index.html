@@ -561,11 +561,7 @@
     </div>
     <div class="s-section-label">Récent</div>
     <div class="s-history" id="s-history">
-      <div class="s-hist-item"><span class="hi">⚡</span><span class="ht">Script téléportation entre serveurs</span><span class="htime">2h</span></div>
-      <div class="s-hist-item"><span class="hi">🔧</span><span class="ht">Optimisation FPS Roblox</span><span class="htime">5h</span></div>
-      <div class="s-hist-item"><span class="hi">🎨</span><span class="ht">Système GUI avancé</span><span class="htime">Hier</span></div>
-      <div class="s-hist-item"><span class="hi">⚡</span><span class="ht">RemoteEvents & networking</span><span class="htime">Hier</span></div>
-      <div class="s-hist-item"><span class="hi">🤖</span><span class="ht">NPC IA avec pathfinding</span><span class="htime">2j</span></div>
+      <!-- Chargé dynamiquement -->
     </div>
     <div class="s-user" onclick="showView('settings')">
       <div class="s-user-av-wrap">
@@ -869,6 +865,10 @@ function showUserConfirm(user) {
 function confirmLogin() {
   if (!pendingUser) return;
   currentUser = pendingUser;
+  currentUser.credits = 100; // Crédits initiaux pour Starter
+  currentUser.plan = 'Starter'; // Plan par défaut
+  loadChats(); // Charger les conversations sauvegardées
+  loadChatHistory(); // Afficher l'historique
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app').classList.add('show');
   resetDailyCredits(); // Vérifier et reset les crédits quotidiens
@@ -966,6 +966,108 @@ function switchModel(m) {
 }
 
 // =============================================
+// CHAT MANAGEMENT
+// =============================================
+let chats = [];
+let currentChatId = null;
+
+function loadChats() {
+  const saved = localStorage.getItem('luauAI_chats');
+  if (saved) {
+    chats = JSON.parse(saved);
+  }
+}
+
+function saveChats() {
+  localStorage.setItem('luauAI_chats', JSON.stringify(chats));
+}
+
+function createNewChat() {
+  const chatId = 'chat_' + Date.now();
+  const newChat = {
+    id: chatId,
+    title: 'Nouvelle conversation',
+    messages: [],
+    timestamp: Date.now()
+  };
+  chats.unshift(newChat); // Ajouter au début
+  currentChatId = chatId;
+  messages = [];
+  saveChats();
+  loadChatHistory();
+  return newChat;
+}
+
+function loadChat(chatId) {
+  const chat = chats.find(c => c.id === chatId);
+  if (chat) {
+    currentChatId = chatId;
+    messages = chat.messages;
+    updateChatTitle(chat);
+    renderMessages();
+    showView('chat');
+  }
+}
+
+function updateCurrentChat() {
+  if (!currentChatId) return;
+  const chat = chats.find(c => c.id === currentChatId);
+  if (chat) {
+    chat.messages = messages;
+    chat.timestamp = Date.now();
+    // Mettre à jour le titre si c'est le premier message
+    if (messages.length > 0 && chat.title === 'Nouvelle conversation') {
+      chat.title = messages[0].text.substring(0, 50) + (messages[0].text.length > 50 ? '...' : '');
+    }
+    saveChats();
+    loadChatHistory();
+  }
+}
+
+function updateChatTitle(chat) {
+  // Peut-être mettre à jour l'UI du titre si nécessaire
+}
+
+function loadChatHistory() {
+  const historyEl = document.getElementById('s-history');
+  historyEl.innerHTML = '';
+
+  chats.slice(0, 10).forEach(chat => { // Afficher les 10 plus récents
+    const timeAgo = getTimeAgo(chat.timestamp);
+    const icon = getChatIcon(chat.title);
+    const item = document.createElement('div');
+    item.className = 's-hist-item';
+    item.onclick = () => loadChat(chat.id);
+    item.innerHTML = `<span class="hi">${icon}</span><span class="ht">${chat.title}</span><span class="htime">${timeAgo}</span>`;
+    historyEl.appendChild(item);
+  });
+}
+
+function getTimeAgo(timestamp) {
+  const now = Date.now();
+  const diff = now - timestamp;
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+
+  if (minutes < 1) return 'À l\'instant';
+  if (minutes < 60) return `${minutes}min`;
+  if (hours < 24) return `${hours}h`;
+  if (days < 7) return `${days}j`;
+  return 'Plus ancien';
+}
+
+function getChatIcon(title) {
+  const lower = title.toLowerCase();
+  if (lower.includes('script') || lower.includes('luau')) return '⚡';
+  if (lower.includes('optimisation') || lower.includes('fps')) return '🔧';
+  if (lower.includes('gui') || lower.includes('interface')) return '🎨';
+  if (lower.includes('remote') || lower.includes('network')) return '⚡';
+  if (lower.includes('npc') || lower.includes('ia')) return '🤖';
+  return '💬';
+}
+
+// =============================================
 // CHAT
 // =============================================
 
@@ -975,7 +1077,7 @@ function suggest(text) {
 }
 
 function newChat() {
-  messages = [];
+  createNewChat();
   document.getElementById('welcome-screen').style.display = 'flex';
   document.getElementById('msgs').style.display = 'none';
   document.getElementById('msgs').innerHTML = '';
@@ -999,6 +1101,14 @@ function renderMsg(m) {
   </div>`;
 }
 
+function renderMessages() {
+  const container = document.getElementById('msgs');
+  document.getElementById('welcome-screen').style.display = messages.length > 0 ? 'none' : 'flex';
+  container.style.display = messages.length > 0 ? 'flex' : 'none';
+  container.innerHTML = messages.map(renderMsg).join('');
+  container.scrollTop = container.scrollHeight;
+}
+
 function resetDailyCredits() {
   if (!currentUser || currentUser.plan !== 'Starter') return;
 
@@ -1007,7 +1117,7 @@ function resetDailyCredits() {
   const oneDay = 24 * 60 * 60 * 1000; // 24 heures en ms
 
   if (!lastReset || (now - parseInt(lastReset)) >= oneDay) {
-    currentUser.credits = 10; // Reset à 10 crédits
+    currentUser.credits = 10; // Reset à 10 crédits quotidiens
     localStorage.setItem('lastCreditReset', now.toString());
     updateUI();
     showToast('🔄 10 crédits quotidiens rechargés !', 'info');
@@ -1016,6 +1126,7 @@ function resetDailyCredits() {
 
 async function sendMsg() {
   if (isTyping) return;
+  if (!currentChatId) createNewChat();
   const ta = document.getElementById('chat-ta');
   const text = ta.value.trim();
   if (!text) return;
@@ -1034,10 +1145,7 @@ async function sendMsg() {
   if (currentUser && currentUser.credits < 99999) currentUser.credits = Math.max(0, currentUser.credits - 1);
   updateUI();
 
-  const container = document.getElementById('msgs');
-  document.getElementById('welcome-screen').style.display = 'none';
-  container.style.display = 'flex';
-  container.innerHTML = messages.map(renderMsg).join('');
+  renderMessages();
 
   const tid = 'typing-'+Date.now();
   container.innerHTML += `<div class="msg ai" id="${tid}">
@@ -1061,15 +1169,16 @@ async function sendMsg() {
 
     const data = await response.json();
     messages.push({ role: 'ai', text: data.reply });
+    updateCurrentChat();
   } catch (error) {
     console.error('AI Error:', error);
     messages.push({ role: 'ai', text: '❌ Erreur: Impossible de contacter l\'IA. Réessayez plus tard.' });
+    updateCurrentChat();
   }
 
   isTyping = false;
   document.getElementById('send-btn').disabled = false;
-  container.innerHTML = messages.map(renderMsg).join('');
-  container.scrollTop = container.scrollHeight;
+  renderMessages();
 }
 
 function handleKey(e) {
