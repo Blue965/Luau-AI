@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { messages, model = 'anthropic/claude-3-haiku' } = req.body;
+  const { messages, model = 'meta-llama/llama-3-8b-instruct' } = req.body;
 
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: 'Messages array required' });
@@ -11,14 +11,17 @@ export default async function handler(req, res) {
 
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
+    console.error('OPENROUTER_API_KEY not found');
     return res.status(500).json({ error: 'API key not configured' });
   }
+
+  console.log('Using API key:', apiKey.substring(0, 10) + '...'); // Log partiel pour vérifier
 
   try {
     // Add system message
     const systemMessage = {
       role: 'system',
-      content: 'You are Luau AI, an expert AI assistant for Roblox Studio scripting in the Luau programming language. Help users create high-quality Luau scripts, fix bugs, optimize performance, and provide guidance on Roblox game development. Always provide accurate, helpful, and safe code examples. Respond in French if the user asks in French.'
+      content: 'Tu es Luau AI, un assistant IA expert en scripting Roblox avec le langage Luau. Tu aides les utilisateurs à créer des scripts, déboguer du code, optimiser les performances et fournir des conseils sur le développement Roblox. Réponds toujours en français de manière claire et utile. Fournis des exemples de code précis et fonctionnels.'
     };
 
     const fullMessages = [systemMessage, ...messages.map(m => ({
