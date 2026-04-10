@@ -5,9 +5,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Test simple avec Hugging Face
+    // Test simple avec le routeur Hugging Face OpenAI-compatible
     const response = await fetch(
-      'https://api-inference.huggingface.co/models/google/gemma-7b-it',
+      'https://router.huggingface.co/v1/chat/completions',
       {
         method: 'POST',
         headers: {
@@ -15,11 +15,12 @@ export default async function handler(req, res) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          inputs: '<start_of_turn>user\nSalut<end_of_turn>\n<start_of_turn>model',
-          parameters: {
-            max_new_tokens: 100,
-            temperature: 0.7
-          }
+          model: 'openai/gpt-oss-120b:fastest',
+          messages: [
+            { role: 'user', content: 'Salut' }
+          ],
+          max_tokens: 100,
+          temperature: 0.7
         })
       }
     );
@@ -37,7 +38,7 @@ export default async function handler(req, res) {
     res.status(200).json({
       success: true,
       message: 'API key is valid',
-      reply: data[0]?.generated_text?.substring(0, 50) + '...'
+      reply: data?.choices?.[0]?.message?.content?.substring(0, 50) + '...'
     });
   } catch (error) {
     res.status(500).json({ error: 'Test failed: ' + error.message });

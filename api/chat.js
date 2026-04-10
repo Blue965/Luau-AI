@@ -21,25 +21,8 @@ export default async function handler(req, res) {
   console.log('API Key starts with:', apiKey.substring(0, 10) + '...');
 
   try {
-    // Construire le prompt pour Gemma
-    const conversationText = messages
-      .map(m => `${m.role === 'user' ? 'Utilisateur' : 'Assistant'}: ${m.text}`)
-      .join('\n');
-
-    const fullPrompt = `<start_of_turn>system
-Tu es Luau AI, un assistant IA expert en scripting Roblox avec le langage Luau. Tu aides les utilisateurs à créer des scripts, déboguer du code, optimiser les performances et fournir des conseils sur le développement Roblox. Réponds toujours en français de manière claire et utile. Fournis des exemples de code précis et fonctionnels.
-<end_of_turn>
-
-<start_of_turn>user
-${conversationText}
-<end_of_turn>
-
-<start_of_turn>model`;
-
-    console.log('Full prompt to send:', fullPrompt);
-
     const response = await fetch(
-      `https://api-inference.huggingface.co/models/google/gemma-7b-it`,
+      'https://router.huggingface.co/v1/chat/completions',
       {
         method: 'POST',
         headers: {
@@ -47,19 +30,24 @@ ${conversationText}
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          inputs: fullPrompt,
-          parameters: {
-            max_new_tokens: 2000,
-            temperature: 0.7,
-            do_sample: true,
-            return_full_text: false
-          }
+          model: 'openai/gpt-oss-120b:fastest',
+          messages: [
+            {
+              role: 'system',
+              content: 'Tu es Luau AI, un assistant IA expert en scripting Roblox avec le langage Luau. Tu aides les utilisateurs à créer des scripts, déboguer du code, optimiser les performances et fournir des conseils sur le développement Roblox. Réponds toujours en français de manière claire et utile. Fournis des exemples de code précis et fonctionnels.'
+            },
+            ...messages.map(m => ({
+              role: m.role === 'user' ? 'user' : 'assistant',
+              content: m.text
+            }))
+          ],
+          max_tokens: 2000,
+          temperature: 0.7
         })
       }
     );
 
     console.log('Response status:', response.status);
-    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -76,8 +64,7 @@ ${conversationText}
     const data = await response.json();
     console.log('Success response:', JSON.stringify(data, null, 2));
 
-    // Pour Hugging Face, la réponse est dans generated_text
-    const reply = data[0]?.generated_text || data.generated_text;
+    const reply = data?.choices?.[0]?.message?.content;
 
     if (!reply) {
       console.error('No reply in response');
