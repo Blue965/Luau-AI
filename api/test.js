@@ -1,26 +1,36 @@
 import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 function loadEnvKey(key) {
   if (process.env[key]) return process.env[key];
-  try {
-    const envPath = new URL('../.env', import.meta.url);
-    if (!fs.existsSync(envPath)) return undefined;
-    const text = fs.readFileSync(envPath, 'utf8');
-    for (const line of text.split(/\r?\n/)) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith('#')) continue;
-      const [name, ...rest] = trimmed.split('=');
-      if (name.trim() !== key) continue;
-      let value = rest.join('=').trim();
-      if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
-        value = value.slice(1, -1);
+
+  const candidates = [
+    path.resolve(process.cwd(), '.env'),
+    path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.env')
+  ];
+
+  for (const candidate of candidates) {
+    try {
+      if (!fs.existsSync(candidate)) continue;
+      const text = fs.readFileSync(candidate, 'utf8');
+      for (const line of text.split(/\r?\n/)) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) continue;
+        const [name, ...rest] = trimmed.split('=');
+        if (name.trim() !== key) continue;
+        let value = rest.join('=').trim();
+        if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+          value = value.slice(1, -1);
+        }
+        process.env[key] = value;
+        return value;
       }
-      process.env[key] = value;
-      return value;
+    } catch (err) {
+      console.error('Error loading .env file from', candidate, err);
     }
-  } catch (err) {
-    console.error('Error loading .env file:', err);
   }
+
   return undefined;
 }
 
