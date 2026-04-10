@@ -3,11 +3,13 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { messages, model = 'huggingface/zephyr-7b-beta:free' } = req.body;
+  const { messages, model = 'google/gemini-2.0-flash-lite' } = req.body;
 
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: 'Messages array required' });
   }
+
+  console.log('Received messages:', JSON.stringify(messages));
 
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
@@ -26,8 +28,10 @@ export default async function handler(req, res) {
 
     const fullMessages = [systemMessage, ...messages.map(m => ({
       role: m.role,
-      content: m.text
+      content: typeof m.text === 'string' ? m.text : String(m.text)
     }))];
+
+    console.log('Full messages to send:', JSON.stringify(fullMessages));
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -47,7 +51,7 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('OpenRouter API error:', error);
+      console.error('OpenRouter API error status:', response.status, 'body:', error);
       return res.status(response.status).json({ error: 'AI service error' });
     }
 
