@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { messages, model = 'microsoft/wizardlm-2-8x22b' } = req.body;
+  const { messages, model = 'huggingface/zephyr-7b-beta:free' } = req.body;
 
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: 'Messages array required' });
