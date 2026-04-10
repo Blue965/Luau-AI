@@ -11,8 +11,13 @@ function loadEnvKey(key) {
   ];
 
   for (const candidate of candidates) {
+    console.log('loadEnvKey candidate', candidate);
     try {
-      if (!fs.existsSync(candidate)) continue;
+      if (!fs.existsSync(candidate)) {
+        console.log('loadEnvKey missing file', candidate);
+        continue;
+      }
+      console.log('loadEnvKey found file', candidate);
       const text = fs.readFileSync(candidate, 'utf8');
       for (const line of text.split(/\r?\n/)) {
         const trimmed = line.trim();
@@ -45,16 +50,19 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Messages array required' });
   }
 
-  const apiKey = loadEnvKey('HUGGINGFACE_API_KEY');
+  const apiKey = loadEnvKey('HUGGINGFACE_API_KEY') || loadEnvKey('HF_API_KEY');
   if (!apiKey) {
-    console.error('HUGGINGFACE_API_KEY not found');
+    console.error('Hugging Face API key not found');
     return res.status(500).json({ error: 'API key not configured' });
   }
+
+  const model = loadEnvKey('HF_MODEL') || 'openai/gpt-oss-120b';
 
   console.log('=== DEBUG API CALL ===');
   console.log('Received messages:', JSON.stringify(messages, null, 2));
   console.log('API Key exists:', !!apiKey);
   console.log('API Key starts with:', apiKey.substring(0, 10) + '...');
+  console.log('Using model:', model);
 
   try {
     const response = await fetch(
@@ -66,7 +74,7 @@ export default async function handler(req, res) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'openai/gpt-oss-120b:fastest',
+          model,
           messages: [
             {
               role: 'system',
