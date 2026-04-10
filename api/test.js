@@ -1,5 +1,31 @@
+import fs from 'fs';
+
+function loadEnvKey(key) {
+  if (process.env[key]) return process.env[key];
+  try {
+    const envPath = new URL('../.env', import.meta.url);
+    if (!fs.existsSync(envPath)) return undefined;
+    const text = fs.readFileSync(envPath, 'utf8');
+    for (const line of text.split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      const [name, ...rest] = trimmed.split('=');
+      if (name.trim() !== key) continue;
+      let value = rest.join('=').trim();
+      if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.slice(1, -1);
+      }
+      process.env[key] = value;
+      return value;
+    }
+  } catch (err) {
+    console.error('Error loading .env file:', err);
+  }
+  return undefined;
+}
+
 export default async function handler(req, res) {
-  const apiKey = process.env.HUGGINGFACE_API_KEY;
+  const apiKey = loadEnvKey('HUGGINGFACE_API_KEY');
   if (!apiKey) {
     return res.status(500).json({ error: 'API key not configured' });
   }
