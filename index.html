@@ -1157,11 +1157,13 @@ async function sendMsg() {
   document.getElementById('send-btn').disabled = true;
 
   try {
+    console.log('Sending to AI:', { messages: messages.slice(-10) });
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages: messages.slice(-10) }) // Send last 10 messages for context
     });
+    console.log('AI response status:', response.status);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
