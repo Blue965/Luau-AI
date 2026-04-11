@@ -2,115 +2,230 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+// =============================================
+// MODELS
+// =============================================
 const FALLBACK_MODELS = [
-  'mistralai/Mistral-7B-Instruct-v0.3',
-  'HuggingFaceH4/zephyr-7b-beta',
   'Qwen/Qwen2.5-Coder-7B-Instruct',
+  'HuggingFaceH4/zephyr-7b-beta',
+  'mistralai/Mistral-7B-Instruct-v0.3',
   'microsoft/Phi-3.5-mini-instruct',
 ];
 
+// =============================================
+// ENV LOADER
+// =============================================
 function loadEnvKey(key) {
   if (process.env[key]) return process.env[key];
+
   const candidates = [
     path.resolve(process.cwd(), '.env'),
     path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.env'),
   ];
-  for (const candidate of candidates) {
+
+  for (const file of candidates) {
     try {
-      if (!fs.existsSync(candidate)) continue;
-      const text = fs.readFileSync(candidate, 'utf8');
-      for (const line of text.split(/\r?\n/)) {
+      if (!fs.existsSync(file)) continue;
+
+      const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
+
+      for (const line of lines) {
         const trimmed = line.trim();
         if (!trimmed || trimmed.startsWith('#')) continue;
+
         const [name, ...rest] = trimmed.split('=');
         if (name.trim() !== key) continue;
+
         let value = rest.join('=').trim();
-        if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) value = value.slice(1, -1);
+        if (/^["'].*["']$/.test(value)) value = value.slice(1, -1);
+
         process.env[key] = value;
         return value;
       }
-    } catch (err) { console.error('loadEnvKey error', err.message); }
+    } catch (err) {
+      console.error('ENV ERROR:', err.message);
+    }
   }
+
   return undefined;
 }
 
-async function callModel(model, chatMessages, apiKey) {
-  const response = await fetch('https://router.huggingface.co/v1/chat/completions', {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model, messages: chatMessages, max_tokens: 2000, temperature: 0.7, stream: false }),
-  });
-  const rawText = await response.text();
-  if (!response.ok) return { ok: false, status: response.status, body: rawText };
-  let data;
-  try { data = JSON.parse(rawText); } catch { return { ok: false, status: 200, body: 'Invalid JSON: ' + rawText }; }
-  const reply = data?.choices?.[0]?.message?.content || data?.choices?.[0]?.text || (Array.isArray(data) ? data[0]?.generated_text : null) || data?.generated_text;
-  if (!reply) return { ok: false, status: 200, body: 'Empty reply' };
-  return { ok: true, reply, model };
+// =============================================
+// CALL MODEL (WITH TIMEOUT 🔥)
+// =============================================
+async function callModel(model, messages, apiKey) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12000);
+
+  try {
+    const res = await fetch('https://router.huggingface.co/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      signal: controller.signal,
+      body: JSON.stringify({
+        model,
+        messages,
+        max_tokens: 2000,
+        temperature: 0.9, // 🔥 plus fun + emojis
+      })
+    });
+
+    const text = await res.text();
+    if (!res.ok) return { ok: false, status: res.status, body: text };
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      return { ok: false, status: 200, body: 'Invalid JSON' };
+    }
+
+    const reply =
+      data?.choices?.[0]?.message?.content ||
+      data?.choices?.[0]?.text ||
+      data?.generated_text;
+
+    if (!reply) return { ok: false, status: 200, body: 'Empty reply' };
+
+    return { ok: true, reply, model };
+
+  } catch (err) {
+    return { ok: false, status: 500, body: err.message };
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
+// =============================================
+// MAIN HANDLER
+// =============================================
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
-  const { messages } = req.body;
-  if (!messages || !Array.isArray(messages) || messages.length === 0) return res.status(400).json({ error: 'Messages required' });
+  let { messages } = req.body;
 
-  const apiKey = loadEnvKey('HUGGINGFACE_API_KEY') || loadEnvKey('HF_API_KEY');
-  if (!apiKey) return res.status(500).json({ error: 'Cle API manquante. Ajoute HUGGINGFACE_API_KEY dans Vercel.' });
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return res.status(400).json({ error: 'Messages requis' });
+  }
+
+  // 🔥 limite mémoire
+  messages = messages.slice(-15);
+
+  const apiKey =
+    loadEnvKey('HUGGINGFACE_API_KEY') ||
+    loadEnvKey('HF_API_KEY');
+
+  if (!apiKey) {
+    return res.status(500).json({
+      error: 'Ajoute HUGGINGFACE_API_KEY dans Vercel'
+    });
+  }
 
   const envModel = loadEnvKey('HF_MODEL');
-  const invalidModels = ['Roblox-Coder-Llama-7B-v1', '', undefined];
-  const primaryModel = envModel && !invalidModels.includes(envModel?.trim()) ? envModel.trim() : FALLBACK_MODELS[0];
-  const modelsToTry = [primaryModel, ...FALLBACK_MODELS.filter(m => m !== primaryModel)];
+  const primaryModel = envModel || FALLBACK_MODELS[0];
 
-  const systemPrompt = 'Tu es Luau AI, un assistant IA expert en scripting Roblox avec le langage Luau. ' +
-    'Tu aides les utilisateurs a creer des scripts, debugger du code, optimiser les performances et fournir des conseils sur le developpement Roblox Studio. ' +
-    'Reponds toujours en francais de maniere claire et utile. ' +
-    'Quand tu fournis du code Luau, formate-le TOUJOURS entre ```lua et ``` avec des sauts de ligne corrects. ' +
-    'Si une image est jointe, analyse-la et reponds en consequence. ' +
-    'Ne genere jamais d\'images toi-meme.';
+  const models = [
+    primaryModel,
+    ...FALLBACK_MODELS.filter(m => m !== primaryModel)
+  ];
 
-  // Build chat messages — handle images if present
+  // =============================================
+  // SYSTEM PROMPT (🔥 EMOJIS FORCÉS)
+  // =============================================
+  const systemPrompt = `
+Tu es Luau AI 😎🔥
+
+Tu es un assistant expert Roblox Studio + Luau.
+
+STYLE OBLIGATOIRE:
+- Réponds en français
+- Utilise des emojis 😄🔥💡
+- Sois naturel et cool
+- Explique clairement
+
+CODE:
+- Toujours entre \`\`\`lua
+- Code propre et optimisé
+
+MISSION:
+- aider à coder
+- debug
+- optimiser
+- expliquer simplement
+`;
+
+  // =============================================
+  // BUILD MESSAGES
+  // =============================================
   const chatMessages = [{ role: 'system', content: systemPrompt }];
-  
+
   for (const m of messages) {
-    const role = m.role === 'user' ? 'user' : 'assistant';
-    
-    // If message has an image, build multipart content
+    const role = m.role === 'assistant' ? 'assistant' : 'user';
+
     if (m.imageBase64 && m.imageMime && role === 'user') {
-      // Extract base64 data (remove data:image/xxx;base64, prefix)
-      const base64Data = m.imageBase64.replace(/^data:[^;]+;base64,/, '');
+      const base64 = m.imageBase64.replace(/^data:[^;]+;base64,/, '');
+
       chatMessages.push({
         role,
         content: [
           {
             type: 'image_url',
-            image_url: { url: `data:${m.imageMime};base64,${base64Data}` }
+            image_url: {
+              url: `data:${m.imageMime};base64,${base64}`
+            }
           },
           {
             type: 'text',
-            text: m.text || 'Analyse cette image et aide-moi avec mon projet Roblox.'
+            text: m.text || 'Analyse cette image Roblox'
           }
         ]
       });
     } else {
-      chatMessages.push({ role, content: String(m.text || '') });
+      chatMessages.push({
+        role,
+        content: "Réponds avec des emojis 😄🔥 : " + (m.text || '')
+      });
     }
   }
 
+  // =============================================
+  // FALLBACK SYSTEM
+  // =============================================
   let lastError = null;
-  for (const model of modelsToTry) {
-    console.log('Trying model:', model);
+
+  for (const model of models) {
+    console.log('TRY:', model);
+
     const result = await callModel(model, chatMessages, apiKey);
+
     if (result.ok) {
-      console.log('Success:', result.model);
-      return res.status(200).json({ reply: result.reply, model: result.model });
+      console.log('SUCCESS:', result.model);
+
+      return res.status(200).json({
+        reply: result.reply,
+        model: result.model
+      });
     }
-    console.warn('Failed:', model, result.status, result.body?.substring(0, 150));
-    lastError = { status: result.status, body: result.body, model };
-    if (result.status === 401) return res.status(401).json({ error: 'Cle API invalide (401). Regenere-la sur huggingface.co/settings/tokens.' });
-    if (result.status === 429) return res.status(429).json({ error: 'Limite de requetes (429). Reessaie dans quelques secondes.' });
+
+    console.warn('FAIL:', model, result.status);
+    lastError = result;
+
+    if (result.status === 401) {
+      return res.status(401).json({ error: 'API key invalide' });
+    }
+
+    if (result.status === 429) {
+      return res.status(429).json({ error: 'Rate limit atteint' });
+    }
   }
 
-  return res.status(500).json({ error: `Tous les modeles indisponibles. Code: ${lastError?.status}`, debug: lastError });
+  return res.status(500).json({
+    error: 'Tous les modèles ont échoué',
+    debug: lastError
+  });
 }
