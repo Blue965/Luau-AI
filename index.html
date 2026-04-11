@@ -853,22 +853,23 @@ function showView(v) {
 // ROBLOX API HELPERS
 // =============================================
 async function fetchRobloxUser(username) {
-  const r = await fetch('/api/lookup?username=' + encodeURIComponent(username));
-
-  if (!r.ok) {
-    if (r.status === 404) throw new Error('Utilisateur introuvable');
-    throw new Error('Erreur API Roblox');
-  }
-
-  return await r.json();
+  // Simulation API Roblox - remplacer par vraie API
+  const mockUsers = {
+    'builderman': { id: 1, name: 'Builderman', displayName: 'Builderman' },
+    'roblox': { id: 2, name: 'ROBLOX', displayName: 'ROBLOX' },
+    'shedletsky': { id: 3, name: 'Shedletsky', displayName: 'Shedletsky' },
+    'telamon': { id: 4, name: 'Telamon', displayName: 'Telamon' }
+  };
+  
+  const user = mockUsers[username.toLowerCase()];
+  if (!user) throw new Error('Utilisateur introuvable');
+  
+  return user;
 }
 
 async function fetchRobloxAvatar(userId) {
-  const r = await fetch('/api/avatar?userId=' + userId);
-  if (!r.ok) return null;
-
-  const data = await r.json();
-  return data.imageUrl || null;
+  // Simulation API Roblox - remplacer par vraie API
+  return `https://tr.rbxcdn.com/v1/avatar?id=${userId}&width=420&height=420&format=png`;
 }
 
 // =============================================
@@ -934,6 +935,13 @@ function confirmLogin() {
 function cancelConfirm() {
   pendingUser = null;
   document.getElementById('user-confirm').classList.remove('show');
+}
+
+function showUserConfirm(user) {
+  document.getElementById('confirm-avatar').src = user.avatarUrl;
+  document.getElementById('confirm-name').textContent = user.displayName;
+  document.getElementById('confirm-id').textContent = 'ID: ' + user.id;
+  document.getElementById('user-confirm').classList.add('show');
 }
 
 // =============================================
@@ -1120,8 +1128,13 @@ function generateFallbackAvatar(name) {
   return c.toDataURL();
 }
 
-function showToast(msg) {
-  console.log('[Toast]', msg);
+function showToast(msg, type = 'info') {
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span>${type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️'}</span><span>${msg}</span>`;
+  document.body.appendChild(toast);
+  
+  setTimeout(() => toast.remove(), 3000);
 }
 
 function showLoading(text) {
@@ -1138,7 +1151,142 @@ function hideLoading() {
 }
 
 function setLookupError(msg) {
-  alert(msg);
+  const el = document.getElementById('lookup-error');
+  if (el) {
+    el.textContent = msg;
+    el.style.display = 'block';
+    setTimeout(() => el.style.display = 'none', 5000);
+  }
+  showToast(msg, 'error');
+}
+
+// =============================================
+// CHAT HELPERS
+// =============================================
+function suggest(text) {
+  const ta = document.getElementById('chat-ta');
+  if (ta) ta.value = text;
+}
+
+function newChat() {
+  createNewChat();
+  document.getElementById('welcome-screen').style.display = 'flex';
+  document.getElementById('msgs').style.display = 'none';
+}
+
+function switchModel(model) {
+  currentModel = model;
+  document.querySelectorAll('.t-tab').forEach(tab => tab.classList.remove('active'));
+  document.getElementById('tab-' + model).classList.add('active');
+  
+  const modelNames = {
+    'luauai': 'Luau AI 2.0',
+    'studio': 'Studio Assist',
+    'debug': 'Debug Mode'
+  };
+  document.getElementById('model-display').textContent = modelNames[model];
+}
+
+function showStudio() {
+  showToast('Plugin Studio bientôt disponible !', 'info');
+}
+
+function handleKey(event) {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
+    sendMsg();
+  }
+}
+
+function autoResize(textarea) {
+  textarea.style.height = 'auto';
+  textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+}
+
+function handleFileAttach(event) {
+  const files = Array.from(event.target.files);
+  attachedFiles = attachedFiles.concat(files);
+  
+  const preview = document.getElementById('attach-preview');
+  preview.style.display = 'flex';
+  preview.innerHTML = files.map(f => `
+    <div class="attach-chip">
+      <span>📎 ${f.name}</span>
+      <button class="attach-remove" onclick="removeFile('${f.name}')">×</button>
+    </div>
+  `).join('');
+}
+
+function removeFile(filename) {
+  attachedFiles = attachedFiles.filter(f => f.name !== filename);
+  const preview = document.getElementById('attach-preview');
+  if (attachedFiles.length === 0) {
+    preview.style.display = 'none';
+  } else {
+    preview.innerHTML = attachedFiles.map(f => `
+      <div class="attach-chip">
+        <span>📎 ${f.name}</span>
+        <button class="attach-remove" onclick="removeFile('${f.name}')">×</button>
+      </div>
+    `).join('');
+  }
+}
+
+function pasteCode() {
+  navigator.clipboard.readText().then(text => {
+    const ta = document.getElementById('chat-ta');
+    if (ta) {
+      ta.value += '\n```lua\n' + text + '\n```\n';
+      autoResize(ta);
+    }
+  }).catch(() => {
+    showToast('Impossible de lire le presse-papiers', 'error');
+  });
+}
+
+function toggleBilling() {
+  billingAnnual = !billingAnnual;
+  const toggle = document.getElementById('bill-tgl');
+  const proPrice = document.getElementById('pro-price');
+  const proStrike = document.getElementById('pro-strike');
+  const entPrice = document.getElementById('ent-price');
+  const entStrike = document.getElementById('ent-strike');
+  
+  if (billingAnnual) {
+    toggle.classList.add('on');
+    proPrice.textContent = '640';
+    proStrike.style.display = 'inline';
+    proStrike.textContent = '800';
+    entPrice.textContent = '2000';
+    entStrike.style.display = 'inline';
+    entStrike.textContent = '2500';
+  } else {
+    toggle.classList.remove('on');
+    proPrice.textContent = '800';
+    proStrike.style.display = 'none';
+    entPrice.textContent = '2500';
+    entStrike.style.display = 'none';
+  }
+}
+
+function buyGamepass(plan, price) {
+  showToast(`Redirection vers Roblox pour acheter le plan ${plan} (${price} R$)...`, 'info');
+  // window.open('https://www.roblox.com/gamepasses/...', '_blank');
+}
+
+function doLogout() {
+  if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+    currentUser = null;
+    document.getElementById('app').classList.remove('show');
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('user-confirm').classList.remove('show');
+    document.getElementById('manual-username').value = '';
+    showToast('Déconnecté avec succès', 'success');
+  }
+}
+
+function closeNoCredits() {
+  document.getElementById('no-credits-modal').classList.remove('show');
 }
 
 // =============================================
@@ -1147,7 +1295,12 @@ function setLookupError(msg) {
 window.addEventListener('DOMContentLoaded', () => {
   showView('chat');
   loadChats();
+  
+  // Mettre à jour les crédits affichés
+  const creditsDisplay = document.getElementById('credits-display');
+  if (creditsDisplay) creditsDisplay.textContent = '100';
 });
+
 </script>
 
 <!-- NO CREDITS MODAL -->
