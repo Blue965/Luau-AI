@@ -1,16 +1,24 @@
-
-Copier
-
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+ 
+// ─────────────────────────────────────────────
+// Modèles de fallback (du meilleur au plus léger)
+// Tous sont GRATUITS et non-gated sur HF Router
+// ─────────────────────────────────────────────
+const FALLBACK_MODELS = [
+  'mistralai/Mistral-7B-Instruct-v0.3',
+  'HuggingFaceH4/zephyr-7b-beta',
+  'Qwen/Qwen2.5-Coder-7B-Instruct',
+  'microsoft/Phi-3.5-mini-instruct',
+];
  
 function loadEnvKey(key) {
   if (process.env[key]) return process.env[key];
  
   const candidates = [
     path.resolve(process.cwd(), '.env'),
-    path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.env')
+    path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.env'),
   ];
  
   for (const candidate of candidates) {
@@ -33,10 +41,52 @@ function loadEnvKey(key) {
         return value;
       }
     } catch (err) {
-      console.error('Error loading .env from', candidate, err);
+      console.error('loadEnvKey error for', candidate, err.message);
     }
   }
   return undefined;
+}
+ 
+async function callModel(model, chatMessages, apiKey) {
+  const response = await fetch('https://router.huggingface.co/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model,
+      messages: chatMessages,
+      max_tokens: 2000,
+      temperature: 0.7,
+      stream: false,
+    }),
+  });
+ 
+  const rawText = await response.text();
+ 
+  if (!response.ok) {
+    return { ok: false, status: response.status, body: rawText };
+  }
+ 
+  let data;
+  try {
+    data = JSON.parse(rawText);
+  } catch {
+    return { ok: false, status: 200, body: 'Invalid JSON: ' + rawText };
+  }
+ 
+  const reply =
+    data?.choices?.[0]?.message?.content ||
+    data?.choices?.[0]?.text ||
+    (Array.isArray(data) ? data[0]?.generated_text : null) ||
+    data?.generated_text;
+ 
+  if (!reply) {
+    return { ok: false, status: 200, body: 'Empty reply. Raw: ' + rawText };
+  }
+ 
+  return { ok: true, reply, model };
 }
  
 export default async function handler(req, res) {
@@ -46,122 +96,91 @@ export default async function handler(req, res) {
  
   const { messages } = req.body;
  
-  if (!messages || !Array.isArray(messages)) {
-    return res.status(400).json({ error: 'Messages array required' });
+  if (!messages || !Array.isArray(messages) || messages.length === 0) {
+    return res.status(400).json({ error: 'Messages array required and must not be empty.' });
   }
  
   const apiKey = loadEnvKey('HUGGINGFACE_API_KEY') || loadEnvKey('HF_API_KEY');
+ 
   if (!apiKey) {
-    console.error('Hugging Face API key not found');
+    console.error('No HuggingFace API key found');
     return res.status(500).json({
-      error: 'Clé API manquante. Configure HUGGINGFACE_API_KEY dans les variables d\'environnement Vercel.'
+      error: 'Cle API manquante. Dans Vercel > Settings > Environment Variables, ajoute : HUGGINGFACE_API_KEY = hf_xxxx',
     });
   }
  
-  // -------------------------------------------------------
-  // Modèle par défaut : meta-llama/Llama-3.1-8B-Instruct
-  // Tu peux changer dans ton .env : HF_MODEL=mistralai/Mixtral-8x7B-Instruct-v0.1
-  // Autres modèles compatibles router HF :
-  //   - meta-llama/Llama-3.2-3B-Instruct  (plus léger/rapide)
-  //   - mistralai/Mistral-7B-Instruct-v0.3
-  //   - Qwen/Qwen2.5-Coder-7B-Instruct    (spécialisé code !)
-  // -------------------------------------------------------
-  const model = loadEnvKey('HF_MODEL') || 'meta-llama/Llama-3.1-8B-Instruct';
+  // Modèle depuis .env, sinon premier fallback
+  // On ignore l'ancien nom invalide
+  const envModel = loadEnvKey('HF_MODEL');
+  const invalidModels = ['Roblox-Coder-Llama-7B-v1', '', undefined];
+  const primaryModel =
+    envModel && !invalidModels.includes(envModel.trim())
+      ? envModel.trim()
+      : FALLBACK_MODELS[0];
+ 
+  const modelsToTry = [primaryModel, ...FALLBACK_MODELS.filter((m) => m !== primaryModel)];
  
   console.log('=== LUAU AI CHAT ===');
-  console.log('Model:', model);
   console.log('Messages count:', messages.length);
+  console.log('Models to try:', modelsToTry);
  
   const chatMessages = [
     {
       role: 'system',
       content:
         'Tu es Luau AI, un assistant IA expert en scripting Roblox avec le langage Luau. ' +
-        'Tu aides les utilisateurs à créer des scripts, déboguer du code, optimiser les performances ' +
-        'et fournir des conseils sur le développement Roblox Studio. ' +
-        'Réponds toujours en français de manière claire et utile. ' +
-        'Fournis des exemples de code Luau précis et fonctionnels quand pertinent. ' +
-        'Formate le code entre balises ```luau et ```.'
+        'Tu aides les utilisateurs a creer des scripts, debugger du code, optimiser les performances ' +
+        'et fournir des conseils sur le developpement Roblox Studio. ' +
+        'Reponds toujours en francais de maniere claire et utile. ' +
+        'Formate le code Luau entre balises ```luau et ```. ' +
+        "Va droit au but sans introduction inutile.",
     },
-    ...messages.map(m => ({
+    ...messages.map((m) => ({
       role: m.role === 'user' ? 'user' : 'assistant',
-      content: m.text
-    }))
+      content: String(m.text || ''),
+    })),
   ];
  
-  // -------------------------------------------------------
-  // UN SEUL endpoint : router.huggingface.co (OpenAI-compatible)
-  // L'ancien api-inference.huggingface.co est supprimé (410)
-  // -------------------------------------------------------
-  const ROUTER_URL = 'https://router.huggingface.co/v1/chat/completions';
+  let lastError = null;
  
-  try {
-    console.log('Calling HuggingFace Router:', ROUTER_URL);
+  for (const model of modelsToTry) {
+    console.log('Trying model:', model);
+    const result = await callModel(model, chatMessages, apiKey);
  
-    const response = await fetch(ROUTER_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model,
-        messages: chatMessages,
-        max_tokens: 2000,
-        temperature: 0.7,
-        stream: false
-      })
-    });
- 
-    console.log('HF Router status:', response.status);
- 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error('HF Router error:', response.status, errText);
- 
-      // Message d'erreur lisible selon le code HTTP
-      let userMsg = `Erreur du modèle IA (${response.status}).`;
-      if (response.status === 401) {
-        userMsg = 'Clé API HuggingFace invalide. Vérifie HUGGINGFACE_API_KEY dans Vercel.';
-      } else if (response.status === 403) {
-        userMsg = 'Accès refusé au modèle. Vérifie que tu as accepté les conditions sur huggingface.co/settings/gated-repos';
-      } else if (response.status === 404) {
-        userMsg = `Modèle "${model}" introuvable sur HuggingFace Router. Change HF_MODEL dans ton .env.`;
-      } else if (response.status === 429) {
-        userMsg = 'Limite de requêtes atteinte. Réessaie dans quelques secondes.';
-      } else if (response.status === 503) {
-        userMsg = 'Modèle en cours de chargement sur HuggingFace. Réessaie dans 20 secondes.';
-      }
- 
-      return res.status(response.status).json({ error: userMsg, details: errText });
+    if (result.ok) {
+      console.log('Success with model:', result.model);
+      return res.status(200).json({ reply: result.reply, model: result.model });
     }
  
-    const data = await response.json();
-    console.log('HF Router raw response keys:', Object.keys(data));
+    console.warn('Model', model, 'failed:', result.status, result.body?.substring(0, 200));
+    lastError = { status: result.status, body: result.body, model };
  
-    // Extraire la réponse (format OpenAI standard)
-    const reply =
-      data?.choices?.[0]?.message?.content ||
-      data?.choices?.[0]?.text ||
-      data?.generated_text ||
-      (Array.isArray(data) ? data[0]?.generated_text : null);
- 
-    if (!reply) {
-      console.error('No reply extracted. Full response:', JSON.stringify(data));
-      return res.status(500).json({
-        error: 'Aucune réponse du modèle IA. Réponse inattendue.',
-        raw: data
+    // Clé invalide -> inutile d'essayer les autres
+    if (result.status === 401) {
+      return res.status(401).json({
+        error: 'Cle API HuggingFace invalide (401). Regenere-la sur huggingface.co/settings/tokens et mets-la a jour dans Vercel.',
       });
     }
  
-    console.log('Reply extracted (first 100 chars):', reply.substring(0, 100));
-    return res.status(200).json({ reply });
+    // Rate limit -> inutile d'essayer les autres
+    if (result.status === 429) {
+      return res.status(429).json({
+        error: 'Limite de requetes HuggingFace atteinte (429). Reessaie dans quelques secondes.',
+      });
+    }
  
-  } catch (error) {
-    console.error('Fetch error calling HF Router:', error);
-    return res.status(500).json({
-      error: 'Erreur réseau : ' + (error.message || 'Impossible de contacter HuggingFace.')
-    });
+    // 403 / 404 / 503 -> on essaie le modele suivant
   }
+ 
+  // Tous les modèles ont échoué
+  console.error('All models failed. Last error:', lastError);
+ 
+  let userMsg = `Tous les modeles IA sont indisponibles. Code: ${lastError?.status}`;
+  if (lastError?.status === 403) {
+    userMsg =
+      'Acces refuse (403). Va sur huggingface.co/settings/gated-repos et accepte les conditions.';
+  }
+ 
+  return res.status(500).json({ error: userMsg, debug: lastError });
 }
  
