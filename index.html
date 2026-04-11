@@ -821,19 +821,14 @@ let isTyping = false;
 let billingAnnual = false;
 let currentModel = 'luauai';
 
+let chats = [];
+let currentChatId = null;
+let pendingUser = null;
+let attachedFiles = [];
+
 // =============================================
 // ROBLOX API HELPERS
-// Roblox has public APIs that don't need auth:
-//   - users/v1/users (lookup by username)
-//   - thumbnails/v1/users/avatar-headshot (avatar image)
-// These are CORS-accessible from browsers.
 // =============================================
-
-const ROBLOX_PROXY = 'https://users.roblox.com';
-// Note: Roblox APIs block direct browser CORS calls.
-// We now use Vercel serverless functions as proxy.
-// =============================================
-
 async function fetchRobloxUser(username) {
   const r = await fetch('/api/lookup?username=' + encodeURIComponent(username));
   if (!r.ok) {
@@ -842,7 +837,7 @@ async function fetchRobloxUser(username) {
   }
   const data = await r.json();
   if (data.error) throw new Error(data.error);
-  return data; // { id, name, displayName }
+  return data;
 }
 
 async function fetchRobloxAvatar(userId) {
@@ -853,412 +848,146 @@ async function fetchRobloxAvatar(userId) {
 }
 
 // =============================================
-// OAUTH FLOW
-// Real Roblox OAuth requires a registered app at
-// create.roblox.com/dashboard/credentials
-// Since this is a standalone HTML file, we simulate
-// the flow by asking the username then fetching
-// the REAL profile data from Roblox public API.
-// Full OAuth (with code exchange) needs a backend.
+// AUTH
 // =============================================
-
-let pendingUser = null;
-
 function startRobloxOAuth() {
-  // In a real deployment, redirect to:
-  // https://apis.roblox.com/oauth/v1/authorize?client_id=YOUR_ID&redirect_uri=YOUR_URI&scope=openid+profile&response_type=code&state=xyz
-  // Since this is a client-only file, we ask for username then query real Roblox APIs
   document.getElementById('oauth-section').style.display = 'none';
   document.getElementById('manual-section').style.display = 'block';
-  document.getElementById('manual-username').placeholder = 'Ton username Roblox exact...';
   document.getElementById('manual-username').focus();
-  showToast('ℹ️ Entrez votre username pour la vérification Roblox', 'info');
+  showToast('Entrez votre username Roblox', 'info');
 }
 
-async function lookupRobloxUser() {
+async function lookupRobloxUserUI() {
   const username = document.getElementById('manual-username').value.trim();
-  if (!username) { setLookupError('Entrez un username Roblox.'); return; }
+  if (!username) return setLookupError('Username requis');
 
-  document.getElementById('lookup-error').style.display = 'none';
-  showLoading('Recherche sur Roblox...');
+  showLoading('Recherche Roblox...');
 
   try {
     const user = await fetchRobloxUser(username);
-    setLoadingText('Chargement de l\'avatar...');
-    const avatarUrl = await fetchRobloxAvatar(user.id);
+    const avatar = await fetchRobloxAvatar(user.id);
 
     pendingUser = {
       id: user.id,
       username: user.name,
       displayName: user.displayName || user.name,
-      avatarUrl: avatarUrl || generateFallbackAvatar(user.name),
+      avatarUrl: avatar || generateFallbackAvatar(user.name),
       plan: 'Starter',
       credits: 100
     };
 
     hideLoading();
     showUserConfirm(pendingUser);
-  } catch (err) {
-    hideLoading();
-    setLookupError(err.message || 'Erreur lors de la recherche. Vérifie le username.');
-  }
-}
 
-function showUserConfirm(user) {
-  document.getElementById('confirm-avatar').src = user.avatarUrl;
-  document.getElementById('confirm-name').textContent = user.displayName + (user.displayName !== user.username ? ` (@${user.username})` : '');
-  document.getElementById('confirm-id').textContent = `ID Roblox: ${user.id}`;
-  document.getElementById('user-confirm').classList.add('show');
-  document.getElementById('manual-section').style.display = 'none';
+  } catch (e) {
+    hideLoading();
+    setLookupError(e.message);
+  }
 }
 
 function confirmLogin() {
-  if (!pendingUser) return;
   currentUser = pendingUser;
-  currentUser.credits = 100; // Crédits initiaux pour Starter
-  currentUser.plan = 'Starter'; // Plan par défaut
-  loadChats(); // Charger les conversations sauvegardées
-  loadChatHistory(); // Afficher l'historique
+  pendingUser = null;
+
+  loadChats();
+  loadChatHistory();
+
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app').classList.add('show');
-  resetDailyCredits(); // Vérifier et reset les crédits quotidiens
+
   updateUI();
-  showToast(`✓ Connecté en tant que ${currentUser.username}`);
+  showToast(`Connecté: ${currentUser.username}`);
 }
 
 function cancelConfirm() {
-  document.getElementById('user-confirm').classList.remove('show');
-  document.getElementById('oauth-section').style.display = 'block';
-  document.getElementById('manual-section').style.display = 'block';
   pendingUser = null;
+  document.getElementById('user-confirm').classList.remove('show');
 }
-
-function generateFallbackAvatar(name) {
-  // Returns a data URL canvas avatar as fallback
-  const canvas = document.createElement('canvas');
-  canvas.width = 150; canvas.height = 150;
-  const ctx = canvas.getContext('2d');
-  const colors = ['#1f6feb','#8b5cf6','#3fb950','#39d0d8','#f778ba'];
-  ctx.fillStyle = colors[name.charCodeAt(0) % colors.length];
-  ctx.fillRect(0,0,150,150);
-  ctx.fillStyle = 'white';
-  ctx.font = 'bold 60px Arial';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(name[0].toUpperCase(), 75, 75);
-  return canvas.toDataURL();
-}
-
-function setLookupError(msg) {
-  const el = document.getElementById('lookup-error');
-  el.textContent = msg; el.style.display = 'block';
-}
-
-function showLoading(text) {
-  document.getElementById('loading-text').textContent = text;
-  document.getElementById('auth-loading').classList.add('show');
-}
-function setLoadingText(t) { document.getElementById('loading-text').textContent = t; }
-function hideLoading() { document.getElementById('auth-loading').classList.remove('show'); }
 
 // =============================================
-// UI UPDATES
+// UI
 // =============================================
-
 function updateUI() {
   if (!currentUser) return;
-  const u = currentUser;
-  document.getElementById('s-avatar').src = u.avatarUrl;
-  document.getElementById('s-avatar').onerror = () => { document.getElementById('s-avatar').src = generateFallbackAvatar(u.username); };
-  document.getElementById('s-username').textContent = u.username;
-  document.getElementById('s-plan').textContent = 'Plan ' + u.plan;
-  const cr = u.credits >= 99999 ? '∞' : u.credits;
-  const credEl = document.getElementById('s-credits');
-  credEl.textContent = '💎 ' + cr + ' cr';
-  credEl.className = 's-credits' + (u.credits < 20 ? ' low' : '');
-  document.getElementById('credits-display').textContent = cr;
-  document.getElementById('w-name').textContent = u.displayName || u.username;
-  document.getElementById('set-avatar').src = u.avatarUrl;
-  document.getElementById('set-uname').textContent = u.displayName + (u.displayName !== u.username ? ` (@${u.username})` : '');
-  document.getElementById('set-umeta').textContent = `Plan ${u.plan} · ${cr} crédits restants`;
-  document.getElementById('set-uid').textContent = `ID Roblox: ${u.id}`;
+
+  document.getElementById('s-username').textContent = currentUser.username;
+  document.getElementById('s-avatar').src = currentUser.avatarUrl;
+  document.getElementById('s-plan').textContent = currentUser.plan;
+
+  const cr = currentUser.credits >= 99999 ? '∞' : currentUser.credits;
+  document.getElementById('s-credits').textContent = cr;
 }
 
 // =============================================
-// VIEWS
+// CHAT SYSTEM
 // =============================================
-
-function showView(v) {
-  ['chat','shop','settings'].forEach(x => {
-    document.getElementById(x+'-view').classList.remove('show');
-    document.getElementById(x+'-view').style.display = 'none';
-    document.getElementById('nav-'+x)?.classList.remove('active');
-  });
-  if (v === 'chat') {
-    document.getElementById('chat-view').style.display = 'flex';
-  } else {
-    document.getElementById(v+'-view').style.display = 'block';
-    document.getElementById(v+'-view').classList.add('show');
-  }
-  document.getElementById('nav-'+v)?.classList.add('active');
-}
-
-function showStudio() {
-  showToast('🎮 Plugin Studio — Bientôt disponible !', 'info');
-}
-
-function switchModel(m) {
-  currentModel = m;
-  ['luauai','studio','debug'].forEach(x => document.getElementById('tab-'+x)?.classList.remove('active'));
-  document.getElementById('tab-'+m)?.classList.add('active');
-  const names = { luauai:'Luau AI 2.0', studio:'Studio Assist', debug:'Debug Mode' };
-  document.getElementById('model-display').textContent = names[m];
-}
-
-// =============================================
-// CHAT MANAGEMENT
-// =============================================
-let chats = [];
-let currentChatId = null;
-
-function loadChats() {
-  const saved = localStorage.getItem('luauAI_chats');
-  if (saved) {
-    chats = JSON.parse(saved);
-  }
-}
-
-function saveChats() {
-  localStorage.setItem('luauAI_chats', JSON.stringify(chats));
-}
-
 function createNewChat() {
-  const chatId = 'chat_' + Date.now();
-  const newChat = {
-    id: chatId,
+  const chat = {
+    id: 'chat_' + Date.now(),
     title: 'Nouvelle conversation',
     messages: [],
     timestamp: Date.now()
   };
-  chats.unshift(newChat); // Ajouter au début
-  currentChatId = chatId;
+
+  chats.unshift(chat);
+  currentChatId = chat.id;
   messages = [];
+
   saveChats();
   loadChatHistory();
-  return newChat;
 }
 
 function loadChat(chatId) {
   const chat = chats.find(c => c.id === chatId);
-  if (chat) {
-    currentChatId = chatId;
-    messages = chat.messages;
-    updateChatTitle(chat);
-    renderMessages();
-    showView('chat');
-  }
+  if (!chat) return;
+
+  currentChatId = chatId;
+  messages = chat.messages || [];
+
+  renderMessages();
 }
 
 function updateCurrentChat() {
-  if (!currentChatId) return;
   const chat = chats.find(c => c.id === currentChatId);
-  if (chat) {
-    chat.messages = messages;
-    chat.timestamp = Date.now();
-    // Mettre à jour le titre si c'est le premier message
-    if (messages.length > 0 && chat.title === 'Nouvelle conversation') {
-      chat.title = messages[0].text.substring(0, 50) + (messages[0].text.length > 50 ? '...' : '');
-    }
-    saveChats();
-    loadChatHistory();
-  }
-}
+  if (!chat) return;
 
-function updateChatTitle(chat) {
-  // Peut-être mettre à jour l'UI du titre si nécessaire
-}
+  chat.messages = messages;
+  chat.timestamp = Date.now();
 
-function loadChatHistory() {
-  const historyEl = document.getElementById('s-history');
-  historyEl.innerHTML = '';
-
-  chats.slice(0, 10).forEach(chat => { // Afficher les 10 plus récents
-    const timeAgo = getTimeAgo(chat.timestamp);
-    const icon = getChatIcon(chat.title);
-    const item = document.createElement('div');
-    item.className = 's-hist-item';
-    item.onclick = () => loadChat(chat.id);
-    item.innerHTML = `<span class="hi">${icon}</span><span class="ht">${chat.title}</span><span class="htime">${timeAgo}</span>`;
-    historyEl.appendChild(item);
-  });
-}
-
-function getTimeAgo(timestamp) {
-  const now = Date.now();
-  const diff = now - timestamp;
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-
-  if (minutes < 1) return 'À l\'instant';
-  if (minutes < 60) return `${minutes}min`;
-  if (hours < 24) return `${hours}h`;
-  if (days < 7) return `${days}j`;
-  return 'Plus ancien';
-}
-
-function getChatIcon(title) {
-  const lower = title.toLowerCase();
-  if (lower.includes('script') || lower.includes('luau')) return '⚡';
-  if (lower.includes('optimisation') || lower.includes('fps')) return '🔧';
-  if (lower.includes('gui') || lower.includes('interface')) return '🎨';
-  if (lower.includes('remote') || lower.includes('network')) return '⚡';
-  if (lower.includes('npc') || lower.includes('ia')) return '🤖';
-  return '💬';
+  saveChats();
 }
 
 // =============================================
-// CHAT
+// STORAGE
 // =============================================
-
-function suggest(text) {
-  document.getElementById('chat-ta').value = text;
-  sendMsg();
+function saveChats() {
+  localStorage.setItem('luauAI_chats', JSON.stringify(chats));
 }
 
-function newChat() {
-  createNewChat();
-  document.getElementById('welcome-screen').style.display = 'flex';
-  document.getElementById('msgs').style.display = 'none';
-  document.getElementById('msgs').innerHTML = '';
-  showView('chat');
+function loadChats() {
+  const data = localStorage.getItem('luauAI_chats');
+  chats = data ? JSON.parse(data) : [];
 }
 
 // =============================================
-// MARKDOWN / CODE PARSER
+// CHAT RENDER
 // =============================================
-let _cbIdx = 0;
-
-function copyCode(btnId, codeId) {
-  const code = document.getElementById(codeId);
-  if (!code) return;
-  const text = code.innerText || code.textContent;
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = document.getElementById(btnId);
-    if (!btn) return;
-    const orig = btn.innerHTML;
-    btn.innerHTML = '✓ Copié !';
-    btn.classList.add('copied');
-    setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 2000);
-  }).catch(() => {
-    const ta = document.createElement('textarea');
-    ta.value = (document.getElementById(codeId)?.innerText || '');
-    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-  });
-}
-
-function buildCodeBlock(lang, rawCode) {
-  const idx = ++_cbIdx;
-  const btnId = 'cbtn' + idx;
-  const codeId = 'ccode' + idx;
-  const label = lang || 'luau';
-  // Escape HTML
-  const escaped = rawCode
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-  return `<div class="code-wrap">
-    <div class="code-header">
-      <span class="code-lang-tag"><span class="code-lang-dot"></span>${label}</span>
-      <button class="copy-btn" id="${btnId}" onclick="copyCode('${btnId}','${codeId}')">⎘ Copier</button>
-    </div>
-    <div class="code-body" id="${codeId}">${escaped}</div>
-  </div>`;
-}
-
-function parseMarkdown(raw) {
-  // ── Step 1: extract fenced code blocks first to avoid double-processing
-  const CODE_PLACEHOLDER = '\x00CODE\x00';
-  const codeBlocks = [];
-  let s = raw.replace(/```([\w]*)\r?\n?([\s\S]*?)```/g, (_, lang, code) => {
-    codeBlocks.push(buildCodeBlock(lang.trim() || 'luau', code.replace(/^\n/, '').replace(/\n$/, '')));
-    return CODE_PLACEHOLDER + (codeBlocks.length - 1) + '\x00';
-  });
-
-  // ── Step 2: legacy [CODE]...[/CODE]
-  s = s.replace(/\[CODE\]([\s\S]*?)\[\/CODE\]/g, (_, code) => {
-    codeBlocks.push(buildCodeBlock('luau', code.trim()));
-    return CODE_PLACEHOLDER + (codeBlocks.length - 1) + '\x00';
-  });
-
-  // ── Step 3: inline markdown
-  s = s
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/`([^`\n]+)`/g, '<code style="background:var(--bg3);padding:1px 6px;border-radius:4px;font-family:\'JetBrains Mono\',monospace;font-size:12px;color:var(--cyan2);">$1</code>')
-    .replace(/^### (.+)$/gm, '<div style="font-weight:700;font-size:15px;margin:10px 0 4px;color:var(--text0)">$1</div>')
-    .replace(/^## (.+)$/gm,  '<div style="font-weight:700;font-size:16px;margin:12px 0 4px;color:var(--text0)">$1</div>')
-    .replace(/^# (.+)$/gm,   '<div style="font-weight:700;font-size:18px;margin:14px 0 6px;color:var(--text0)">$1</div>')
-    .replace(/^\d+\.\s+(.+)$/gm, '<div style="padding-left:18px;margin:2px 0;">$1</div>')
-    .replace(/^[-•]\s+(.+)$/gm,  '<div style="padding-left:18px;margin:2px 0;">• $1</div>')
-    .replace(/\n{2,}/g, '<br><br>')
-    .replace(/\n/g, '<br>');
-
-  // ── Step 4: restore code blocks
-  s = s.replace(new RegExp(CODE_PLACEHOLDER.replace(/\x00/g,'\\x00') + '(\\d+)\\x00','g'), (_, i) => codeBlocks[+i] || '');
-  return s;
-}
-
-function renderMsg(m) {
-  const isUser = m.role === 'user';
-  const avHtml = isUser
-    ? `<img src="${currentUser.avatarUrl}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid var(--blue2);" onerror="this.src='${generateFallbackAvatar(currentUser.username)}';">`
-    : '🤖';
-
-  let content = parseMarkdown(m.text || '');
-
-  // Show attached image if present
-  if (m.imageUrl) {
-    content += `<img src="${m.imageUrl}" class="msg-img" alt="Image jointe">`;
-  }
-
-  const now = new Date();
-  const t = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-  return `<div class="msg ${isUser ? 'user' : 'ai'}">
-    <div class="msg-av ${isUser ? '' : 'ai'}">${avHtml}</div>
-    <div style="min-width:0;flex:1">
-      <div class="msg-bubble">${content}</div>
-      <div class="msg-time">${t}</div>
-    </div>
-  </div>`;
-}
-
 function renderMessages() {
-  const container = document.getElementById('msgs');
-  document.getElementById('welcome-screen').style.display = messages.length > 0 ? 'none' : 'flex';
-  container.style.display = messages.length > 0 ? 'flex' : 'none';
-  container.innerHTML = messages.map(renderMsg).join('');
-  container.scrollTop = container.scrollHeight;
+  const el = document.getElementById('msgs');
+  el.innerHTML = messages.map(m => `
+    <div class="msg ${m.role}">
+      <div class="msg-bubble">${m.text}</div>
+    </div>
+  `).join('');
+
+  el.scrollTop = el.scrollHeight;
 }
 
-function resetDailyCredits() {
-  if (!currentUser || currentUser.plan !== 'Starter') return;
-
-  const lastReset = localStorage.getItem('lastCreditReset');
-  const now = Date.now();
-  const oneDay = 24 * 60 * 60 * 1000; // 24 heures en ms
-
-  if (!lastReset || (now - parseInt(lastReset)) >= oneDay) {
-    currentUser.credits = 10; // Reset à 10 crédits quotidiens
-    localStorage.setItem('lastCreditReset', now.toString());
-    updateUI();
-    showToast('🔄 10 crédits quotidiens rechargés !', 'info');
-  }
-}
+// =============================================
+// MAIN FIXED SENDMSG (IMPORTANT)
 // =============================================
 async function sendMsg() {
   if (isTyping) return;
-  if (!currentChatId) createNewChat();
 
   const ta = document.getElementById('chat-ta');
   const text = ta.value.trim();
@@ -1266,26 +995,26 @@ async function sendMsg() {
 
   ta.value = '';
 
+  if (!currentChatId) createNewChat();
+
   const userMsg = { role: 'user', text };
   messages.push(userMsg);
 
   renderMessages();
 
-  // 🔥 message IA vide (stream)
   let aiMsg = { role: 'ai', text: '' };
   messages.push(aiMsg);
-  renderMessages();
 
   isTyping = true;
 
   try {
-    const response = await fetch('/api/chat', {
+    const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages })
     });
 
-    const reader = response.body.getReader();
+    const reader = res.body.getReader();
     const decoder = new TextDecoder();
 
     let buffer = '';
@@ -1298,278 +1027,87 @@ async function sendMsg() {
 
       const parts = buffer.split('\n\n');
 
-      for (let part of parts) {
-        if (!part.startsWith('data:')) continue;
+      for (const p of parts) {
+        if (!p.startsWith('data:')) continue;
 
-        const data = part.replace('data: ', '');
-
-        if (data === '[DONE]') break;
+        const data = p.replace('data: ', '');
+        if (data === '[DONE]') continue;
 
         try {
           const json = JSON.parse(data);
-
-          if (json.choices?.[0]?.delta?.content) {
-            aiMsg.text += json.choices[0].delta.content;
-            renderMessages(); // 🔥 update live
+          const token = json.choices?.[0]?.delta?.content;
+          if (token) {
+            aiMsg.text += token;
+            renderMessages();
           }
-
-        } catch {
-          // ignore erreurs
-        }
+        } catch {}
       }
     }
 
     updateCurrentChat();
 
-  } catch (err) {
-    aiMsg.text = "❌ Erreur: " + err.message;
-    renderMessages();
+  } catch (e) {
+    aiMsg.text = 'Erreur: ' + e.message;
   }
 
   isTyping = false;
 }
-// =============================================
-  ta.value = ''; ta.style.height = '';
-
-  // Handle attached files — images get base64 encoded for display + analysis
-  let userMsg = { role: 'user', text: text || '' };
-  if (attachedFiles.length > 0) {
-    const imgFiles = attachedFiles.filter(f => f.type.startsWith('image/'));
-    const otherFiles = attachedFiles.filter(f => !f.type.startsWith('image/'));
-
-    if (imgFiles.length > 0) {
-      // Encode first image as base64 for preview and send to API
-      const img = imgFiles[0];
-      const b64 = await fileToBase64(img);
-      userMsg.imageUrl = b64;
-      userMsg.imageBase64 = b64;
-      userMsg.imageMime = img.type;
-      userMsg.text = (text || '') + (text ? '' : '');
-    }
-    if (otherFiles.length > 0) {
-      const names = otherFiles.map(f => f.name).join(', ');
-      userMsg.text += (userMsg.text ? '\n' : '') + `[Fichiers joints : ${names}]`;
-    }
-    attachedFiles = [];
-    renderAttachPreview();
-  }
-
-  messages.push(userMsg);
-
-  if (currentUser && currentUser.credits < 99999) {
-    currentUser.credits = Math.max(0, currentUser.credits - 1);
-    if (currentUser.credits === 10) showToast('⚠️ Plus que 10 crédits restants !', 'info');
-    if (currentUser.credits === 0) setTimeout(() => showNoCredits(), 1000);
-  }
-  updateUI();
-  renderMessages();
-
-  const container = document.getElementById('msgs');
-  container.innerHTML += `<div class="msg ai" id="typing-now">
-    <div class="msg-av ai">🤖</div>
-    <div><div class="msg-bubble"><div class="typing-dots"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div></div></div>
-  </div>`;
-  container.scrollTop = container.scrollHeight;
-  isTyping = true;
-  document.getElementById('send-btn').disabled = true;
-
-  try {
-    // Build payload — include image for analysis if present
-    const payload = { messages: messages.slice(-10).map(m => ({
-      role: m.role,
-      text: m.text,
-      ...(m.imageBase64 ? { imageBase64: m.imageBase64, imageMime: m.imageMime } : {})
-    })) };
-
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(`Erreur IA: ${response.status} — ${errorData.error || response.statusText}`);
-    }
-
-    const data = await response.json();
-    messages.push({ role: 'ai', text: data.reply });
-    updateCurrentChat();
-  } catch (error) {
-    console.error('AI Error:', error);
-    messages.push({ role: 'ai', text: `❌ ${error.message}` });
-    updateCurrentChat();
-  }
-
-  isTyping = false;
-  document.getElementById('send-btn').disabled = false;
-  renderMessages();
-
-function handleKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
-}
-function autoResize(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 200) + 'px';
-}
 
 // =============================================
-// SHOP
+// CHAT HISTORY
 // =============================================
-
-function toggleBilling() {
-  billingAnnual = !billingAnnual;
-  const t = document.getElementById('bill-tgl');
-  t.classList.toggle('on', billingAnnual);
-  t.querySelector('.tgl-thumb').style.transform = billingAnnual ? 'translateX(20px)' : '';
-  document.getElementById('pro-price').textContent = billingAnnual ? '640' : '800';
-  document.getElementById('ent-price').textContent = billingAnnual ? '2 000' : '2 500';
-  document.getElementById('pro-strike').style.display = billingAnnual ? 'inline' : 'none';
-  document.getElementById('ent-strike').style.display = billingAnnual ? 'inline' : 'none';
-}
-
-function buyGamepass(plan, price) {
-  const GAMEPASS_IDS = { Pro: '1788365834', Enterprise: '1792408927' };
-  const gpId = GAMEPASS_IDS[plan];
-  showToast(`🎮 Ouverture du Gamepass ${plan}...`, 'info');
-  window.open(`https://www.roblox.com/game-pass/${gpId}`, '_blank');
-}
-
-// =============================================
-// LOGOUT
-// =============================================
-
-function doLogout() {
-  currentUser = null; messages = [];
-  document.getElementById('app').classList.remove('show');
-  document.getElementById('auth-screen').style.display = 'flex';
-  document.getElementById('oauth-section').style.display = 'block';
-  document.getElementById('manual-section').style.display = 'block';
-  document.getElementById('user-confirm').classList.remove('show');
-  document.getElementById('manual-username').value = '';
-  document.getElementById('lookup-error').style.display = 'none';
-  pendingUser = null;
-}
-
-// =============================================
-// FILE ATTACHMENT + IMAGE ANALYSIS
-// =============================================
-let attachedFiles = [];
-
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-function handleFileAttach(e) {
-  const files = Array.from(e.target.files);
-  if (!files.length) return;
-  files.forEach(f => { if (!attachedFiles.find(a => a.name === f.name)) attachedFiles.push(f); });
-  e.target.value = '';
-  renderAttachPreview();
-}
-
-function renderAttachPreview() {
-  const wrap = document.getElementById('attach-preview');
-  if (!wrap) return;
-  if (attachedFiles.length === 0) { wrap.style.display = 'none'; wrap.innerHTML = ''; return; }
-  wrap.style.display = 'flex';
-  wrap.innerHTML = attachedFiles.map((f, i) => {
-    const icon = f.type.startsWith('image/') ? '🖼️' : '📄';
-    const kb = (f.size / 1024).toFixed(1);
-    return `<div class="attach-chip">${icon} <span title="${f.name}">${f.name}</span> <span style="color:var(--text2);font-size:10px">${kb}kb</span><button class="attach-remove" onclick="removeAttach(${i})">✕</button></div>`;
-  }).join('');
-}
-
-function removeAttach(idx) {
-  attachedFiles.splice(idx, 1);
-  renderAttachPreview();
-}
-
-async function pasteCode() {
-  try {
-    const text = await navigator.clipboard.readText();
-    if (!text.trim()) { showToast('⚠️ Presse-papier vide', 'info'); return; }
-    const ta = document.getElementById('chat-ta');
-    const isCode = text.includes('\n') && (
-      text.includes('local ') || text.includes('function ') ||
-      text.includes('end') || text.includes('game:') ||
-      text.includes('{') || text.includes('Instance.new')
-    );
-    ta.value = ta.value + (ta.value ? '\n' : '') + (isCode ? '```lua\n' + text + '\n```' : text);
-    autoResize(ta); ta.focus();
-    showToast('📋 ' + (isCode ? 'Code Luau collé !' : 'Texte collé !'));
-  } catch {
-    showToast('⚠️ Autorise le presse-papier dans ton navigateur (icône 🔒)', 'info');
-  }
-}
-
-// =============================================
-// CHAT HISTORY WITH DELETE
-// =============================================
-
 function loadChatHistory() {
-  const historyEl = document.getElementById('s-history');
-  historyEl.innerHTML = '';
-  if (chats.length === 0) {
-    historyEl.innerHTML = '<div style="padding:12px 14px;font-size:12px;color:var(--text2);">Aucune conversation</div>';
-    return;
-  }
-  chats.slice(0, 15).forEach(chat => {
-    const timeAgo = getTimeAgo(chat.timestamp);
-    const icon = getChatIcon(chat.title);
-    const item = document.createElement('div');
-    item.className = 's-hist-item';
-    item.innerHTML = `<span class="hi">${icon}</span><span class="ht">${chat.title}</span><span class="htime">${timeAgo}</span><button class="s-hist-del" title="Supprimer" onclick="deleteChat(event,'${chat.id}')">🗑</button>`;
-    item.addEventListener('click', () => loadChat(chat.id));
-    historyEl.appendChild(item);
+  const el = document.getElementById('s-history');
+  el.innerHTML = '';
+
+  chats.slice(0, 10).forEach(c => {
+    const div = document.createElement('div');
+    div.className = 's-hist-item';
+    div.textContent = c.title;
+    div.onclick = () => loadChat(c.id);
+    el.appendChild(div);
   });
 }
 
-function deleteChat(e, chatId) {
-  e.stopPropagation();
-  chats = chats.filter(c => c.id !== chatId);
-  saveChats();
-  if (currentChatId === chatId) {
-    messages = []; currentChatId = null;
-    document.getElementById('welcome-screen').style.display = 'flex';
-    document.getElementById('msgs').style.display = 'none';
-    document.getElementById('msgs').innerHTML = '';
-  }
-  loadChatHistory();
-  showToast('🗑 Conversation supprimée');
+// =============================================
+// HELPERS
+// =============================================
+function generateFallbackAvatar(name) {
+  const c = document.createElement('canvas');
+  c.width = c.height = 100;
+  const ctx = c.getContext('2d');
+
+  ctx.fillStyle = '#5865f2';
+  ctx.fillRect(0, 0, 100, 100);
+
+  ctx.fillStyle = '#fff';
+  ctx.font = '40px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(name[0].toUpperCase(), 50, 50);
+
+  return c.toDataURL();
+}
+
+function showToast(msg) {
+  console.log('[Toast]', msg);
+}
+
+function showLoading(t) {
+  console.log('Loading:', t);
+}
+
+function hideLoading() {}
+
+function setLookupError(msg) {
+  alert(msg);
 }
 
 // =============================================
-// NO CREDITS MODAL
+// INIT
 // =============================================
-
-function showNoCredits() {
-  document.getElementById('no-credits-modal').classList.add('show');
-}
-function closeNoCredits() {
-  document.getElementById('no-credits-modal').classList.remove('show');
-}
-
-// =============================================
-// TOAST
-// =============================================
-
-function showToast(msg, type='success') {
-  document.querySelectorAll('.toast').forEach(t => t.remove());
-  const t = document.createElement('div');
-  t.className = 'toast' + (type !== 'success' ? ' ' + type : '');
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), 3500);
-}
-
-// Init: show chat view by default
 showView('chat');
+loadChats();
 </script>
 
 <!-- NO CREDITS MODAL -->
