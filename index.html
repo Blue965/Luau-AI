@@ -853,23 +853,44 @@ function showView(v) {
 // ROBLOX API HELPERS
 // =============================================
 async function fetchRobloxUser(username) {
-  // Simulation API Roblox - remplacer par vraie API
-  const mockUsers = {
-    'builderman': { id: 1, name: 'Builderman', displayName: 'Builderman' },
-    'roblox': { id: 2, name: 'ROBLOX', displayName: 'ROBLOX' },
-    'shedletsky': { id: 3, name: 'Shedletsky', displayName: 'Shedletsky' },
-    'telamon': { id: 4, name: 'Telamon', displayName: 'Telamon' }
+  // Simulation API Roblox - accepte tous les usernames
+  if (!username || username.trim().length < 3) {
+    throw new Error('Username invalide (minimum 3 caractères)');
+  }
+  
+  // Générer un ID basé sur le hash du username pour la cohérence
+  const generateId = (str) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return Math.abs(hash) + 1000000;
   };
   
-  const user = mockUsers[username.toLowerCase()];
-  if (!user) throw new Error('Utilisateur introuvable');
+  const userId = generateId(username.toLowerCase());
   
-  return user;
+  return {
+    id: userId,
+    name: username,
+    displayName: username,
+    created: new Date().toISOString()
+  };
 }
 
 async function fetchRobloxAvatar(userId) {
-  // Simulation API Roblox - remplacer par vraie API
-  return `https://tr.rbxcdn.com/v1/avatar?id=${userId}&width=420&height=420&format=png`;
+  // Vraie API Roblox pour récupérer l'avatar
+  try {
+    const response = await fetch(`https://thumbnails.roblox.com/v1/users/avatar?userIds=${userId}&size=420x420&format=Png&isCircular=false`);
+    if (!response.ok) return null;
+    
+    const data = await response.json();
+    return data.data?.[0]?.imageUrl || null;
+  } catch (error) {
+    console.error('Erreur API avatar:', error);
+    return null;
+  }
 }
 
 // =============================================
