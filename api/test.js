@@ -1,23 +1,18 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
+ 
 function loadEnvKey(key) {
   if (process.env[key]) return process.env[key];
-
+ 
   const candidates = [
     path.resolve(process.cwd(), '.env'),
     path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.env')
   ];
-
+ 
   for (const candidate of candidates) {
-    console.log('loadEnvKey candidate', candidate);
     try {
-      if (!fs.existsSync(candidate)) {
-        console.log('loadEnvKey missing file', candidate);
-        continue;
-      }
-      console.log('loadEnvKey found file', candidate);
+      if (!fs.existsSync(candidate)) continue;
       const text = fs.readFileSync(candidate, 'utf8');
       for (const line of text.split(/\r?\n/)) {
         const trimmed = line.trim();
@@ -25,66 +20,85 @@ function loadEnvKey(key) {
         const [name, ...rest] = trimmed.split('=');
         if (name.trim() !== key) continue;
         let value = rest.join('=').trim();
-        if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+        if (
+          (value.startsWith('"') && value.endsWith('"')) ||
+          (value.startsWith("'") && value.endsWith("'"))
+        ) {
           value = value.slice(1, -1);
         }
         process.env[key] = value;
         return value;
       }
     } catch (err) {
-      console.error('Error loading .env file from', candidate, err);
+      console.error('Error loading .env from', candidate, err);
     }
   }
-
   return undefined;
 }
-
+ 
 export default async function handler(req, res) {
   const apiKey = loadEnvKey('HUGGINGFACE_API_KEY') || loadEnvKey('HF_API_KEY');
+ 
   if (!apiKey) {
     return res.status(500).json({
-      error: 'API key not configured. Configure HUGGINGFACE_API_KEY or HF_API_KEY in environment or .env.'
+      success: false,
+      error: 'Clé API manquante.',
+      fix: 'Ajoute HUGGINGFACE_API_KEY=hf_xxxx dans Vercel > Settings > Environment Variables'
     });
   }
-
-  const model = loadEnvKey('HF_MODEL') || 'Roblox-Coder-Llama-7B-v1';
-
+ 
+  const model = loadEnvKey('HF_MODEL') || 'meta-llama/Llama-3.1-8B-Instruct';
+ 
+  console.log('Test API — model:', model, '| key starts with:', apiKey.substring(0, 8) + '...');
+ 
   try {
-    // Test simple avec le routeur Hugging Face OpenAI-compatible
     const response = await fetch('https://router.huggingface.co/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         model,
-        messages: [
-          { role: 'user', content: 'Salut' }
-        ],
-        max_tokens: 100,
-        temperature: 0.7
+        messages: [{ role: 'user', content: 'Dis juste "OK" en un mot.' }],
+        max_tokens: 10,
+        temperature: 0.1
       })
     });
-
+ 
+    const body = await response.text();
+ 
     if (!response.ok) {
-      const error = await response.text();
+      let fix = '';
+      if (response.status === 401) fix = 'Clé API invalide. Régénère-la sur huggingface.co/settings/tokens';
+      if (response.status === 403) fix = 'Modèle gated : accepte les conditions sur huggingface.co/' + model;
+      if (response.status === 404) fix = 'Modèle introuvable. Change HF_MODEL dans ton .env Vercel.';
+      if (response.status === 503) fix = 'Modèle en cold start, réessaie dans 20s.';
+ 
       return res.status(response.status).json({
-        error: 'API test failed',
+        success: false,
         status: response.status,
-        details: error
+        model,
+        error: body,
+        fix: fix || 'Voir logs Vercel pour détails.'
       });
     }
-
-    const data = await response.json();
-    const reply = data?.choices?.[0]?.message?.content || data?.choices?.[0]?.text || data?.generated_text;
-    res.status(200).json({
+ 
+    const data = JSON.parse(body);
+    const reply = data?.choices?.[0]?.message?.content || data?.choices?.[0]?.text || '?';
+ 
+    return res.status(200).json({
       success: true,
-      message: 'API key is valid',
       model,
-      reply: reply ? reply.substring(0, 100) + '...' : 'Pas de réponse de test détectée'
+      reply: reply.trim(),
+      message: '✅ Clé API valide et modèle opérationnel !'
     });
-  } catch (error) {
-    res.status(500).json({ error: 'Test failed: ' + error.message });
+ 
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      error: 'Erreur réseau : ' + err.message
+    });
   }
 }
+ 
