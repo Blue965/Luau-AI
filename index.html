@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Luau AI</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%231f6feb'/%3E%3Cstop offset='100%25' stop-color='%2339d0d8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Ctext x='32' y='44' font-size='36' text-anchor='middle' font-family='Arial' font-weight='bold' fill='white'%3EL%3C/text%3E%3Ccircle cx='46' cy='18' r='7' fill='%2339d0d8' opacity='0.9'/%3E%3Ccircle cx='46' cy='18' r='3.5' fill='white'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%231f6feb'/%3E%3Cstop offset='100%25' stop-color='%2339d0d8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Ctext x='32' y='45' font-size='38' text-anchor='middle' font-family='Arial' font-weight='bold' fill='white'%3EL%3C/text%3E%3Ccircle cx='47' cy='17' r='8' fill='%2339d0d8' opacity='0.95'/%3E%3Ccircle cx='47' cy='17' r='4' fill='white'/%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -218,30 +218,6 @@
   .s-hist-item .hi { font-size:13px; flex-shrink:0; }
   .s-hist-item .ht { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
   .s-hist-item .htime { font-size:10px; color:var(--text2); flex-shrink:0; }
-  .s-hist-del {
-    width:22px; height:22px; border-radius:4px; background:transparent; border:none;
-    color:var(--text2); font-size:13px; cursor:pointer; flex-shrink:0;
-    display:none; align-items:center; justify-content:center; transition:all 0.15s;
-    padding:0; line-height:1;
-  }
-  .s-hist-item:hover .s-hist-del { display:flex; }
-  .s-hist-del:hover { background:rgba(248,81,73,0.15); color:var(--red); }
-  /* File attachment preview */
-  .attach-preview {
-    display:flex; flex-wrap:wrap; gap:6px; padding:8px 12px 0;
-  }
-  .attach-chip {
-    display:flex; align-items:center; gap:6px; padding:4px 10px;
-    background:var(--bg3); border:1px solid var(--border); border-radius:6px;
-    font-size:12px; color:var(--text0); max-width:200px;
-  }
-  .attach-chip span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .attach-remove {
-    width:16px; height:16px; border-radius:3px; background:none; border:none;
-    color:var(--text2); cursor:pointer; font-size:12px; flex-shrink:0;
-    display:flex; align-items:center; justify-content:center; padding:0;
-  }
-  .attach-remove:hover { color:var(--red); }
 
   .s-user {
     border-top:1px solid var(--border); padding:12px 14px;
@@ -328,12 +304,59 @@
   .t-dot { width:6px; height:6px; background:var(--blue3); border-radius:50%; animation:pulse 1.2s ease infinite; }
   .t-dot:nth-child(2) { animation-delay:0.2s; }
   .t-dot:nth-child(3) { animation-delay:0.4s; }
-  .code-block {
-    background:var(--bg0); border:1px solid var(--border); border-radius:var(--radius);
-    padding:12px 14px; margin:8px 0; font-family:'JetBrains Mono',monospace;
-    font-size:12px; color:var(--cyan2); overflow-x:auto; white-space:pre;
+  /* ── Code block editor ── */
+  .code-wrap {
+    background: #0d1117; border: 1px solid var(--border);
+    border-radius: var(--radius); margin: 10px 0; overflow: hidden;
   }
-  .code-lang { font-size:10px; color:var(--text2); margin-bottom:6px; text-transform:uppercase; letter-spacing:1px; font-family:'Outfit',sans-serif; }
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 7px 12px; background: #21262d; border-bottom: 1px solid var(--border);
+  }
+  .code-lang-tag {
+    font-size: 11px; font-weight: 600; color: var(--text1);
+    font-family: 'Outfit', sans-serif; display: flex; align-items: center; gap: 6px;
+  }
+  .code-lang-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); flex-shrink:0; }
+  .copy-btn {
+    display: flex; align-items: center; gap: 5px; padding: 3px 10px;
+    background: var(--bg4); border: 1px solid var(--border2); border-radius: 5px;
+    color: var(--text1); font-size: 11px; font-family: 'Outfit', sans-serif;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .copy-btn:hover { background: var(--bg2); color: var(--blue3); border-color: var(--blue2); }
+  .copy-btn.copied { color: var(--green2); border-color: var(--green2); }
+  .code-body {
+    padding: 14px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px; line-height: 1.75; color: var(--cyan2);
+    overflow-x: auto; white-space: pre;
+    tab-size: 2;
+  }
+  /* Attached image preview in messages */
+  .msg-img { max-width: 260px; border-radius: var(--radius); margin-top: 8px; border: 1px solid var(--border); display: block; }
+  /* File attachment chips */
+  .attach-preview { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px 0; }
+  .attach-chip {
+    display: flex; align-items: center; gap: 6px; padding: 4px 10px;
+    background: var(--bg3); border: 1px solid var(--border); border-radius: 6px;
+    font-size: 12px; color: var(--text0); max-width: 220px;
+  }
+  .attach-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .attach-remove {
+    width: 16px; height: 16px; border-radius: 3px; background: none; border: none;
+    color: var(--text2); cursor: pointer; font-size: 12px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; padding: 0;
+  }
+  .attach-remove:hover { color: var(--red); }
+  /* Delete button on history items */
+  .s-hist-del {
+    width: 22px; height: 22px; border-radius: 4px; background: transparent; border: none;
+    color: var(--text2); font-size: 13px; cursor: pointer; flex-shrink: 0;
+    display: none; align-items: center; justify-content: center; transition: all 0.15s; padding: 0;
+  }
+  .s-hist-item:hover .s-hist-del { display: flex; }
+  .s-hist-del:hover { background: rgba(248,81,73,0.15); color: var(--red); }
 
   .input-area { padding:14px 18px 18px; background:var(--bg0); border-top:1px solid var(--border); flex-shrink:0; }
   .input-wrap {
@@ -1058,39 +1081,16 @@ function updateChatTitle(chat) {
 function loadChatHistory() {
   const historyEl = document.getElementById('s-history');
   historyEl.innerHTML = '';
-  if (chats.length === 0) {
-    historyEl.innerHTML = '<div style="padding:12px 14px;font-size:12px;color:var(--text2);">Aucune conversation</div>';
-    return;
-  }
-  chats.slice(0, 15).forEach(chat => {
+
+  chats.slice(0, 10).forEach(chat => { // Afficher les 10 plus récents
     const timeAgo = getTimeAgo(chat.timestamp);
     const icon = getChatIcon(chat.title);
     const item = document.createElement('div');
     item.className = 's-hist-item';
-    item.innerHTML = `
-      <span class="hi">${icon}</span>
-      <span class="ht">${chat.title}</span>
-      <span class="htime">${timeAgo}</span>
-      <button class="s-hist-del" title="Supprimer" onclick="deleteChat(event,'${chat.id}')">🗑</button>
-    `;
-    item.addEventListener('click', () => loadChat(chat.id));
+    item.onclick = () => loadChat(chat.id);
+    item.innerHTML = `<span class="hi">${icon}</span><span class="ht">${chat.title}</span><span class="htime">${timeAgo}</span>`;
     historyEl.appendChild(item);
   });
-}
-
-function deleteChat(e, chatId) {
-  e.stopPropagation();
-  chats = chats.filter(c => c.id !== chatId);
-  saveChats();
-  if (currentChatId === chatId) {
-    messages = [];
-    currentChatId = null;
-    document.getElementById('welcome-screen').style.display = 'flex';
-    document.getElementById('msgs').style.display = 'none';
-    document.getElementById('msgs').innerHTML = '';
-  }
-  loadChatHistory();
-  showToast('🗑 Conversation supprimée');
 }
 
 function getTimeAgo(timestamp) {
@@ -1134,20 +1134,102 @@ function newChat() {
   showView('chat');
 }
 
+// =============================================
+// MARKDOWN / CODE PARSER
+// =============================================
+let _cbIdx = 0;
+
+function copyCode(btnId, codeId) {
+  const code = document.getElementById(codeId);
+  if (!code) return;
+  const text = code.innerText || code.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ Copié !';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = (document.getElementById(codeId)?.innerText || '');
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+  });
+}
+
+function buildCodeBlock(lang, rawCode) {
+  const idx = ++_cbIdx;
+  const btnId = 'cbtn' + idx;
+  const codeId = 'ccode' + idx;
+  const label = lang || 'luau';
+  // Escape HTML
+  const escaped = rawCode
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  return `<div class="code-wrap">
+    <div class="code-header">
+      <span class="code-lang-tag"><span class="code-lang-dot"></span>${label}</span>
+      <button class="copy-btn" id="${btnId}" onclick="copyCode('${btnId}','${codeId}')">⎘ Copier</button>
+    </div>
+    <div class="code-body" id="${codeId}">${escaped}</div>
+  </div>`;
+}
+
+function parseMarkdown(raw) {
+  // ── Step 1: extract fenced code blocks first to avoid double-processing
+  const CODE_PLACEHOLDER = '\x00CODE\x00';
+  const codeBlocks = [];
+  let s = raw.replace(/```([\w]*)\r?\n?([\s\S]*?)```/g, (_, lang, code) => {
+    codeBlocks.push(buildCodeBlock(lang.trim() || 'luau', code.replace(/^\n/, '').replace(/\n$/, '')));
+    return CODE_PLACEHOLDER + (codeBlocks.length - 1) + '\x00';
+  });
+
+  // ── Step 2: legacy [CODE]...[/CODE]
+  s = s.replace(/\[CODE\]([\s\S]*?)\[\/CODE\]/g, (_, code) => {
+    codeBlocks.push(buildCodeBlock('luau', code.trim()));
+    return CODE_PLACEHOLDER + (codeBlocks.length - 1) + '\x00';
+  });
+
+  // ── Step 3: inline markdown
+  s = s
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/`([^`\n]+)`/g, '<code style="background:var(--bg3);padding:1px 6px;border-radius:4px;font-family:\'JetBrains Mono\',monospace;font-size:12px;color:var(--cyan2);">$1</code>')
+    .replace(/^### (.+)$/gm, '<div style="font-weight:700;font-size:15px;margin:10px 0 4px;color:var(--text0)">$1</div>')
+    .replace(/^## (.+)$/gm,  '<div style="font-weight:700;font-size:16px;margin:12px 0 4px;color:var(--text0)">$1</div>')
+    .replace(/^# (.+)$/gm,   '<div style="font-weight:700;font-size:18px;margin:14px 0 6px;color:var(--text0)">$1</div>')
+    .replace(/^\d+\.\s+(.+)$/gm, '<div style="padding-left:18px;margin:2px 0;">$1</div>')
+    .replace(/^[-•]\s+(.+)$/gm,  '<div style="padding-left:18px;margin:2px 0;">• $1</div>')
+    .replace(/\n{2,}/g, '<br><br>')
+    .replace(/\n/g, '<br>');
+
+  // ── Step 4: restore code blocks
+  s = s.replace(new RegExp(CODE_PLACEHOLDER.replace(/\x00/g,'\\x00') + '(\\d+)\\x00','g'), (_, i) => codeBlocks[+i] || '');
+  return s;
+}
+
 function renderMsg(m) {
   const isUser = m.role === 'user';
   const avHtml = isUser
     ? `<img src="${currentUser.avatarUrl}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid var(--blue2);" onerror="this.src='${generateFallbackAvatar(currentUser.username)}';">`
     : '🤖';
-  let text = m.text
-    .replace(/\[CODE\]([\s\S]*?)\[\/CODE\]/g, (_,c) => `<div class="code-block"><div class="code-lang">Luau</div>${c.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`)
-    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-    .replace(/\n/g,'<br>');
+
+  let content = parseMarkdown(m.text || '');
+
+  // Show attached image if present
+  if (m.imageUrl) {
+    content += `<img src="${m.imageUrl}" class="msg-img" alt="Image jointe">`;
+  }
+
   const now = new Date();
-  const t = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
-  return `<div class="msg ${isUser?'user':'ai'}">
-    <div class="msg-av ${isUser?'':'ai'}">${avHtml}</div>
-    <div><div class="msg-bubble">${text}</div><div class="msg-time">${t}</div></div>
+  const t = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  return `<div class="msg ${isUser ? 'user' : 'ai'}">
+    <div class="msg-av ${isUser ? '' : 'ai'}">${avHtml}</div>
+    <div style="min-width:0;flex:1">
+      <div class="msg-bubble">${content}</div>
+      <div class="msg-time">${t}</div>
+    </div>
   </div>`;
 }
 
@@ -1179,37 +1261,52 @@ async function sendMsg() {
   if (!currentChatId) createNewChat();
   const ta = document.getElementById('chat-ta');
   const text = ta.value.trim();
-  if (!text) return;
+  if (!text && attachedFiles.length === 0) return;
 
   if (currentUser && currentUser.plan === 'Starter' && currentUser.credits <= 0) {
     resetDailyCredits();
-    // Après reset, vérifier si on a maintenant des crédits
     if (currentUser.credits <= 0) {
-      showToast('❌ Plus de crédits ! Achetez un plan Pro', 'error');
-      showView('shop'); return;
+      showNoCredits(); return;
     }
   }
 
   ta.value = ''; ta.style.height = '';
 
-  // Build message text with attached file names
-  let fullText = text;
+  // Handle attached files — images get base64 encoded for display + analysis
+  let userMsg = { role: 'user', text: text || '' };
   if (attachedFiles.length > 0) {
-    const names = attachedFiles.map(f => f.name).join(', ');
-    fullText += `\n\n[Fichiers joints : ${names}]`;
+    const imgFiles = attachedFiles.filter(f => f.type.startsWith('image/'));
+    const otherFiles = attachedFiles.filter(f => !f.type.startsWith('image/'));
+
+    if (imgFiles.length > 0) {
+      // Encode first image as base64 for preview and send to API
+      const img = imgFiles[0];
+      const b64 = await fileToBase64(img);
+      userMsg.imageUrl = b64;
+      userMsg.imageBase64 = b64;
+      userMsg.imageMime = img.type;
+      userMsg.text = (text || '') + (text ? '' : '');
+    }
+    if (otherFiles.length > 0) {
+      const names = otherFiles.map(f => f.name).join(', ');
+      userMsg.text += (userMsg.text ? '\n' : '') + `[Fichiers joints : ${names}]`;
+    }
     attachedFiles = [];
     renderAttachPreview();
   }
 
-  messages.push({ role:'user', text: fullText });
-  if (currentUser && currentUser.credits < 99999) currentUser.credits = Math.max(0, currentUser.credits - 1);
-  updateUI();
+  messages.push(userMsg);
 
+  if (currentUser && currentUser.credits < 99999) {
+    currentUser.credits = Math.max(0, currentUser.credits - 1);
+    if (currentUser.credits === 10) showToast('⚠️ Plus que 10 crédits restants !', 'info');
+    if (currentUser.credits === 0) setTimeout(() => showNoCredits(), 1000);
+  }
+  updateUI();
   renderMessages();
 
   const container = document.getElementById('msgs');
-  const tid = 'typing-'+Date.now();
-  container.innerHTML += `<div class="msg ai" id="${tid}">
+  container.innerHTML += `<div class="msg ai" id="typing-now">
     <div class="msg-av ai">🤖</div>
     <div><div class="msg-bubble"><div class="typing-dots"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div></div></div>
   </div>`;
@@ -1218,17 +1315,22 @@ async function sendMsg() {
   document.getElementById('send-btn').disabled = true;
 
   try {
-    console.log('Sending to AI:', { messages: messages.slice(-10) });
+    // Build payload — include image for analysis if present
+    const payload = { messages: messages.slice(-10).map(m => ({
+      role: m.role,
+      text: m.text,
+      ...(m.imageBase64 ? { imageBase64: m.imageBase64, imageMime: m.imageMime } : {})
+    })) };
+
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: messages.slice(-10) }) // Send last 10 messages for context
+      body: JSON.stringify(payload)
     });
-    console.log('AI response status:', response.status);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(`Erreur IA: ${response.status} ${errorData.error || response.statusText}`);
+      throw new Error(`Erreur IA: ${response.status} — ${errorData.error || response.statusText}`);
     }
 
     const data = await response.json();
@@ -1272,7 +1374,7 @@ function buyGamepass(plan, price) {
   const GAMEPASS_IDS = { Pro: '1788365834', Enterprise: '1792408927' };
   const gpId = GAMEPASS_IDS[plan];
   showToast(`🎮 Ouverture du Gamepass ${plan}...`, 'info');
-  window.open(`https://www.roblox.com/game-pass/${gpId}/luau-ai-${plan.toLowerCase()}`, '_blank');
+  window.open(`https://www.roblox.com/game-pass/${gpId}`, '_blank');
 }
 
 // =============================================
@@ -1292,32 +1394,36 @@ function doLogout() {
 }
 
 // =============================================
-// FILE ATTACHMENT
+// FILE ATTACHMENT + IMAGE ANALYSIS
 // =============================================
 let attachedFiles = [];
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
 
 function handleFileAttach(e) {
   const files = Array.from(e.target.files);
   if (!files.length) return;
-  files.forEach(f => {
-    if (!attachedFiles.find(a => a.name === f.name)) attachedFiles.push(f);
-  });
-  e.target.value = ''; // reset input so same file can be re-attached
+  files.forEach(f => { if (!attachedFiles.find(a => a.name === f.name)) attachedFiles.push(f); });
+  e.target.value = '';
   renderAttachPreview();
 }
 
 function renderAttachPreview() {
   const wrap = document.getElementById('attach-preview');
+  if (!wrap) return;
   if (attachedFiles.length === 0) { wrap.style.display = 'none'; wrap.innerHTML = ''; return; }
   wrap.style.display = 'flex';
   wrap.innerHTML = attachedFiles.map((f, i) => {
     const icon = f.type.startsWith('image/') ? '🖼️' : '📄';
     const kb = (f.size / 1024).toFixed(1);
-    return `<div class="attach-chip">
-      ${icon} <span title="${f.name}">${f.name}</span>
-      <span style="color:var(--text2);font-size:10px">${kb}kb</span>
-      <button class="attach-remove" onclick="removeAttach(${i})">✕</button>
-    </div>`;
+    return `<div class="attach-chip">${icon} <span title="${f.name}">${f.name}</span> <span style="color:var(--text2);font-size:10px">${kb}kb</span><button class="attach-remove" onclick="removeAttach(${i})">✕</button></div>`;
   }).join('');
 }
 
@@ -1329,21 +1435,66 @@ function removeAttach(idx) {
 async function pasteCode() {
   try {
     const text = await navigator.clipboard.readText();
-    if (!text) { showToast('⚠️ Presse-papier vide', 'info'); return; }
+    if (!text.trim()) { showToast('⚠️ Presse-papier vide', 'info'); return; }
     const ta = document.getElementById('chat-ta');
-    const cur = ta.value;
-    const isCode = text.includes('\n') && (text.includes('local ') || text.includes('function') || text.includes('end') || text.includes('{') || text.includes('='));
-    if (isCode) {
-      ta.value = cur + (cur ? '\n' : '') + '```lua\n' + text + '\n```';
-    } else {
-      ta.value = cur + text;
-    }
-    autoResize(ta);
-    ta.focus();
-    showToast('📋 Code collé !');
+    const isCode = text.includes('\n') && (
+      text.includes('local ') || text.includes('function ') ||
+      text.includes('end') || text.includes('game:') ||
+      text.includes('{') || text.includes('Instance.new')
+    );
+    ta.value = ta.value + (ta.value ? '\n' : '') + (isCode ? '```lua\n' + text + '\n```' : text);
+    autoResize(ta); ta.focus();
+    showToast('📋 ' + (isCode ? 'Code Luau collé !' : 'Texte collé !'));
   } catch {
-    showToast('⚠️ Autorise l\'accès au presse-papier dans ton navigateur', 'info');
+    showToast('⚠️ Autorise le presse-papier dans ton navigateur (icône 🔒)', 'info');
   }
+}
+
+// =============================================
+// CHAT HISTORY WITH DELETE
+// =============================================
+
+function loadChatHistory() {
+  const historyEl = document.getElementById('s-history');
+  historyEl.innerHTML = '';
+  if (chats.length === 0) {
+    historyEl.innerHTML = '<div style="padding:12px 14px;font-size:12px;color:var(--text2);">Aucune conversation</div>';
+    return;
+  }
+  chats.slice(0, 15).forEach(chat => {
+    const timeAgo = getTimeAgo(chat.timestamp);
+    const icon = getChatIcon(chat.title);
+    const item = document.createElement('div');
+    item.className = 's-hist-item';
+    item.innerHTML = `<span class="hi">${icon}</span><span class="ht">${chat.title}</span><span class="htime">${timeAgo}</span><button class="s-hist-del" title="Supprimer" onclick="deleteChat(event,'${chat.id}')">🗑</button>`;
+    item.addEventListener('click', () => loadChat(chat.id));
+    historyEl.appendChild(item);
+  });
+}
+
+function deleteChat(e, chatId) {
+  e.stopPropagation();
+  chats = chats.filter(c => c.id !== chatId);
+  saveChats();
+  if (currentChatId === chatId) {
+    messages = []; currentChatId = null;
+    document.getElementById('welcome-screen').style.display = 'flex';
+    document.getElementById('msgs').style.display = 'none';
+    document.getElementById('msgs').innerHTML = '';
+  }
+  loadChatHistory();
+  showToast('🗑 Conversation supprimée');
+}
+
+// =============================================
+// NO CREDITS MODAL
+// =============================================
+
+function showNoCredits() {
+  document.getElementById('no-credits-modal').classList.add('show');
+}
+function closeNoCredits() {
+  document.getElementById('no-credits-modal').classList.remove('show');
 }
 
 // =============================================
@@ -1362,5 +1513,69 @@ function showToast(msg, type='success') {
 // Init: show chat view by default
 showView('chat');
 </script>
+
+<!-- NO CREDITS MODAL -->
+<style>
+  #no-credits-modal {
+    position:fixed; inset:0; background:rgba(13,17,23,0.82);
+    display:none; align-items:center; justify-content:center; z-index:5000;
+    backdrop-filter:blur(6px);
+  }
+  #no-credits-modal.show { display:flex; animation:fadeIn 0.25s ease; }
+  .ncm-card {
+    background:var(--bg1); border:1px solid var(--border);
+    border-radius:18px; padding:36px 32px; max-width:420px; width:90%;
+    text-align:center; box-shadow:0 24px 64px rgba(0,0,0,0.7);
+    animation:slideUp 0.3s ease;
+  }
+  .ncm-icon { font-size:48px; margin-bottom:14px; }
+  .ncm-title { font-size:20px; font-weight:700; margin-bottom:8px; }
+  .ncm-sub { font-size:14px; color:var(--text1); margin-bottom:20px; line-height:1.6; }
+  .ncm-bar { height:4px; border-radius:2px; background:var(--bg3); margin-bottom:22px; }
+  .ncm-bar-fill { height:100%; border-radius:2px; background:linear-gradient(90deg,var(--red),var(--amber2)); width:100%; }
+  .ncm-plans { display:flex; gap:10px; margin-bottom:20px; }
+  .ncm-plan {
+    flex:1; padding:14px 8px; border-radius:var(--radius-lg);
+    border:1px solid var(--border); background:var(--bg2); cursor:pointer;
+    transition:all 0.2s; text-align:center;
+  }
+  .ncm-plan:hover { border-color:var(--blue2); transform:translateY(-2px); }
+  .ncm-plan.highlight { border-color:var(--blue2); background:rgba(31,111,235,0.1); }
+  .ncm-plan-name { font-size:13px; font-weight:700; margin-bottom:4px; }
+  .ncm-plan-cr { font-size:18px; font-weight:700; color:var(--blue3); margin-bottom:2px; }
+  .ncm-plan-price { font-size:11px; color:var(--text2); }
+  .ncm-dismiss { font-size:12px; color:var(--text2); cursor:pointer; margin-top:4px; }
+  .ncm-dismiss:hover { color:var(--text1); }
+</style>
+<div id="no-credits-modal" onclick="if(event.target===this)closeNoCredits()">
+  <div class="ncm-card">
+    <div class="ncm-icon">💎</div>
+    <div class="ncm-title">Crédits épuisés</div>
+    <div class="ncm-bar"><div class="ncm-bar-fill"></div></div>
+    <div class="ncm-sub">
+      Vous avez utilisé vos <strong>100 crédits gratuits</strong> du plan Starter.<br>
+      Passez à un plan supérieur pour continuer sans interruption.
+    </div>
+    <div class="ncm-plans">
+      <div class="ncm-plan" onclick="closeNoCredits();showView('shop')">
+        <div class="ncm-plan-name">🌱 Starter</div>
+        <div class="ncm-plan-cr">100</div>
+        <div class="ncm-plan-price">Gratuit / mois</div>
+      </div>
+      <div class="ncm-plan highlight" onclick="closeNoCredits();buyGamepass('Pro',800)">
+        <div class="ncm-plan-name" style="color:var(--blue3)">🚀 Pro</div>
+        <div class="ncm-plan-cr">2 500</div>
+        <div class="ncm-plan-price">800 R$/mois</div>
+      </div>
+      <div class="ncm-plan" onclick="closeNoCredits();buyGamepass('Enterprise',2500)">
+        <div class="ncm-plan-name" style="color:var(--purple)">👑 Enterprise</div>
+        <div class="ncm-plan-cr">∞</div>
+        <div class="ncm-plan-price">2500 R$/mois</div>
+      </div>
+    </div>
+    <div class="ncm-dismiss" onclick="closeNoCredits()">← Retour au chat</div>
+  </div>
+</div>
+
 </body>
 </html>
