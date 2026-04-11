@@ -827,38 +827,57 @@ let pendingUser = null;
 let attachedFiles = [];
 
 // =============================================
+// VIEW SYSTEM (FIX IMPORTANT)
+// =============================================
+function showView(v) {
+  const views = ['chat', 'shop', 'settings'];
+
+  views.forEach(x => {
+    const el = document.getElementById(x + '-view');
+    if (el) el.style.display = 'none';
+  });
+
+  const target = document.getElementById(v + '-view');
+  if (target) target.style.display = 'block';
+}
+
+// =============================================
 // ROBLOX API HELPERS
 // =============================================
 async function fetchRobloxUser(username) {
   const r = await fetch('/api/lookup?username=' + encodeURIComponent(username));
+
   if (!r.ok) {
-    if (r.status === 404) throw new Error(`Utilisateur "${username}" introuvable`);
-    throw new Error('Impossible de contacter Roblox');
+    if (r.status === 404) throw new Error('Utilisateur introuvable');
+    throw new Error('Erreur API Roblox');
   }
-  const data = await r.json();
-  if (data.error) throw new Error(data.error);
-  return data;
+
+  return await r.json();
 }
 
 async function fetchRobloxAvatar(userId) {
   const r = await fetch('/api/avatar?userId=' + userId);
   if (!r.ok) return null;
+
   const data = await r.json();
   return data.imageUrl || null;
 }
 
 // =============================================
-// AUTH
+// AUTH (FIXED NAMES)
 // =============================================
 function startRobloxOAuth() {
   document.getElementById('oauth-section').style.display = 'none';
   document.getElementById('manual-section').style.display = 'block';
   document.getElementById('manual-username').focus();
-  showToast('Entrez votre username Roblox', 'info');
+
+  showToast('Entre ton username Roblox');
 }
 
-async function lookupRobloxUserUI() {
+// ⚠️ IMPORTANT: name must match HTML onclick
+async function lookupRobloxUser() {
   const username = document.getElementById('manual-username').value.trim();
+
   if (!username) return setLookupError('Username requis');
 
   showLoading('Recherche Roblox...');
@@ -885,7 +904,12 @@ async function lookupRobloxUserUI() {
   }
 }
 
+// =============================================
+// LOGIN
+// =============================================
 function confirmLogin() {
+  if (!pendingUser) return;
+
   currentUser = pendingUser;
   pendingUser = null;
 
@@ -896,7 +920,7 @@ function confirmLogin() {
   document.getElementById('app').classList.add('show');
 
   updateUI();
-  showToast(`Connecté: ${currentUser.username}`);
+  showToast('Connecté: ' + currentUser.username);
 }
 
 function cancelConfirm() {
@@ -910,11 +934,11 @@ function cancelConfirm() {
 function updateUI() {
   if (!currentUser) return;
 
+  const cr = currentUser.credits >= 99999 ? '∞' : currentUser.credits;
+
   document.getElementById('s-username').textContent = currentUser.username;
   document.getElementById('s-avatar').src = currentUser.avatarUrl;
   document.getElementById('s-plan').textContent = currentUser.plan;
-
-  const cr = currentUser.credits >= 99999 ? '∞' : currentUser.credits;
   document.getElementById('s-credits').textContent = cr;
 }
 
@@ -970,10 +994,11 @@ function loadChats() {
 }
 
 // =============================================
-// CHAT RENDER
+// RENDER
 // =============================================
 function renderMessages() {
   const el = document.getElementById('msgs');
+
   el.innerHTML = messages.map(m => `
     <div class="msg ${m.role}">
       <div class="msg-bubble">${m.text}</div>
@@ -984,7 +1009,7 @@ function renderMessages() {
 }
 
 // =============================================
-// MAIN FIXED SENDMSG (IMPORTANT)
+// FIXED SENDMSG (CLEAN STREAM)
 // =============================================
 async function sendMsg() {
   if (isTyping) return;
@@ -997,12 +1022,10 @@ async function sendMsg() {
 
   if (!currentChatId) createNewChat();
 
-  const userMsg = { role: 'user', text };
-  messages.push(userMsg);
-
+  messages.push({ role: 'user', text });
   renderMessages();
 
-  let aiMsg = { role: 'ai', text: '' };
+  const aiMsg = { role: 'ai', text: '' };
   messages.push(aiMsg);
 
   isTyping = true;
@@ -1016,7 +1039,6 @@ async function sendMsg() {
 
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
-
     let buffer = '';
 
     while (true) {
@@ -1024,7 +1046,6 @@ async function sendMsg() {
       if (done) break;
 
       buffer += decoder.decode(value);
-
       const parts = buffer.split('\n\n');
 
       for (const p of parts) {
@@ -1036,6 +1057,7 @@ async function sendMsg() {
         try {
           const json = JSON.parse(data);
           const token = json.choices?.[0]?.delta?.content;
+
           if (token) {
             aiMsg.text += token;
             renderMessages();
@@ -1048,13 +1070,14 @@ async function sendMsg() {
 
   } catch (e) {
     aiMsg.text = 'Erreur: ' + e.message;
+    renderMessages();
   }
 
   isTyping = false;
 }
 
 // =============================================
-// CHAT HISTORY
+// HISTORY
 // =============================================
 function loadChatHistory() {
   const el = document.getElementById('s-history');
@@ -1104,10 +1127,12 @@ function setLookupError(msg) {
 }
 
 // =============================================
-// INIT
+// INIT SAFE
 // =============================================
-showView('chat');
-loadChats();
+window.addEventListener('DOMContentLoaded', () => {
+  showView('chat');
+  loadChats();
+});
 </script>
 
 <!-- NO CREDITS MODAL -->
