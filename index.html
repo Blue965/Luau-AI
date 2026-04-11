@@ -545,14 +545,15 @@
           <div style="margin-top:8px;color:var(--text2);">ℹ️ Nous récupérons uniquement : username, userId, et avatar headshot. Aucun mot de passe.</div>
         </div>
       </div>
-
+//==================================================
       <!-- Confirm after lookup -->
       <div id="user-confirm">
         <div class="confirm-card">
-          <img class="confirm-avatar" id="confirm-avatar" src="" alt="">
+          <img id="confirm-avatar">
           <div>
-            <div class="confirm-name" id="confirm-name"></div>
-            <div class="confirm-id" id="confirm-id"></div>
+            <div id="confirm-name"></div>
+            <div id="confirm-id"></div>
+            <div id="user-confirm"></div>
             <div style="font-size:12px;color:var(--green2);margin-top:4px;">✓ Compte Roblox vérifié</div>
           </div>
         </div>
@@ -1116,11 +1117,18 @@ function showToast(msg) {
   console.log('[Toast]', msg);
 }
 
-function showLoading(t) {
-  console.log('Loading:', t);
+function showLoading(text) {
+  const el = document.getElementById('loading-text');
+  if (el) el.textContent = text;
+
+  const box = document.getElementById('auth-loading');
+  if (box) box.style.display = 'block';
 }
 
-function hideLoading() {}
+function hideLoading() {
+  const box = document.getElementById('auth-loading');
+  if (box) box.style.display = 'none';
+}
 
 function setLookupError(msg) {
   alert(msg);
