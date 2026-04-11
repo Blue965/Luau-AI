@@ -3,12 +3,12 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 // =============================================
-// MODELS
+// MODELS 🔥 (ordre optimisé)
 // =============================================
 const FALLBACK_MODELS = [
-  'Qwen/Qwen2.5-Coder-7B-Instruct',
   'HuggingFaceH4/zephyr-7b-beta',
   'mistralai/Mistral-7B-Instruct-v0.3',
+  'Qwen/Qwen2.5-Coder-7B-Instruct',
   'microsoft/Phi-3.5-mini-instruct',
 ];
 
@@ -18,22 +18,22 @@ const FALLBACK_MODELS = [
 function loadEnvKey(key) {
   if (process.env[key]) return process.env[key];
 
-  const candidates = [
+  const files = [
     path.resolve(process.cwd(), '.env'),
     path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.env'),
   ];
 
-  for (const file of candidates) {
+  for (const file of files) {
     try {
       if (!fs.existsSync(file)) continue;
 
       const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
 
       for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed || trimmed.startsWith('#')) continue;
+        const l = line.trim();
+        if (!l || l.startsWith('#')) continue;
 
-        const [name, ...rest] = trimmed.split('=');
+        const [name, ...rest] = l.split('=');
         if (name.trim() !== key) continue;
 
         let value = rest.join('=').trim();
@@ -47,18 +47,18 @@ function loadEnvKey(key) {
     }
   }
 
-  return undefined;
+  return null;
 }
 
 // =============================================
-// CALL MODEL (WITH TIMEOUT 🔥)
+// STREAM CALL 🔥 (ChatGPT style)
 // =============================================
-async function callModel(model, messages, apiKey) {
+async function streamModel(model, messages, apiKey, res) {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 12000);
+  const timeout = setTimeout(() => controller.abort(), 20000);
 
   try {
-    const res = await fetch('https://router.huggingface.co/v1/chat/completions', {
+    const hfRes = await fetch('https://router.huggingface.co/v1/chat/completions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -68,32 +68,45 @@ async function callModel(model, messages, apiKey) {
       body: JSON.stringify({
         model,
         messages,
+        temperature: 0.9,
         max_tokens: 2000,
-        temperature: 0.9, // 🔥 plus fun + emojis
+        stream: true
       })
     });
 
-    const text = await res.text();
-    if (!res.ok) return { ok: false, status: res.status, body: text };
-
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      return { ok: false, status: 200, body: 'Invalid JSON' };
+    if (!hfRes.ok) {
+      const txt = await hfRes.text();
+      throw new Error(txt);
     }
 
-    const reply =
-      data?.choices?.[0]?.message?.content ||
-      data?.choices?.[0]?.text ||
-      data?.generated_text;
+    // 🔥 HEADERS STREAM
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive'
+    });
 
-    if (!reply) return { ok: false, status: 200, body: 'Empty reply' };
+    const reader = hfRes.body.getReader();
+    const decoder = new TextDecoder();
 
-    return { ok: true, reply, model };
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+
+      // renvoie brut au frontend
+      res.write(`data: ${chunk}\n\n`);
+    }
+
+    res.write(`data: [DONE]\n\n`);
+    res.end();
+
+    return true;
 
   } catch (err) {
-    return { ok: false, status: 500, body: err.message };
+    console.warn('STREAM ERROR:', model, err.message);
+    return false;
   } finally {
     clearTimeout(timeout);
   }
@@ -113,7 +126,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Messages requis' });
   }
 
-  // 🔥 limite mémoire
+  // 🔥 mémoire limitée (comme ChatGPT)
   messages = messages.slice(-15);
 
   const apiKey =
@@ -122,7 +135,7 @@ export default async function handler(req, res) {
 
   if (!apiKey) {
     return res.status(500).json({
-      error: 'Ajoute HUGGINGFACE_API_KEY dans Vercel'
+      error: 'Ajoute HUGGINGFACE_API_KEY'
     });
   }
 
@@ -135,39 +148,40 @@ export default async function handler(req, res) {
   ];
 
   // =============================================
-  // SYSTEM PROMPT (🔥 EMOJIS FORCÉS)
+  // SYSTEM PROMPT 😎🔥
   // =============================================
   const systemPrompt = `
 Tu es Luau AI 😎🔥
 
-Tu es un assistant expert Roblox Studio + Luau.
+Expert Roblox Studio + Luau.
 
-STYLE OBLIGATOIRE:
-- Réponds en français
-- Utilise des emojis 😄🔥💡
-- Sois naturel et cool
-- Explique clairement
+STYLE:
+- Français
+- Naturel
+- Utilise emojis 😄🔥💡
+- Réponses claires
 
 CODE:
 - Toujours entre \`\`\`lua
-- Code propre et optimisé
+- Propre et optimisé
 
 MISSION:
-- aider à coder
+- aider
 - debug
 - optimiser
-- expliquer simplement
 `;
 
   // =============================================
   // BUILD MESSAGES
   // =============================================
-  const chatMessages = [{ role: 'system', content: systemPrompt }];
+  const chatMessages = [
+    { role: 'system', content: systemPrompt }
+  ];
 
   for (const m of messages) {
     const role = m.role === 'assistant' ? 'assistant' : 'user';
 
-    if (m.imageBase64 && m.imageMime && role === 'user') {
+    if (m.imageBase64 && role === 'user') {
       const base64 = m.imageBase64.replace(/^data:[^;]+;base64,/, '');
 
       chatMessages.push({
@@ -188,44 +202,27 @@ MISSION:
     } else {
       chatMessages.push({
         role,
-        content: "Réponds avec des emojis 😄🔥 : " + (m.text || '')
+        content: m.text || ''
       });
     }
   }
 
   // =============================================
-  // FALLBACK SYSTEM
+  // FALLBACK STREAM 🔥
   // =============================================
-  let lastError = null;
-
   for (const model of models) {
-    console.log('TRY:', model);
+    console.log('TRY STREAM:', model);
 
-    const result = await callModel(model, chatMessages, apiKey);
+    const success = await streamModel(model, chatMessages, apiKey, res);
 
-    if (result.ok) {
-      console.log('SUCCESS:', result.model);
-
-      return res.status(200).json({
-        reply: result.reply,
-        model: result.model
-      });
-    }
-
-    console.warn('FAIL:', model, result.status);
-    lastError = result;
-
-    if (result.status === 401) {
-      return res.status(401).json({ error: 'API key invalide' });
-    }
-
-    if (result.status === 429) {
-      return res.status(429).json({ error: 'Rate limit atteint' });
+    if (success) {
+      console.log('SUCCESS:', model);
+      return;
     }
   }
 
+  // ❌ si tout fail
   return res.status(500).json({
-    error: 'Tous les modèles ont échoué',
-    debug: lastError
+    error: 'Tous les modèles ont échoué'
   });
 }

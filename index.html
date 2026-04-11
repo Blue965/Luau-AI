@@ -1255,21 +1255,80 @@ function resetDailyCredits() {
     showToast('🔄 10 crédits quotidiens rechargés !', 'info');
   }
 }
-
+// =============================================
 async function sendMsg() {
   if (isTyping) return;
   if (!currentChatId) createNewChat();
+
   const ta = document.getElementById('chat-ta');
   const text = ta.value.trim();
-  if (!text && attachedFiles.length === 0) return;
+  if (!text) return;
 
-  if (currentUser && currentUser.plan === 'Starter' && currentUser.credits <= 0) {
-    resetDailyCredits();
-    if (currentUser.credits <= 0) {
-      showNoCredits(); return;
+  ta.value = '';
+
+  const userMsg = { role: 'user', text };
+  messages.push(userMsg);
+
+  renderMessages();
+
+  // 🔥 message IA vide (stream)
+  let aiMsg = { role: 'ai', text: '' };
+  messages.push(aiMsg);
+  renderMessages();
+
+  isTyping = true;
+
+  try {
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages })
+    });
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value);
+
+      const parts = buffer.split('\n\n');
+
+      for (let part of parts) {
+        if (!part.startsWith('data:')) continue;
+
+        const data = part.replace('data: ', '');
+
+        if (data === '[DONE]') break;
+
+        try {
+          const json = JSON.parse(data);
+
+          if (json.choices?.[0]?.delta?.content) {
+            aiMsg.text += json.choices[0].delta.content;
+            renderMessages(); // 🔥 update live
+          }
+
+        } catch {
+          // ignore erreurs
+        }
+      }
     }
+
+    updateCurrentChat();
+
+  } catch (err) {
+    aiMsg.text = "❌ Erreur: " + err.message;
+    renderMessages();
   }
 
+  isTyping = false;
+}
+// =============================================
   ta.value = ''; ta.style.height = '';
 
   // Handle attached files — images get base64 encoded for display + analysis
@@ -1345,7 +1404,6 @@ async function sendMsg() {
   isTyping = false;
   document.getElementById('send-btn').disabled = false;
   renderMessages();
-}
 
 function handleKey(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
