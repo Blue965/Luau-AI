@@ -545,22 +545,29 @@
           <div style="margin-top:8px;color:var(--text2);">ℹ️ Nous récupérons uniquement : username, userId, et avatar headshot. Aucun mot de passe.</div>
         </div>
       </div>
-//==================================================
-      <!-- Confirm after lookup -->
-      <div id="user-confirm">
-        <div class="confirm-card">
-          <img id="confirm-avatar">
-          <div>
-            <div id="confirm-name"></div>
-            <div id="confirm-id"></div>
-            <div id="user-confirm"></div>
-            <div style="font-size:12px;color:var(--green2);margin-top:4px;">✓ Compte Roblox vérifié</div>
-          </div>
-        </div>
-        <button class="confirm-btn" onclick="confirmLogin()">Confirmer et entrer dans Luau AI</button>
-        <div class="cancel-link" onclick="cancelConfirm()">← Changer de compte</div>
+ <!-- Confirm after lookup -->
+<div id="user-confirm">
+  <div class="confirm-card">
+    <img id="confirm-avatar">
+
+    <div>
+      <div id="confirm-name"></div>
+      <div id="confirm-id"></div>
+
+      <div style="font-size:12px;color:var(--green2);margin-top:4px;">
+        ✓ Compte Roblox vérifié
       </div>
     </div>
+  </div>
+
+  <button class="confirm-btn" onclick="confirmLogin()">
+    Confirmer et entrer dans Luau AI
+  </button>
+
+  <div class="cancel-link" onclick="cancelConfirm()">
+    ← Changer de compte
+  </div>
+</div>
 
     <div class="auth-divider">ou entrez votre username manuellement</div>
 
