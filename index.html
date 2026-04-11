@@ -1,3 +1,6 @@
+
+Copier
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -23,13 +26,13 @@
   ::-webkit-scrollbar { width: 5px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 10px; }
-
+ 
   @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
   @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
   @keyframes glow { 0%,100% { box-shadow:0 0 12px rgba(56,139,253,0.35); } 50% { box-shadow:0 0 24px rgba(56,139,253,0.65); } }
   @keyframes spin { to { transform:rotate(360deg); } }
   @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-
+ 
   /* ============================
      AUTH SCREEN
   ============================= */
@@ -67,7 +70,7 @@
   .auth-logo-text { font-size: 30px; font-weight: 700; letter-spacing: -0.5px; }
   .auth-logo-text span { color: var(--blue3); }
   .auth-tagline { text-align:center; color:var(--text1); font-size:14px; margin-bottom:36px; line-height:1.5; }
-
+ 
   /* OAuth Box */
   .oauth-box {
     background: var(--bg2); border: 1px solid var(--border);
@@ -86,7 +89,7 @@
   .roblox-oauth-btn:active { transform:translateY(0); }
   .roblox-oauth-btn:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
   .roblox-svg { width:22px; height:22px; fill:white; flex-shrink:0; }
-
+ 
   .oauth-how {
     margin-top: 14px; padding: 12px 14px;
     background: rgba(56,139,253,0.06); border: 1px solid rgba(56,139,253,0.2);
@@ -95,10 +98,10 @@
   .oauth-how strong { color: var(--blue3); }
   .oauth-how ol { padding-left: 16px; margin-top: 6px; }
   .oauth-how li { margin-bottom: 3px; }
-
+ 
   .auth-divider { display:flex; align-items:center; gap:12px; color:var(--text2); font-size:12px; margin: 18px 0; }
   .auth-divider::before, .auth-divider::after { content:''; flex:1; height:1px; background:var(--border); }
-
+ 
   /* Manual login */
   .auth-input {
     width:100%; padding:11px 14px; border-radius:var(--radius);
@@ -115,7 +118,7 @@
     font-family:'Outfit',sans-serif;
   }
   .auth-submit:hover { background:var(--blue2); }
-
+ 
   /* Loading overlay */
   #auth-loading {
     position: fixed; inset:0; background:rgba(13,17,23,0.85);
@@ -125,7 +128,7 @@
   #auth-loading.show { display:flex; }
   .spinner { width:40px; height:40px; border:3px solid var(--border); border-top-color:var(--blue2); border-radius:50%; animation:spin 0.8s linear infinite; }
   .loading-text { font-size:14px; color:var(--text1); }
-
+ 
   /* User info panel (shown after Roblox lookup) */
   #user-confirm { display:none; }
   #user-confirm.show { display:block; animation:fadeIn 0.4s ease; }
@@ -146,16 +149,16 @@
   .confirm-btn:hover { background:var(--green2); }
   .cancel-link { text-align:center; font-size:12px; color:var(--text2); margin-top:10px; cursor:pointer; }
   .cancel-link:hover { color:var(--text1); }
-
+ 
   .auth-footer { text-align:center; font-size:11px; color:var(--text2); margin-top:20px; }
   .auth-footer a { color:var(--blue3); cursor:pointer; }
-
+ 
   /* ============================
      MAIN APP
   ============================= */
   #app { display:none; flex-direction:row; height:100vh; }
   #app.show { display:flex; animation:fadeIn 0.4s ease; }
-
+ 
   /* SIDEBAR */
   .sidebar {
     width:264px; min-width:264px; background:var(--bg1);
@@ -179,7 +182,7 @@
     cursor:pointer; font-size:16px; color:var(--text1); transition:all 0.15s;
   }
   .new-btn:hover { background:var(--bg4); color:var(--blue3); border-color:var(--blue2); }
-
+ 
   .s-search { padding:10px 14px; }
   .s-search-inner { position:relative; }
   .s-search-icon { position:absolute; left:9px; top:50%; transform:translateY(-50%); font-size:13px; color:var(--text2); }
@@ -190,7 +193,7 @@
   }
   .s-search-input:focus { border-color:var(--blue2); }
   .s-search-input::placeholder { color:var(--text2); }
-
+ 
   .s-nav { padding:6px 8px; }
   .s-nav-item {
     display:flex; align-items:center; gap:9px; padding:8px 10px;
@@ -205,7 +208,7 @@
     padding:2px 7px; border-radius:10px; background:var(--blue1); color:white;
   }
   .s-badge.green { background:var(--green); color:#0d1117; }
-
+ 
   .s-section-label { padding:10px 16px 4px; font-size:10px; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:0.8px; }
   .s-history { flex:1; overflow-y:auto; padding:0 8px 8px; }
   .s-hist-item {
@@ -217,7 +220,7 @@
   .s-hist-item .hi { font-size:13px; flex-shrink:0; }
   .s-hist-item .ht { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
   .s-hist-item .htime { font-size:10px; color:var(--text2); flex-shrink:0; }
-
+ 
   .s-user {
     border-top:1px solid var(--border); padding:12px 14px;
     display:flex; align-items:center; gap:10px; cursor:pointer; transition:background 0.15s;
@@ -232,7 +235,7 @@
   .s-user-plan { font-size:11px; color:var(--text2); }
   .s-credits { font-size:11px; font-weight:600; color:var(--green2); }
   .s-credits.low { color:var(--amber2); }
-
+ 
   /* TOP BAR */
   .top-bar {
     height:46px; background:var(--bg1); border-bottom:1px solid var(--border);
@@ -259,13 +262,13 @@
   }
   .model-chip:hover { border-color:var(--blue2); }
   .m-dot { width:7px; height:7px; border-radius:50%; background:var(--green); animation:pulse 2s ease infinite; }
-
+ 
   /* MAIN CONTENT */
   .main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
-
+ 
   /* CHAT */
   #chat-view { flex:1; display:flex; flex-direction:column; overflow:hidden; }
-
+ 
   .welcome {
     flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
     padding:40px 20px; animation:fadeIn 0.5s ease;
@@ -287,7 +290,7 @@
   .sug-card .si { font-size:20px; margin-bottom:7px; }
   .sug-card .st { font-size:13px; font-weight:600; margin-bottom:3px; }
   .sug-card .sd { font-size:12px; color:var(--text2); }
-
+ 
   .msgs { flex:1; overflow-y:auto; padding:18px 20px; display:flex; flex-direction:column; gap:18px; }
   .msg { display:flex; gap:12px; animation:fadeIn 0.3s ease; max-width:800px; margin:0 auto; width:100%; }
   .msg.user { flex-direction:row-reverse; }
@@ -303,13 +306,70 @@
   .t-dot { width:6px; height:6px; background:var(--blue3); border-radius:50%; animation:pulse 1.2s ease infinite; }
   .t-dot:nth-child(2) { animation-delay:0.2s; }
   .t-dot:nth-child(3) { animation-delay:0.4s; }
-  .code-block {
-    background:var(--bg0); border:1px solid var(--border); border-radius:var(--radius);
-    padding:12px 14px; margin:8px 0; font-family:'JetBrains Mono',monospace;
-    font-size:12px; color:var(--cyan2); overflow-x:auto; white-space:pre;
+  /* ── Code block editor ── */
+  .code-wrap {
+    background:var(--bg0); border:1px solid var(--border);
+    border-radius:var(--radius); margin:10px 0; overflow:hidden;
   }
-  .code-lang { font-size:10px; color:var(--text2); margin-bottom:6px; text-transform:uppercase; letter-spacing:1px; font-family:'Outfit',sans-serif; }
-
+  .code-header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:7px 12px; background:var(--bg3); border-bottom:1px solid var(--border);
+  }
+  .code-lang-tag {
+    font-size:11px; font-weight:600; color:var(--text1);
+    font-family:'Outfit',sans-serif; text-transform:lowercase; letter-spacing:0.3px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .code-lang-dot { width:8px; height:8px; border-radius:50%; background:var(--cyan); }
+  .copy-btn {
+    display:flex; align-items:center; gap:5px; padding:3px 9px;
+    background:var(--bg4); border:1px solid var(--border2); border-radius:5px;
+    color:var(--text1); font-size:11px; font-family:'Outfit',sans-serif;
+    cursor:pointer; transition:all 0.15s;
+  }
+  .copy-btn:hover { background:var(--bg2); color:var(--blue3); border-color:var(--blue2); }
+  .copy-btn.copied { color:var(--green2); border-color:var(--green2); }
+  .code-body {
+    padding:14px 16px; font-family:'JetBrains Mono',monospace;
+    font-size:12.5px; line-height:1.7; color:var(--cyan2);
+    overflow-x:auto; white-space:pre; tab-size:2;
+  }
+ 
+  /* ── No credits modal ── */
+  #no-credits-modal {
+    position:fixed; inset:0; background:rgba(13,17,23,0.8);
+    display:none; align-items:center; justify-content:center; z-index:5000;
+    backdrop-filter:blur(4px);
+  }
+  #no-credits-modal.show { display:flex; animation:fadeIn 0.25s ease; }
+  .ncm-card {
+    background:var(--bg1); border:1px solid var(--border);
+    border-radius:18px; padding:36px 32px; max-width:420px; width:90%;
+    text-align:center; box-shadow:0 24px 64px rgba(0,0,0,0.7);
+    animation:slideUp 0.3s ease;
+  }
+  .ncm-icon { font-size:48px; margin-bottom:16px; }
+  .ncm-title { font-size:20px; font-weight:700; margin-bottom:8px; }
+  .ncm-sub { font-size:14px; color:var(--text1); margin-bottom:24px; line-height:1.6; }
+  .ncm-plans { display:flex; gap:10px; margin-bottom:20px; }
+  .ncm-plan {
+    flex:1; padding:14px 10px; border-radius:var(--radius-lg);
+    border:1px solid var(--border); background:var(--bg2); cursor:pointer;
+    transition:all 0.2s; text-align:center;
+  }
+  .ncm-plan:hover { border-color:var(--blue2); transform:translateY(-2px); }
+  .ncm-plan.highlight { border-color:var(--blue2); background:rgba(31,111,235,0.08); }
+  .ncm-plan-name { font-size:13px; font-weight:700; margin-bottom:4px; }
+  .ncm-plan-price { font-size:11px; color:var(--text1); }
+  .ncm-plan-cr { font-size:16px; font-weight:700; color:var(--blue3); margin-bottom:2px; }
+  .ncm-dismiss { font-size:13px; color:var(--text2); cursor:pointer; }
+  .ncm-dismiss:hover { color:var(--text1); }
+  .ncm-bar {
+    height:4px; border-radius:2px; background:var(--bg3);
+    margin-bottom:20px; overflow:hidden;
+  }
+  .ncm-bar-fill { height:100%; background:var(--red); width:100%; border-radius:2px; }
+ 
   .input-area { padding:14px 18px 18px; background:var(--bg0); border-top:1px solid var(--border); flex-shrink:0; }
   .input-wrap {
     max-width:800px; margin:0 auto; background:var(--bg2); border:1px solid var(--border);
@@ -340,7 +400,7 @@
   .send-btn:hover { background:var(--blue2); }
   .send-btn:disabled { opacity:0.5; cursor:not-allowed; }
   .input-footer { max-width:800px; margin:7px auto 0; text-align:center; font-size:11px; color:var(--text2); }
-
+ 
   /* SHOP */
   #shop-view { display:none; flex:1; overflow-y:auto; padding:32px 28px; }
   #shop-view.show { display:block; animation:fadeIn 0.4s ease; }
@@ -354,7 +414,7 @@
   .tgl-thumb { position:absolute; top:2px; left:2px; width:18px; height:18px; background:white; border-radius:50%; transition:transform 0.2s; }
   .tgl-track.on .tgl-thumb { transform:translateX(20px); }
   .save-tag { background:var(--green); color:#0d1117; font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; }
-
+ 
   .plans-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; max-width:980px; margin:0 auto 40px; }
   .plan-card {
     background:var(--bg1); border:1px solid var(--border);
@@ -398,7 +458,7 @@
   .plan-btn.prem { background:linear-gradient(135deg,var(--purple),var(--pink)); border:none; color:white; }
   .plan-btn.prem:hover { filter:brightness(1.1); }
   .plan-btn.cur { background:var(--bg3); border:1px solid var(--green2); color:var(--green2); cursor:default; }
-
+ 
   .gp-notice {
     max-width:580px; margin:0 auto 36px; padding:15px 18px;
     background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg);
@@ -408,7 +468,7 @@
   .gp-text { color:var(--text1); line-height:1.6; }
   .gp-text strong { color:var(--text0); }
   .gp-link { color:var(--blue3); cursor:pointer; text-decoration:underline; }
-
+ 
   .cmp-title { font-size:20px; font-weight:700; margin-bottom:16px; max-width:900px; margin-left:auto; margin-right:auto; }
   .cmp-table { width:100%; max-width:900px; margin:0 auto 32px; border-collapse:collapse; font-size:13px; }
   .cmp-table th { padding:11px 14px; text-align:left; background:var(--bg2); border-bottom:1px solid var(--border); color:var(--text1); font-weight:600; }
@@ -417,7 +477,7 @@
   .hl { color:var(--blue3); font-weight:600; }
   .tk { color:var(--green2); }
   .nx { color:var(--text2); }
-
+ 
   /* SETTINGS */
   #settings-view { display:none; flex:1; overflow-y:auto; padding:32px 28px; }
   #settings-view.show { display:block; animation:fadeIn 0.4s ease; }
@@ -446,7 +506,7 @@
     background:none; border:none; color:var(--red); font-size:14px; font-weight:500;
     cursor:pointer; font-family:'Outfit',sans-serif; padding:0;
   }
-
+ 
   /* TOAST */
   .toast {
     position:fixed; bottom:22px; right:22px; z-index:9999;
@@ -460,13 +520,13 @@
 </style>
 </head>
 <body>
-
+ 
 <!-- LOADING OVERLAY -->
 <div id="auth-loading">
   <div class="spinner"></div>
   <div class="loading-text" id="loading-text">Connexion à Roblox...</div>
 </div>
-
+ 
 <!-- AUTH SCREEN -->
 <div id="auth-screen">
   <div class="auth-bg-grid"></div>
@@ -477,7 +537,7 @@
       <div class="auth-logo-text">Luau<span>AI</span></div>
     </div>
     <p class="auth-tagline">L'IA nouvelle génération pour Roblox Studio<br><span style="color:var(--blue3);">Assisté par Claude · Alimenté par Luau</span></p>
-
+ 
     <!-- ROBLOX OAUTH -->
     <div id="oauth-section">
       <div class="oauth-box">
@@ -497,7 +557,7 @@
           <div style="margin-top:8px;color:var(--text2);">ℹ️ Nous récupérons uniquement : username, userId, et avatar headshot. Aucun mot de passe.</div>
         </div>
       </div>
-
+ 
       <!-- Confirm after lookup -->
       <div id="user-confirm">
         <div class="confirm-card">
@@ -512,20 +572,20 @@
         <div class="cancel-link" onclick="cancelConfirm()">← Changer de compte</div>
       </div>
     </div>
-
+ 
     <div class="auth-divider">ou entrez votre username manuellement</div>
-
+ 
     <!-- Manual fallback -->
     <div id="manual-section">
       <input class="auth-input" type="text" id="manual-username" placeholder="Username Roblox (ex: Builderman)">
       <button class="auth-submit" onclick="lookupRobloxUser()">Rechercher mon compte Roblox →</button>
       <div id="lookup-error" style="font-size:12px;color:var(--red);margin-top:8px;display:none;"></div>
     </div>
-
+ 
     <div class="auth-footer">En vous connectant, vous acceptez nos <a>Conditions</a> · <a>Confidentialité</a></div>
   </div>
 </div>
-
+ 
 <!-- MAIN APP -->
 <div id="app">
   <!-- SIDEBAR -->
@@ -578,7 +638,7 @@
       <span style="font-size:14px;color:var(--text2);">⚙️</span>
     </div>
   </div>
-
+ 
   <!-- MAIN -->
   <div class="main">
     <!-- TOP BAR -->
@@ -596,7 +656,7 @@
         </div>
       </div>
     </div>
-
+ 
     <!-- CHAT VIEW -->
     <div id="chat-view">
       <div class="welcome" id="welcome-screen">
@@ -632,7 +692,7 @@
         <div class="input-footer">Luau AI · Chaque message utilise ~1 crédit · Propulsé par Claude</div>
       </div>
     </div>
-
+ 
     <!-- SHOP VIEW -->
     <div id="shop-view">
       <div class="shop-head">
@@ -721,7 +781,7 @@
         </tbody>
       </table>
     </div>
-
+ 
     <!-- SETTINGS VIEW -->
     <div id="settings-view">
       <div class="set-title">Paramètres du compte</div>
@@ -760,7 +820,7 @@
     </div>
   </div>
 </div>
-
+ 
 <script>
 // =============================================
 // STATE
@@ -770,7 +830,7 @@ let messages = [];
 let isTyping = false;
 let billingAnnual = false;
 let currentModel = 'luauai';
-
+ 
 // =============================================
 // ROBLOX API HELPERS
 // Roblox has public APIs that don't need auth:
@@ -778,12 +838,12 @@ let currentModel = 'luauai';
 //   - thumbnails/v1/users/avatar-headshot (avatar image)
 // These are CORS-accessible from browsers.
 // =============================================
-
+ 
 const ROBLOX_PROXY = 'https://users.roblox.com';
 // Note: Roblox APIs block direct browser CORS calls.
 // We now use Vercel serverless functions as proxy.
 // =============================================
-
+ 
 async function fetchRobloxUser(username) {
   const r = await fetch('/api/lookup?username=' + encodeURIComponent(username));
   if (!r.ok) {
@@ -794,14 +854,14 @@ async function fetchRobloxUser(username) {
   if (data.error) throw new Error(data.error);
   return data; // { id, name, displayName }
 }
-
+ 
 async function fetchRobloxAvatar(userId) {
   const r = await fetch('/api/avatar?userId=' + userId);
   if (!r.ok) return null;
   const data = await r.json();
   return data.imageUrl || null;
 }
-
+ 
 // =============================================
 // OAUTH FLOW
 // Real Roblox OAuth requires a registered app at
@@ -811,9 +871,9 @@ async function fetchRobloxAvatar(userId) {
 // the REAL profile data from Roblox public API.
 // Full OAuth (with code exchange) needs a backend.
 // =============================================
-
+ 
 let pendingUser = null;
-
+ 
 function startRobloxOAuth() {
   // In a real deployment, redirect to:
   // https://apis.roblox.com/oauth/v1/authorize?client_id=YOUR_ID&redirect_uri=YOUR_URI&scope=openid+profile&response_type=code&state=xyz
@@ -824,19 +884,19 @@ function startRobloxOAuth() {
   document.getElementById('manual-username').focus();
   showToast('ℹ️ Entrez votre username pour la vérification Roblox', 'info');
 }
-
+ 
 async function lookupRobloxUser() {
   const username = document.getElementById('manual-username').value.trim();
   if (!username) { setLookupError('Entrez un username Roblox.'); return; }
-
+ 
   document.getElementById('lookup-error').style.display = 'none';
   showLoading('Recherche sur Roblox...');
-
+ 
   try {
     const user = await fetchRobloxUser(username);
     setLoadingText('Chargement de l\'avatar...');
     const avatarUrl = await fetchRobloxAvatar(user.id);
-
+ 
     pendingUser = {
       id: user.id,
       username: user.name,
@@ -845,7 +905,7 @@ async function lookupRobloxUser() {
       plan: 'Starter',
       credits: 100
     };
-
+ 
     hideLoading();
     showUserConfirm(pendingUser);
   } catch (err) {
@@ -853,7 +913,7 @@ async function lookupRobloxUser() {
     setLookupError(err.message || 'Erreur lors de la recherche. Vérifie le username.');
   }
 }
-
+ 
 function showUserConfirm(user) {
   document.getElementById('confirm-avatar').src = user.avatarUrl;
   document.getElementById('confirm-name').textContent = user.displayName + (user.displayName !== user.username ? ` (@${user.username})` : '');
@@ -861,7 +921,7 @@ function showUserConfirm(user) {
   document.getElementById('user-confirm').classList.add('show');
   document.getElementById('manual-section').style.display = 'none';
 }
-
+ 
 function confirmLogin() {
   if (!pendingUser) return;
   currentUser = pendingUser;
@@ -875,14 +935,14 @@ function confirmLogin() {
   updateUI();
   showToast(`✓ Connecté en tant que ${currentUser.username}`);
 }
-
+ 
 function cancelConfirm() {
   document.getElementById('user-confirm').classList.remove('show');
   document.getElementById('oauth-section').style.display = 'block';
   document.getElementById('manual-section').style.display = 'block';
   pendingUser = null;
 }
-
+ 
 function generateFallbackAvatar(name) {
   // Returns a data URL canvas avatar as fallback
   const canvas = document.createElement('canvas');
@@ -898,23 +958,23 @@ function generateFallbackAvatar(name) {
   ctx.fillText(name[0].toUpperCase(), 75, 75);
   return canvas.toDataURL();
 }
-
+ 
 function setLookupError(msg) {
   const el = document.getElementById('lookup-error');
   el.textContent = msg; el.style.display = 'block';
 }
-
+ 
 function showLoading(text) {
   document.getElementById('loading-text').textContent = text;
   document.getElementById('auth-loading').classList.add('show');
 }
 function setLoadingText(t) { document.getElementById('loading-text').textContent = t; }
 function hideLoading() { document.getElementById('auth-loading').classList.remove('show'); }
-
+ 
 // =============================================
 // UI UPDATES
 // =============================================
-
+ 
 function updateUI() {
   if (!currentUser) return;
   const u = currentUser;
@@ -933,11 +993,11 @@ function updateUI() {
   document.getElementById('set-umeta').textContent = `Plan ${u.plan} · ${cr} crédits restants`;
   document.getElementById('set-uid').textContent = `ID Roblox: ${u.id}`;
 }
-
+ 
 // =============================================
 // VIEWS
 // =============================================
-
+ 
 function showView(v) {
   ['chat','shop','settings'].forEach(x => {
     document.getElementById(x+'-view').classList.remove('show');
@@ -952,11 +1012,11 @@ function showView(v) {
   }
   document.getElementById('nav-'+v)?.classList.add('active');
 }
-
+ 
 function showStudio() {
   showToast('🎮 Plugin Studio — Bientôt disponible !', 'info');
 }
-
+ 
 function switchModel(m) {
   currentModel = m;
   ['luauai','studio','debug'].forEach(x => document.getElementById('tab-'+x)?.classList.remove('active'));
@@ -964,24 +1024,24 @@ function switchModel(m) {
   const names = { luauai:'Luau AI 2.0', studio:'Studio Assist', debug:'Debug Mode' };
   document.getElementById('model-display').textContent = names[m];
 }
-
+ 
 // =============================================
 // CHAT MANAGEMENT
 // =============================================
 let chats = [];
 let currentChatId = null;
-
+ 
 function loadChats() {
   const saved = localStorage.getItem('luauAI_chats');
   if (saved) {
     chats = JSON.parse(saved);
   }
 }
-
+ 
 function saveChats() {
   localStorage.setItem('luauAI_chats', JSON.stringify(chats));
 }
-
+ 
 function createNewChat() {
   const chatId = 'chat_' + Date.now();
   const newChat = {
@@ -997,7 +1057,7 @@ function createNewChat() {
   loadChatHistory();
   return newChat;
 }
-
+ 
 function loadChat(chatId) {
   const chat = chats.find(c => c.id === chatId);
   if (chat) {
@@ -1008,7 +1068,7 @@ function loadChat(chatId) {
     showView('chat');
   }
 }
-
+ 
 function updateCurrentChat() {
   if (!currentChatId) return;
   const chat = chats.find(c => c.id === currentChatId);
@@ -1023,15 +1083,15 @@ function updateCurrentChat() {
     loadChatHistory();
   }
 }
-
+ 
 function updateChatTitle(chat) {
   // Peut-être mettre à jour l'UI du titre si nécessaire
 }
-
+ 
 function loadChatHistory() {
   const historyEl = document.getElementById('s-history');
   historyEl.innerHTML = '';
-
+ 
   chats.slice(0, 10).forEach(chat => { // Afficher les 10 plus récents
     const timeAgo = getTimeAgo(chat.timestamp);
     const icon = getChatIcon(chat.title);
@@ -1042,21 +1102,21 @@ function loadChatHistory() {
     historyEl.appendChild(item);
   });
 }
-
+ 
 function getTimeAgo(timestamp) {
   const now = Date.now();
   const diff = now - timestamp;
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
-
+ 
   if (minutes < 1) return 'À l\'instant';
   if (minutes < 60) return `${minutes}min`;
   if (hours < 24) return `${hours}h`;
   if (days < 7) return `${days}j`;
   return 'Plus ancien';
 }
-
+ 
 function getChatIcon(title) {
   const lower = title.toLowerCase();
   if (lower.includes('script') || lower.includes('luau')) return '⚡';
@@ -1066,16 +1126,16 @@ function getChatIcon(title) {
   if (lower.includes('npc') || lower.includes('ia')) return '🤖';
   return '💬';
 }
-
+ 
 // =============================================
 // CHAT
 // =============================================
-
+ 
 function suggest(text) {
   document.getElementById('chat-ta').value = text;
   sendMsg();
 }
-
+ 
 function newChat() {
   createNewChat();
   document.getElementById('welcome-screen').style.display = 'flex';
@@ -1083,24 +1143,94 @@ function newChat() {
   document.getElementById('msgs').innerHTML = '';
   showView('chat');
 }
-
+ 
+let _codeBlockCounter = 0;
+ 
+function copyCode(btnId, codeId) {
+  const code = document.getElementById(codeId)?.innerText || '';
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.textContent = '✓ Copié !';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '⎘ Copier'; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => {
+    // Fallback for browsers without clipboard API
+    const ta = document.createElement('textarea');
+    ta.value = document.getElementById(codeId)?.innerText || '';
+    document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    const btn = document.getElementById(btnId);
+    if (btn) { btn.textContent = '✓ Copié !'; btn.classList.add('copied'); setTimeout(() => { btn.textContent = '⎘ Copier'; btn.classList.remove('copied'); }, 2000); }
+  });
+}
+ 
+function parseMarkdown(raw) {
+  let out = '';
+  // Split on fenced code blocks: ```lang\n...\n```
+  const parts = raw.split(/(```[\w]*\n[\s\S]*?```)/g);
+  parts.forEach(part => {
+    const fenced = part.match(/^```([\w]*)\n([\s\S]*?)```$/);
+    if (fenced) {
+      const lang = fenced[1] || 'luau';
+      const code = fenced[2];
+      const idx = ++_codeBlockCounter;
+      const btnId = 'cbtn-' + idx;
+      const codeId = 'ccode-' + idx;
+      // Escape HTML in code
+      const escaped = code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      out += `<div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang-tag"><span class="code-lang-dot"></span>${lang}</span>
+          <button class="copy-btn" id="${btnId}" onclick="copyCode('${btnId}','${codeId}')">⎘ Copier</button>
+        </div>
+        <div class="code-body" id="${codeId}">${escaped}</div>
+      </div>`;
+    } else {
+      // Also handle legacy [CODE]...[/CODE] tags
+      let p = part
+        .replace(/\[CODE\]([\s\S]*?)\[\/CODE\]/g, (_, c) => {
+          const idx = ++_codeBlockCounter;
+          const btnId = 'cbtn-' + idx;
+          const codeId = 'ccode-' + idx;
+          const escaped = c.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          return `<div class="code-wrap">
+            <div class="code-header">
+              <span class="code-lang-tag"><span class="code-lang-dot"></span>luau</span>
+              <button class="copy-btn" id="${btnId}" onclick="copyCode('${btnId}','${codeId}')">⎘ Copier</button>
+            </div>
+            <div class="code-body" id="${codeId}">${escaped}</div>
+          </div>`;
+        })
+        // Bold
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        // Inline code `...`
+        .replace(/`([^`]+)`/g, '<code style="background:var(--bg3);padding:1px 5px;border-radius:4px;font-family:\'JetBrains Mono\',monospace;font-size:12px;color:var(--cyan2);">$1</code>')
+        // Numbered lists
+        .replace(/^\d+\.\s+(.+)$/gm, '<div style="padding-left:16px;margin:2px 0;">• $1</div>')
+        // Newlines
+        .replace(/\n/g, '<br>');
+      out += p;
+    }
+  });
+  return out;
+}
+ 
 function renderMsg(m) {
   const isUser = m.role === 'user';
   const avHtml = isUser
     ? `<img src="${currentUser.avatarUrl}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid var(--blue2);" onerror="this.src='${generateFallbackAvatar(currentUser.username)}';">`
     : '🤖';
-  let text = m.text
-    .replace(/\[CODE\]([\s\S]*?)\[\/CODE\]/g, (_,c) => `<div class="code-block"><div class="code-lang">Luau</div>${c.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`)
-    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-    .replace(/\n/g,'<br>');
+  const text = parseMarkdown(m.text);
   const now = new Date();
   const t = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
   return `<div class="msg ${isUser?'user':'ai'}">
     <div class="msg-av ${isUser?'':'ai'}">${avHtml}</div>
-    <div><div class="msg-bubble">${text}</div><div class="msg-time">${t}</div></div>
+    <div style="min-width:0;flex:1"><div class="msg-bubble">${text}</div><div class="msg-time">${t}</div></div>
   </div>`;
 }
-
+ 
 function renderMessages() {
   const container = document.getElementById('msgs');
   document.getElementById('welcome-screen').style.display = messages.length > 0 ? 'none' : 'flex';
@@ -1108,14 +1238,14 @@ function renderMessages() {
   container.innerHTML = messages.map(renderMsg).join('');
   container.scrollTop = container.scrollHeight;
 }
-
+ 
 function resetDailyCredits() {
   if (!currentUser || currentUser.plan !== 'Starter') return;
-
+ 
   const lastReset = localStorage.getItem('lastCreditReset');
   const now = Date.now();
   const oneDay = 24 * 60 * 60 * 1000; // 24 heures en ms
-
+ 
   if (!lastReset || (now - parseInt(lastReset)) >= oneDay) {
     currentUser.credits = 10; // Reset à 10 crédits quotidiens
     localStorage.setItem('lastCreditReset', now.toString());
@@ -1123,30 +1253,36 @@ function resetDailyCredits() {
     showToast('🔄 10 crédits quotidiens rechargés !', 'info');
   }
 }
-
+ 
 async function sendMsg() {
   if (isTyping) return;
   if (!currentChatId) createNewChat();
   const ta = document.getElementById('chat-ta');
   const text = ta.value.trim();
   if (!text) return;
-
+ 
   if (currentUser && currentUser.plan === 'Starter' && currentUser.credits <= 0) {
     resetDailyCredits();
-    // Après reset, vérifier si on a maintenant des crédits
     if (currentUser.credits <= 0) {
-      showToast('❌ Plus de crédits ! Achetez un plan Pro', 'error');
-      showView('shop'); return;
+      showNoCredits();
+      return;
     }
   }
-
+ 
   ta.value = ''; ta.style.height = '';
   messages.push({ role:'user', text });
-  if (currentUser && currentUser.credits < 99999) currentUser.credits = Math.max(0, currentUser.credits - 1);
+  if (currentUser && currentUser.credits < 99999) {
+    currentUser.credits = Math.max(0, currentUser.credits - 1);
+    if (currentUser.credits === 10) showToast('⚠️ Plus que 10 crédits restants !', 'info');
+    if (currentUser.credits === 0) {
+      // Show modal after response is delivered
+      setTimeout(() => showNoCredits(), 800);
+    }
+  }
   updateUI();
-
+ 
   renderMessages();
-
+ 
   const container = document.getElementById('msgs');
   const tid = 'typing-'+Date.now();
   container.innerHTML += `<div class="msg ai" id="${tid}">
@@ -1156,7 +1292,7 @@ async function sendMsg() {
   container.scrollTop = container.scrollHeight;
   isTyping = true;
   document.getElementById('send-btn').disabled = true;
-
+ 
   try {
     console.log('Sending to AI:', { messages: messages.slice(-10) });
     const response = await fetch('/api/chat', {
@@ -1165,12 +1301,12 @@ async function sendMsg() {
       body: JSON.stringify({ messages: messages.slice(-10) }) // Send last 10 messages for context
     });
     console.log('AI response status:', response.status);
-
+ 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(`Erreur IA: ${response.status} ${errorData.error || response.statusText}`);
     }
-
+ 
     const data = await response.json();
     messages.push({ role: 'ai', text: data.reply });
     updateCurrentChat();
@@ -1179,12 +1315,12 @@ async function sendMsg() {
     messages.push({ role: 'ai', text: `❌ ${error.message}` });
     updateCurrentChat();
   }
-
+ 
   isTyping = false;
   document.getElementById('send-btn').disabled = false;
   renderMessages();
 }
-
+ 
 function handleKey(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
 }
@@ -1192,11 +1328,11 @@ function autoResize(el) {
   el.style.height = 'auto';
   el.style.height = Math.min(el.scrollHeight, 200) + 'px';
 }
-
+ 
 // =============================================
 // SHOP
 // =============================================
-
+ 
 function toggleBilling() {
   billingAnnual = !billingAnnual;
   const t = document.getElementById('bill-tgl');
@@ -1207,7 +1343,7 @@ function toggleBilling() {
   document.getElementById('pro-strike').style.display = billingAnnual ? 'inline' : 'none';
   document.getElementById('ent-strike').style.display = billingAnnual ? 'inline' : 'none';
 }
-
+ 
 function buyGamepass(plan, price) {
   // Replace GAMEPASS_ID with your actual Roblox Gamepass IDs
   const GAMEPASS_IDS = { Pro: '1788365834', Enterprise: '1792408927' };
@@ -1216,11 +1352,11 @@ function buyGamepass(plan, price) {
   // Uncomment to redirect to real Roblox Gamepass:
   // window.open(`https://www.roblox.com/game-pass/${gpId}`, '_blank');
 }
-
+ 
 // =============================================
 // LOGOUT
 // =============================================
-
+ 
 function doLogout() {
   currentUser = null; messages = [];
   document.getElementById('app').classList.remove('show');
@@ -1232,11 +1368,11 @@ function doLogout() {
   document.getElementById('lookup-error').style.display = 'none';
   pendingUser = null;
 }
-
+ 
 // =============================================
 // TOAST
 // =============================================
-
+ 
 function showToast(msg, type='success') {
   document.querySelectorAll('.toast').forEach(t => t.remove());
   const t = document.createElement('div');
@@ -1245,9 +1381,54 @@ function showToast(msg, type='success') {
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 3500);
 }
-
+ 
 // Init: show chat view by default
 showView('chat');
 </script>
+ 
+<!-- NO CREDITS MODAL -->
+<div id="no-credits-modal">
+  <div class="ncm-card">
+    <div class="ncm-icon">💎</div>
+    <div class="ncm-title">Vous avez utilisé tous vos crédits</div>
+    <div class="ncm-bar"><div class="ncm-bar-fill"></div></div>
+    <div class="ncm-sub">
+      Votre plan <strong>Starter</strong> inclut <strong>100 crédits gratuits</strong> par mois.<br>
+      Passez à un plan supérieur pour continuer à utiliser Luau AI sans limite.
+    </div>
+    <div class="ncm-plans">
+      <div class="ncm-plan" onclick="closeNoCredits();showView('shop')">
+        <div class="ncm-plan-name">🌱 Starter</div>
+        <div class="ncm-plan-cr">100</div>
+        <div class="ncm-plan-price">crédits · Gratuit</div>
+      </div>
+      <div class="ncm-plan highlight" onclick="closeNoCredits();buyGamepass('Pro',800)">
+        <div class="ncm-plan-name" style="color:var(--blue3)">🚀 Pro</div>
+        <div class="ncm-plan-cr">2 500</div>
+        <div class="ncm-plan-price">crédits · 800 R$/mois</div>
+      </div>
+      <div class="ncm-plan" onclick="closeNoCredits();buyGamepass('Enterprise',2500)">
+        <div class="ncm-plan-name" style="color:var(--purple)">👑 Enterprise</div>
+        <div class="ncm-plan-cr">∞</div>
+        <div class="ncm-plan-price">Illimité · 2500 R$/mois</div>
+      </div>
+    </div>
+    <div class="ncm-dismiss" onclick="closeNoCredits()">← Retour</div>
+  </div>
+</div>
+ 
+<script>
+function showNoCredits() {
+  document.getElementById('no-credits-modal').classList.add('show');
+}
+function closeNoCredits() {
+  document.getElementById('no-credits-modal').classList.remove('show');
+}
+// Close on backdrop click
+document.getElementById('no-credits-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeNoCredits();
+});
+</script>
+ 
 </body>
 </html>
