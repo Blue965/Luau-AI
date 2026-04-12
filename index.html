@@ -898,16 +898,16 @@ async function fetchRobloxUser(username) {
 }
 
 async function fetchRobloxAvatar(userId) {
-  // Vraie API Roblox avec proxy CORS pour l'avatar
+  // Vraie API Roblox avec proxy CORS pour le headshot seulement
   try {
-    const avatarUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://thumbnails.roblox.com/v1/users/avatar?userIds=${userId}&size=420x420&format=Png&isCircular=false`)}`;
-    console.log('URL Avatar avec proxy:', avatarUrl);
+    const avatarUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=true`)}`;
+    console.log('URL Avatar headshot avec proxy:', avatarUrl);
     
     const response = await fetch(avatarUrl);
     if (!response.ok) return null;
     
     const data = await response.json();
-    console.log('Données avatar:', data);
+    console.log('Données avatar headshot:', data);
     return data.data?.[0]?.imageUrl || null;
   } catch (error) {
     console.error('Erreur API avatar:', error);
@@ -976,14 +976,30 @@ function confirmLogin() {
   
   loadChatHistory();
 
+  // Masquer l'écran d'authentification
   document.getElementById('auth-screen').style.display = 'none';
-  document.getElementById('app').classList.add('show');
   
-  // Afficher la vue chat par défaut
-  showView('chat');
-
-  updateUI();
-  showToast('Connecté: ' + currentUser.username);
+  // Afficher l'application avec un petit délai pour s'assurer que tout est chargé
+  setTimeout(() => {
+    document.getElementById('app').classList.add('show');
+    
+    // Afficher la vue chat par défaut
+    showView('chat');
+    
+    // S'assurer que le welcome screen est visible
+    const welcomeScreen = document.getElementById('welcome-screen');
+    const msgsContainer = document.getElementById('msgs');
+    if (welcomeScreen && messages.length === 0) {
+      welcomeScreen.style.display = 'flex';
+      msgsContainer.style.display = 'none';
+    } else if (msgsContainer) {
+      welcomeScreen.style.display = 'none';
+      msgsContainer.style.display = 'block';
+    }
+    
+    updateUI();
+    showToast('Connecté: ' + currentUser.username);
+  }, 100);
 }
 
 function cancelConfirm() {
