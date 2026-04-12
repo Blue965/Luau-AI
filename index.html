@@ -1400,28 +1400,79 @@ function closeNoCredits() {
 // INIT SAFE
 // =============================================
 window.addEventListener('DOMContentLoaded', () => {
-  // Masquer l'application par défaut
-  document.getElementById('app').classList.remove('show');
-  
-  // Afficher l'écran d'authentification avec le champ username visible
-  document.getElementById('auth-screen').style.display = 'flex';
-  document.getElementById('oauth-section').style.display = 'none';
-  document.getElementById('manual-section').style.display = 'block';
-  document.getElementById('user-confirm').classList.remove('show');
-  
-  // Mettre le focus sur le champ username
-  const usernameInput = document.getElementById('manual-username');
-  if (usernameInput) usernameInput.focus();
-  
-  // Initialiser les données
-  loadChats();
-  
-  // Mettre à jour les crédits affichés
-  const creditsDisplay = document.getElementById('credits-display');
-  if (creditsDisplay) creditsDisplay.textContent = '100';
-  
-  // Cacher le loader
-  hideLoading();
+  try {
+    console.log('Début de l\'initialisation...');
+    
+    // Masquer l'application par défaut
+    const app = document.getElementById('app');
+    if (app) {
+      app.classList.remove('show');
+      console.log('Application masquée');
+    }
+    
+    // Afficher l'écran d'authentification avec le champ username visible
+    const authScreen = document.getElementById('auth-screen');
+    if (authScreen) {
+      authScreen.style.display = 'flex';
+      console.log('Écran d\'authentification affiché');
+    }
+    
+    const oauthSection = document.getElementById('oauth-section');
+    if (oauthSection) {
+      oauthSection.style.display = 'none';
+      console.log('Section OAuth masquée');
+    }
+    
+    const manualSection = document.getElementById('manual-section');
+    if (manualSection) {
+      manualSection.style.display = 'block';
+      console.log('Section manuelle affichée');
+    }
+    
+    const userConfirm = document.getElementById('user-confirm');
+    if (userConfirm) {
+      userConfirm.classList.remove('show');
+      console.log('User confirm masqué');
+    }
+    
+    // Mettre le focus sur le champ username
+    const usernameInput = document.getElementById('manual-username');
+    if (usernameInput) {
+      usernameInput.focus();
+      console.log('Focus sur le champ username');
+    }
+    
+    // Initialiser les données
+    if (typeof loadChats === 'function') {
+      loadChats();
+      console.log('Chats chargés');
+    }
+    
+    // Mettre à jour les crédits affichés
+    const creditsDisplay = document.getElementById('credits-display');
+    if (creditsDisplay) {
+      creditsDisplay.textContent = '100';
+      console.log('Crédits mis à jour');
+    }
+    
+    // Cacher le loader
+    if (typeof hideLoading === 'function') {
+      hideLoading();
+      console.log('Loader masqué');
+    }
+    
+    console.log('Initialisation terminée avec succès');
+    
+    // Test: Vérifier que la fonction lookupRobloxUser existe
+    if (typeof lookupRobloxUser === 'function') {
+      console.log('Fonction lookupRobloxUser disponible');
+    } else {
+      console.error('Fonction lookupRobloxUser NON disponible');
+    }
+    
+  } catch (error) {
+    console.error('Erreur lors de l\'initialisation:', error);
+  }
 });
 
 </script>
