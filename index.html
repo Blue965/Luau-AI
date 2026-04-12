@@ -853,16 +853,16 @@ function showView(v) {
 // ROBLOX API HELPERS
 // =============================================
 async function fetchRobloxUser(username) {
-  // Uniquement vraie API Roblox - pas de simulation
+  // Uniquement vraie API Roblox avec proxy CORS - pas de simulation
   if (!username || username.trim().length < 3) {
     throw new Error('Username invalide (minimum 3 caractères)');
   }
   
   console.log('Recherche utilisateur:', username);
   
-  // API Roblox pour trouver l'utilisateur par username
-  const apiUrl = `https://users.roblox.com/v1/users/search?keyword=${encodeURIComponent(username)}&limit=10`;
-  console.log('URL API:', apiUrl);
+  // API Roblox avec proxy CORS alternatif
+  const apiUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://users.roblox.com/v1/users/search?keyword=${username}&limit=10`)}`;
+  console.log('URL API avec proxy:', apiUrl);
   
   const response = await fetch(apiUrl);
   console.log('Status API:', response.status);
