@@ -1,186 +1,241 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
- 
-// ─────────────────────────────────────────────
-// Modèles de fallback (du meilleur au plus léger)
-// Tous sont GRATUITS et non-gated sur HF Router
-// ─────────────────────────────────────────────
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// =============================================
+// MODELS 🔥
+// =============================================
 const FALLBACK_MODELS = [
-  'mistralai/Mistral-7B-Instruct-v0.3',
-  'HuggingFaceH4/zephyr-7b-beta',
-  'Qwen/Qwen2.5-Coder-7B-Instruct',
-  'microsoft/Phi-3.5-mini-instruct',
+  "HuggingFaceH4/zephyr-7b-beta",
+  "mistralai/Mistral-7B-Instruct-v0.3",
+  "Qwen/Qwen2.5-Coder-7B-Instruct",
+  "microsoft/Phi-3.5-mini-instruct",
 ];
- 
+
+// =============================================
+// ENV LOADER (safe Vercel + local)
+// =============================================
 function loadEnvKey(key) {
   if (process.env[key]) return process.env[key];
- 
-  const candidates = [
-    path.resolve(process.cwd(), '.env'),
-    path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.env'),
+
+  const files = [
+    path.resolve(process.cwd(), ".env"),
+    path.resolve(
+      path.dirname(fileURLToPath(import.meta.url)),
+      "..",
+      ".env"
+    ),
   ];
- 
-  for (const candidate of candidates) {
+
+  for (const file of files) {
     try {
-      if (!fs.existsSync(candidate)) continue;
-      const text = fs.readFileSync(candidate, 'utf8');
-      for (const line of text.split(/\r?\n/)) {
-        const trimmed = line.trim();
-        if (!trimmed || trimmed.startsWith('#')) continue;
-        const [name, ...rest] = trimmed.split('=');
+      if (!fs.existsSync(file)) continue;
+
+      const lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
+
+      for (const line of lines) {
+        const l = line.trim();
+        if (!l || l.startsWith("#")) continue;
+
+        const [name, ...rest] = l.split("=");
         if (name.trim() !== key) continue;
-        let value = rest.join('=').trim();
-        if (
-          (value.startsWith('"') && value.endsWith('"')) ||
-          (value.startsWith("'") && value.endsWith("'"))
-        ) {
-          value = value.slice(1, -1);
-        }
+
+        let value = rest.join("=").trim();
+        if (/^["'].*["']$/.test(value)) value = value.slice(1, -1);
+
         process.env[key] = value;
         return value;
       }
     } catch (err) {
-      console.error('loadEnvKey error for', candidate, err.message);
+      console.error("ENV ERROR:", err.message);
     }
   }
-  return undefined;
+
+  return null;
 }
- 
-async function callModel(model, chatMessages, apiKey) {
-  const response = await fetch('https://router.huggingface.co/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model,
-      messages: chatMessages,
-      max_tokens: 2000,
-      temperature: 0.7,
-      stream: false,
-    }),
-  });
- 
-  const rawText = await response.text();
- 
-  if (!response.ok) {
-    return { ok: false, status: response.status, body: rawText };
-  }
- 
-  let data;
+
+// =============================================
+// STREAM (SAFE VERCEL SSE)
+// =============================================
+async function streamModel(model, messages, apiKey, res) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 25000);
+
   try {
-    data = JSON.parse(rawText);
-  } catch {
-    return { ok: false, status: 200, body: 'Invalid JSON: ' + rawText };
+    const hfRes = await fetch(
+      "https://router.huggingface.co/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model,
+          messages,
+          temperature: 0.8,
+          max_tokens: 2000,
+          stream: true,
+        }),
+      }
+    );
+
+    if (!hfRes.ok || !hfRes.body) {
+      const txt = await hfRes.text().catch(() => "");
+      throw new Error(txt || "HF error");
+    }
+
+    // SSE HEADERS
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    });
+
+    const reader = hfRes.body.getReader();
+    const decoder = new TextDecoder();
+
+    let hasData = false;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      hasData = true;
+
+      const chunk = decoder.decode(value, { stream: true });
+
+      res.write(`data: ${chunk}\n\n`);
+    }
+
+    if (!hasData) throw new Error("Empty stream");
+
+    res.write(`data: [DONE]\n\n`);
+    res.end();
+
+    return true;
+  } catch (err) {
+    console.warn("STREAM FAIL:", model, err.message);
+    return false;
+  } finally {
+    clearTimeout(timeout);
   }
- 
-  const reply =
-    data?.choices?.[0]?.message?.content ||
-    data?.choices?.[0]?.text ||
-    (Array.isArray(data) ? data[0]?.generated_text : null) ||
-    data?.generated_text;
- 
-  if (!reply) {
-    return { ok: false, status: 200, body: 'Empty reply. Raw: ' + rawText };
-  }
- 
-  return { ok: true, reply, model };
 }
- 
+
+// =============================================
+// MAIN HANDLER (Vercel API)
+// =============================================
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
- 
-  const { messages } = req.body;
- 
-  if (!messages || !Array.isArray(messages) || messages.length === 0) {
-    return res.status(400).json({ error: 'Messages array required and must not be empty.' });
+
+  let { messages } = req.body;
+
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return res.status(400).json({ error: "Messages requis" });
   }
- 
-  const apiKey = loadEnvKey('HUGGINGFACE_API_KEY') || loadEnvKey('HF_API_KEY');
- 
+
+  // limiter mémoire
+  messages = messages.slice(-15);
+
+  const apiKey =
+    loadEnvKey("HUGGINGFACE_API_KEY") ||
+    loadEnvKey("HF_API_KEY");
+
   if (!apiKey) {
-    console.error('No HuggingFace API key found');
     return res.status(500).json({
-      error: 'Cle API manquante. Dans Vercel > Settings > Environment Variables, ajoute : HUGGINGFACE_API_KEY = hf_xxxx',
+      error: "Missing HUGGINGFACE_API_KEY",
     });
   }
- 
-  // Modèle depuis .env, sinon premier fallback
-  // On ignore l'ancien nom invalide
-  const envModel = loadEnvKey('HF_MODEL');
-  const invalidModels = ['Roblox-Coder-Llama-7B-v1', '', undefined];
-  const primaryModel =
-    envModel && !invalidModels.includes(envModel.trim())
-      ? envModel.trim()
-      : FALLBACK_MODELS[0];
- 
-  const modelsToTry = [primaryModel, ...FALLBACK_MODELS.filter((m) => m !== primaryModel)];
- 
-  console.log('=== LUAU AI CHAT ===');
-  console.log('Messages count:', messages.length);
-  console.log('Models to try:', modelsToTry);
- 
-  const chatMessages = [
-    {
-      role: 'system',
-      content:
-        'Tu es Luau AI, un assistant IA expert en scripting Roblox avec le langage Luau. ' +
-        'Tu aides les utilisateurs a creer des scripts, debugger du code, optimiser les performances ' +
-        'et fournir des conseils sur le developpement Roblox Studio. ' +
-        'Reponds toujours en francais de maniere claire et utile. ' +
-        'Formate le code Luau entre balises ```luau et ```. ' +
-        "Va droit au but sans introduction inutile.",
-    },
-    ...messages.map((m) => ({
-      role: m.role === 'user' ? 'user' : 'assistant',
-      content: String(m.text || ''),
-    })),
+
+  const envModel = loadEnvKey("HF_MODEL");
+  const primaryModel = envModel || FALLBACK_MODELS[0];
+
+  const models = [
+    primaryModel,
+    ...FALLBACK_MODELS.filter((m) => m !== primaryModel),
   ];
- 
-  let lastError = null;
- 
-  for (const model of modelsToTry) {
-    console.log('Trying model:', model);
-    const result = await callModel(model, chatMessages, apiKey);
- 
-    if (result.ok) {
-      console.log('Success with model:', result.model);
-      return res.status(200).json({ reply: result.reply, model: result.model });
-    }
- 
-    console.warn('Model', model, 'failed:', result.status, result.body?.substring(0, 200));
-    lastError = { status: result.status, body: result.body, model };
- 
-    // Clé invalide -> inutile d'essayer les autres
-    if (result.status === 401) {
-      return res.status(401).json({
-        error: 'Cle API HuggingFace invalide (401). Regenere-la sur huggingface.co/settings/tokens et mets-la a jour dans Vercel.',
+
+  // =============================================
+  // SYSTEM PROMPT 😎🔥
+  // =============================================
+  const systemPrompt = `
+Tu es Luau AI 😎🔥
+
+Expert Roblox Studio + Luau.
+
+STYLE:
+- Français naturel
+- clair
+- emojis modérés 😄🔥
+
+CODE:
+- uniquement si nécessaire
+- toujours entre \`\`\`lua
+- optimisé Roblox Studio
+
+RÈGLES:
+- ne pas inventer d’API Roblox inexistantes
+- réponses utiles et précises
+`;
+
+  // =============================================
+  // BUILD MESSAGES
+  // =============================================
+  const chatMessages = [
+    { role: "system", content: systemPrompt },
+  ];
+
+  for (const m of messages) {
+    const role = m.role === "assistant" ? "assistant" : "user";
+
+    if (m.imageBase64 && role === "user") {
+      const base64 = m.imageBase64.replace(
+        /^data:[^;]+;base64,/,
+        ""
+      );
+
+      chatMessages.push({
+        role,
+        content: [
+          {
+            type: "image_url",
+            image_url: {
+              url: `data:${m.imageMime};base64,${base64}`,
+            },
+          },
+          {
+            type: "text",
+            text: m.text || "Analyse cette image Roblox",
+          },
+        ],
+      });
+    } else {
+      chatMessages.push({
+        role,
+        content: m.text || "",
       });
     }
- 
-    // Rate limit -> inutile d'essayer les autres
-    if (result.status === 429) {
-      return res.status(429).json({
-        error: 'Limite de requetes HuggingFace atteinte (429). Reessaie dans quelques secondes.',
-      });
+  }
+
+  // =============================================
+  // FALLBACK MODELS LOOP 🔥
+  // =============================================
+  for (const model of models) {
+    console.log("TRY MODEL:", model);
+
+    const ok = await streamModel(model, chatMessages, apiKey, res);
+
+    if (ok) {
+      console.log("SUCCESS MODEL:", model);
+      return;
     }
- 
-    // 403 / 404 / 503 -> on essaie le modele suivant
   }
- 
-  // Tous les modèles ont échoué
-  console.error('All models failed. Last error:', lastError);
- 
-  let userMsg = `Tous les modeles IA sont indisponibles. Code: ${lastError?.status}`;
-  if (lastError?.status === 403) {
-    userMsg =
-      'Acces refuse (403). Va sur huggingface.co/settings/gated-repos et accepte les conditions.';
-  }
- 
-  return res.status(500).json({ error: userMsg, debug: lastError });
+
+  // ❌ ALL FAILED
+  return res.status(500).json({
+    error: "All models failed",
+  });
 }
- 

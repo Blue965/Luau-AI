@@ -5,41 +5,56 @@ export default async function handler(req, res) {
 
   const { username } = req.query;
 
-  if (!username) {
+  if (!username || typeof username !== 'string') {
     return res.status(400).json({ error: 'Username parameter required' });
   }
 
+  const cleanUsername = username.trim();
+
+  if (cleanUsername.length < 3 || cleanUsername.length > 20) {
+    return res.status(400).json({ error: 'Invalid username length' });
+  }
+
   try {
-    // Roblox API to lookup user by username
-    const response = await fetch('https://users.roblox.com/v1/usernames/users', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        usernames: [username],
-      }),
-    });
+    const response = await fetch(
+      'https://users.roblox.com/v1/usernames/users',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          usernames: [cleanUsername],
+          excludeBannedUsers: true
+        }),
+      }
+    );
 
     if (!response.ok) {
-      return res.status(response.status).json({ error: 'Roblox API error' });
+      return res.status(response.status).json({
+        error: 'Roblox API error'
+      });
     }
 
     const data = await response.json();
 
-    // Return the user data
-    if (data.data && data.data.length > 0) {
-      const user = data.data[0];
-      res.status(200).json({
-        id: user.id,
-        name: user.name,
-        displayName: user.displayName,
-      });
-    } else {
-      res.status(404).json({ error: 'User not found' });
+    const user = data?.data?.[0];
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
     }
+
+    return res.status(200).json({
+      id: user.id,
+      name: user.name,
+      displayName: user.displayName || user.name
+    });
+
   } catch (error) {
-    console.error('Error fetching from Roblox API:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Roblox lookup error:', error);
+
+    return res.status(500).json({
+      error: 'Internal server error'
+    });
   }
 }
