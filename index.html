@@ -1403,11 +1403,15 @@ window.addEventListener('DOMContentLoaded', () => {
   // Masquer l'application par défaut
   document.getElementById('app').classList.remove('show');
   
-  // Afficher l'écran d'authentification
+  // Afficher l'écran d'authentification avec le champ username visible
   document.getElementById('auth-screen').style.display = 'flex';
-  document.getElementById('oauth-section').style.display = 'block';
-  document.getElementById('manual-section').style.display = 'none';
+  document.getElementById('oauth-section').style.display = 'none';
+  document.getElementById('manual-section').style.display = 'block';
   document.getElementById('user-confirm').classList.remove('show');
+  
+  // Mettre le focus sur le champ username
+  const usernameInput = document.getElementById('manual-username');
+  if (usernameInput) usernameInput.focus();
   
   // Initialiser les données
   loadChats();
