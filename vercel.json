@@ -1,13 +1,12 @@
 {
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "functions": {
-    "api/chat.js": {
-      "maxDuration": 30
-    }
+    "api/chat.js": { "maxDuration": 30 },
+    "api/lookup.js": { "maxDuration": 10 },
+    "api/avatar.js": { "maxDuration": 10 },
+    "api/test.js": { "maxDuration": 10 }
   }
 }

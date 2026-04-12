@@ -545,6 +545,7 @@
           <div style="margin-top:8px;color:var(--text2);">ℹ️ Nous récupérons uniquement : username, userId, et avatar headshot. Aucun mot de passe.</div>
         </div>
       </div>
+    </div><!-- fin oauth-section -->
 
     <div class="auth-divider">ou entrez votre username manuellement</div>
 
@@ -861,72 +862,22 @@ async function fetchRobloxUser(username) {
   
   console.log('Recherche utilisateur:', username);
   
-  try {
-    // Essayer l'API directe d'abord
-    const response = await fetch(`https://users.roblox.com/v1/users/search?keyword=${encodeURIComponent(username)}&limit=10`);
-    console.log('Status API directe:', response.status);
-    
-    if (response.ok) {
-      const data = await response.json();
-      console.log('Données API directe:', data);
-      
-      if (data.data && data.data.length > 0) {
-        const user = data.data.find(u => u.name.toLowerCase() === username.toLowerCase());
-        if (user) {
-          console.log('Utilisateur trouvé via API directe:', user);
-          return {
-            id: user.id,
-            name: user.name,
-            displayName: user.displayName || user.name,
-            created: user.created
-          };
-        }
-      }
-    }
-  } catch (error) {
-    console.log('API directe bloquée par CORS, utilisation fallback');
-  }
-  
-  // Fallback : créer un utilisateur avec ID cohérent
-  console.log('Utilisation du fallback pour:', username);
-  const generateId = (str) => {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
-    }
-    return Math.abs(hash) + 1000000;
-  };
-  
-  return {
-    id: generateId(username.toLowerCase()),
-    name: username,
-    displayName: username,
-    created: new Date().toISOString()
-  };
+  // Passer par le backend Vercel /api/lookup pour eviter le CORS
+  const res = await fetch(`/api/lookup?username=${encodeURIComponent(username.trim())}`);
+  if (res.status === 404) throw new Error('Utilisateur Roblox introuvable');
+  if (!res.ok) throw new Error('Erreur lors de la recherche Roblox');
+  const data = await res.json();
+  return { id: data.id, name: data.name, displayName: data.displayName || data.name };
 }
 
 async function fetchRobloxAvatar(userId) {
-  // API Roblox directe avec fallback si CORS bloque
   try {
-    // Essayer l'API directe d'abord
-    const response = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=true`);
-    console.log('Status API avatar directe:', response.status);
-    
-    if (response.ok) {
-      const data = await response.json();
-      console.log('Données avatar directe:', data);
-      if (data.data && data.data.length > 0) {
-        return data.data[0].imageUrl;
-      }
+    const res = await fetch(`/api/avatar?userId=${userId}`);
+    if (res.ok) {
+      const data = await res.json();
+      return data.imageUrl || null;
     }
-  } catch (error) {
-    console.log('API avatar directe bloquée par CORS, utilisation fallback');
-  }
-  
-  // Fallback : retourner null pour utiliser generateFallbackAvatar
-  console.log('Avatar non disponible via API, utilisation fallback');
+  } catch (e) {}
   return null;
 }
 
@@ -1040,7 +991,18 @@ function updateUI() {
   document.getElementById('s-username').textContent = currentUser.username;
   document.getElementById('s-avatar').src = currentUser.avatarUrl;
   document.getElementById('s-plan').textContent = currentUser.plan;
-  document.getElementById('s-credits').textContent = cr;
+  document.getElementById('s-credits').textContent = '💎 ' + cr + ' cr';
+  document.getElementById('credits-display').textContent = cr;
+
+  const wname = document.getElementById('w-name');
+  if (wname) wname.textContent = currentUser.displayName || currentUser.username;
+
+  const setAv = document.getElementById('set-avatar');
+  if (setAv) setAv.src = currentUser.avatarUrl;
+  const setUname = document.getElementById('set-uname');
+  if (setUname) setUname.textContent = currentUser.username;
+  const setUid = document.getElementById('set-uid');
+  if (setUid) setUid.textContent = 'ID Roblox: ' + currentUser.id;
 }
 
 // =============================================
@@ -1112,16 +1074,64 @@ function loadChatHistory() {
 // =============================================
 // RENDER
 // =============================================
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function formatMessage(text) {
+  // Blocs de code ```lua ... ```
+  text = text.replace(/```(?:lua|luau)?\n?([\s\S]*?)```/g, function(_, code) {
+    var id = 'cb_' + Math.random().toString(36).slice(2, 8);
+    return '<div class="code-wrap">'
+      + '<div class="code-header">'
+      + '<span class="code-lang-tag"><span class="code-lang-dot"></span>Luau</span>'
+      + '<button class="copy-btn" onclick="copyCode(\'' + id + '\')">📋 Copier</button>'
+      + '</div>'
+      + '<pre class="code-body" id="' + id + '">' + escapeHtml(code.trim()) + '</pre>'
+      + '</div>';
+  });
+  // Inline code
+  text = text.replace(/`([^`]+)`/g, '<code style="background:var(--bg3);padding:1px 5px;border-radius:4px;font-family:\'JetBrains Mono\',monospace;font-size:12px;">$1</code>');
+  // Sauts de ligne
+  text = text.replace(/\n/g, '<br>');
+  return text;
+}
+
+function copyCode(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  navigator.clipboard.writeText(el.textContent).then(function() {
+    showToast('Code copié !', 'success');
+  });
+}
+
 function renderMessages() {
-  const el = document.getElementById('msgs');
+  var welcome = document.getElementById('welcome-screen');
+  var msgsEl = document.getElementById('msgs');
 
-  el.innerHTML = messages.map(m => `
-    <div class="msg ${m.role}">
-      <div class="msg-bubble">${m.text}</div>
-    </div>
-  `).join('');
+  if (messages.length === 0) {
+    welcome.style.display = 'flex';
+    msgsEl.style.display = 'none';
+    return;
+  }
+  welcome.style.display = 'none';
+  msgsEl.style.display = 'flex';
 
-  el.scrollTop = el.scrollHeight;
+  msgsEl.innerHTML = messages.map(function(m) {
+    var isUser = m.role === 'user';
+    var avatarSrc = (currentUser && currentUser.avatarUrl) ? currentUser.avatarUrl : '';
+    var avatarHtml = isUser
+      ? '<div class="msg-av"><img src="' + avatarSrc + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"></div>'
+      : '<div class="msg-av ai">\uD83E\uDD16</div>';
+    var raw = m.text || '';
+    var html = isUser ? escapeHtml(raw).replace(/\n/g, '<br>') : formatMessage(raw);
+    return '<div class="msg ' + (isUser ? 'user' : 'ai') + '">'
+      + avatarHtml
+      + '<div class="msg-bubble">' + html + '</div>'
+      + '</div>';
+  }).join('');
+
+  msgsEl.scrollTop = msgsEl.scrollHeight;
 }
 
 // =============================================
@@ -1250,12 +1260,12 @@ function showLoading(text) {
   if (el) el.textContent = text;
 
   const box = document.getElementById('auth-loading');
-  if (box) box.style.display = 'block';
+  if (box) box.classList.add('show');
 }
 
 function hideLoading() {
   const box = document.getElementById('auth-loading');
-  if (box) box.style.display = 'none';
+  if (box) box.classList.remove('show');
 }
 
 function setLookupError(msg) {
@@ -1397,82 +1407,16 @@ function closeNoCredits() {
 }
 
 // =============================================
-// INIT SAFE
+// INIT SIMPLE
 // =============================================
 window.addEventListener('DOMContentLoaded', () => {
-  try {
-    console.log('Début de l\'initialisation...');
-    
-    // Masquer l'application par défaut
-    const app = document.getElementById('app');
-    if (app) {
-      app.classList.remove('show');
-      console.log('Application masquée');
-    }
-    
-    // Afficher l'écran d'authentification avec le champ username visible
-    const authScreen = document.getElementById('auth-screen');
-    if (authScreen) {
-      authScreen.style.display = 'flex';
-      console.log('Écran d\'authentification affiché');
-    }
-    
-    const oauthSection = document.getElementById('oauth-section');
-    if (oauthSection) {
-      oauthSection.style.display = 'none';
-      console.log('Section OAuth masquée');
-    }
-    
-    const manualSection = document.getElementById('manual-section');
-    if (manualSection) {
-      manualSection.style.display = 'block';
-      console.log('Section manuelle affichée');
-    }
-    
-    const userConfirm = document.getElementById('user-confirm');
-    if (userConfirm) {
-      userConfirm.classList.remove('show');
-      console.log('User confirm masqué');
-    }
-    
-    // Mettre le focus sur le champ username
-    const usernameInput = document.getElementById('manual-username');
-    if (usernameInput) {
-      usernameInput.focus();
-      console.log('Focus sur le champ username');
-    }
-    
-    // Initialiser les données
-    if (typeof loadChats === 'function') {
-      loadChats();
-      console.log('Chats chargés');
-    }
-    
-    // Mettre à jour les crédits affichés
-    const creditsDisplay = document.getElementById('credits-display');
-    if (creditsDisplay) {
-      creditsDisplay.textContent = '100';
-      console.log('Crédits mis à jour');
-    }
-    
-    // Cacher le loader
-    if (typeof hideLoading === 'function') {
-      hideLoading();
-      console.log('Loader masqué');
-    }
-    
-    console.log('Initialisation terminée avec succès');
-    
-    // Test: Vérifier que la fonction lookupRobloxUser existe
-    if (typeof lookupRobloxUser === 'function') {
-      console.log('Fonction lookupRobloxUser disponible');
-    } else {
-      console.error('Fonction lookupRobloxUser NON disponible');
-    }
-    
-  } catch (error) {
-    console.error('Erreur lors de l\'initialisation:', error);
-  }
+  // Afficher l'écran d'authentification
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('manual-section').style.display = 'block';
+  document.getElementById('oauth-section').style.display = 'none';
+  
+  // Focus sur le champ username
+  document.getElementById('manual-username').focus();
 });
 
 </script>
