@@ -855,29 +855,43 @@ function showView(v) {
 // ROBLOX API HELPERS
 // =============================================
 async function fetchRobloxUser(username) {
-  // API Roblox directe avec fallback si CORS bloque
   if (!username || username.trim().length < 3) {
     throw new Error('Username invalide (minimum 3 caractères)');
   }
-  
+
   console.log('Recherche utilisateur:', username);
-  
-  // Passer par le backend Vercel /api/lookup pour eviter le CORS
-  const res = await fetch(`/api/lookup?username=${encodeURIComponent(username.trim())}`);
-  if (res.status === 404) throw new Error('Utilisateur Roblox introuvable');
-  if (!res.ok) throw new Error('Erreur lors de la recherche Roblox');
+
+  // API Roblox POST /v1/usernames/users — pas de probleme CORS
+  const res = await fetch('https://users.roblox.com/v1/usernames/users', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ usernames: [username.trim()], excludeBannedUsers: true })
+  });
+
+  if (!res.ok) throw new Error('Erreur Roblox API');
   const data = await res.json();
-  return { id: data.id, name: data.name, displayName: data.displayName || data.name };
+  const user = data.data && data.data[0];
+  if (!user) throw new Error('Utilisateur Roblox introuvable');
+
+  console.log('Utilisateur trouve:', user);
+  return { id: user.id, name: user.name, displayName: user.displayName || user.name };
 }
 
 async function fetchRobloxAvatar(userId) {
   try {
-    const res = await fetch(`/api/avatar?userId=${userId}`);
+    // API Roblox directe — autorisee en GET (pas de CORS)
+    const res = await fetch(
+      'https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=' + userId + '&size=150x150&format=Png&isCircular=true'
+    );
     if (res.ok) {
       const data = await res.json();
-      return data.imageUrl || null;
+      if (data.data && data.data[0] && data.data[0].imageUrl) {
+        return data.data[0].imageUrl;
+      }
     }
-  } catch (e) {}
+  } catch (e) {
+    console.log('Avatar fallback:', e.message);
+  }
   return null;
 }
 
