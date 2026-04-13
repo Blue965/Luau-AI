@@ -861,6 +861,15 @@ let currentChatId = null;
 let pendingUser = null;
 let attachedFiles = [];
 
+let streamRenderRaf = null;
+function scheduleStreamRender() {
+  if (streamRenderRaf !== null) return;
+  streamRenderRaf = requestAnimationFrame(function () {
+    streamRenderRaf = null;
+    renderMessages();
+  });
+}
+
 // =============================================
 // VIEW SYSTEM (FIX IMPORTANT)
 // =============================================
@@ -1163,14 +1172,18 @@ function renderMessages() {
   welcome.style.display = 'none';
   msgsEl.style.display = 'flex';
 
-  msgsEl.innerHTML = messages.map(function(m) {
+  msgsEl.innerHTML = messages.map(function(m, idx) {
     var isUser = m.role === 'user';
     var avatarSrc = (currentUser && currentUser.avatarUrl) ? currentUser.avatarUrl : '';
     var avatarHtml = isUser
       ? '<div class="msg-av"><img src="' + avatarSrc + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"></div>'
       : '<div class="msg-av ai">\uD83E\uDD16</div>';
     var raw = m.text || '';
-    var html = isUser ? escapeHtml(raw).replace(/\n/g, '<br>') : formatMessage(raw);
+    /* Pendant le flux SSE : texte brut seulement (évite regex markdown sur texte coupé + moins de lag) */
+    var streamingLast = isTyping && !isUser && idx === messages.length - 1;
+    var html = isUser
+      ? escapeHtml(raw).replace(/\n/g, '<br>')
+      : (streamingLast ? escapeHtml(raw).replace(/\n/g, '<br>') : formatMessage(raw));
     return '<div class="msg ' + (isUser ? 'user' : 'ai') + '">'
       + avatarHtml
       + '<div class="msg-bubble">' + html + '</div>'
@@ -1236,7 +1249,7 @@ async function sendMsg() {
 
             if (token) {
               aiMsg.text += token;
-              renderMessages();
+              scheduleStreamRender();
             }
           } catch (e) {}
         }
@@ -1254,7 +1267,7 @@ async function sendMsg() {
           const token = json.choices?.[0]?.delta?.content;
           if (token) {
             aiMsg.text += token;
-            renderMessages();
+            scheduleStreamRender();
           }
         } catch (e) {}
       }
@@ -1282,13 +1295,19 @@ async function sendMsg() {
     for (let i = 0; i < words.length; i++) {
       currentText += (i > 0 ? ' ' : '') + words[i];
       aiMsg.text = currentText;
-      renderMessages();
+      scheduleStreamRender();
       await new Promise(resolve => setTimeout(resolve, 50));
     }
   }
 
+  if (streamRenderRaf !== null) {
+    cancelAnimationFrame(streamRenderRaf);
+    streamRenderRaf = null;
+  }
+
   updateCurrentChat();
   isTyping = false;
+  renderMessages();
 }
 
 // =============================================
