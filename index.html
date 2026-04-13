@@ -861,36 +861,31 @@ async function fetchRobloxUser(username) {
 
   console.log('Recherche utilisateur:', username);
 
-  // API Roblox POST /v1/usernames/users — pas de probleme CORS
-  const res = await fetch('https://users.roblox.com/v1/usernames/users', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ usernames: [username.trim()], excludeBannedUsers: true })
-  });
-
-  if (!res.ok) throw new Error('Erreur Roblox API');
-  const data = await res.json();
-  const user = data.data && data.data[0];
-  if (!user) throw new Error('Utilisateur Roblox introuvable');
-
-  console.log('Utilisateur trouve:', user);
-  return { id: user.id, name: user.name, displayName: user.displayName || user.name };
+  try {
+    const res = await fetch('/api/lookup?username=' + encodeURIComponent(username.trim()));
+    console.log('Status /api/lookup:', res.status);
+    if (res.status === 404) throw new Error('Utilisateur Roblox introuvable');
+    if (!res.ok) throw new Error('Erreur API: ' + res.status);
+    const data = await res.json();
+    console.log('Reponse lookup:', data);
+    return { id: data.id, name: data.name, displayName: data.displayName || data.name };
+  } catch (err) {
+    console.error('fetchRobloxUser ERREUR:', err.message);
+    throw err;
+  }
 }
 
 async function fetchRobloxAvatar(userId) {
   try {
-    // API Roblox directe — autorisee en GET (pas de CORS)
-    const res = await fetch(
-      'https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=' + userId + '&size=150x150&format=Png&isCircular=true'
-    );
+    const res = await fetch('/api/avatar?userId=' + userId);
+    console.log('Status /api/avatar:', res.status);
     if (res.ok) {
       const data = await res.json();
-      if (data.data && data.data[0] && data.data[0].imageUrl) {
-        return data.data[0].imageUrl;
-      }
+      console.log('Avatar recu:', data.imageUrl);
+      return data.imageUrl || null;
     }
   } catch (e) {
-    console.log('Avatar fallback:', e.message);
+    console.log('Avatar erreur:', e.message);
   }
   return null;
 }
