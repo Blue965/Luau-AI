@@ -869,11 +869,19 @@ function showView(v) {
 
   views.forEach(x => {
     const el = document.getElementById(x + '-view');
-    if (el) el.style.display = 'none';
+    if (!el || x === v) return;
+    el.style.display = 'none';
   });
 
   const target = document.getElementById(v + '-view');
-  if (target) target.style.display = 'block';
+  if (!target) return;
+  /* #chat-view doit rester en flex column (CSS) — inline "block" cassait la zone de saisie en bas */
+  if (v === 'chat') {
+    target.style.removeProperty('display');
+    target.style.removeProperty('flex-direction');
+  } else {
+    target.style.display = 'block';
+  }
 }
 
 // =============================================
