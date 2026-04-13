@@ -2,19 +2,29 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
-// =============================================
-// MODELS 🔥
-// =============================================
-const FALLBACK_MODELS = [
+// Hugging Face fallbacks (OpenAI-compatible router)
+const HF_FALLBACK_MODELS = [
   "HuggingFaceH4/zephyr-7b-beta",
   "mistralai/Mistral-7B-Instruct-v0.3",
   "Qwen/Qwen2.5-Coder-7B-Instruct",
   "microsoft/Phi-3.5-mini-instruct",
 ];
 
-// =============================================
-// ENV LOADER (safe Vercel + local)
-// =============================================
+const GROQ_FALLBACK_MODELS = [
+  "openai/gpt-oss-120b",
+  "llama-3.3-70b-versatile",
+  "qwen/qwen3-32b",
+  "openai/gpt-oss-20b",
+  "llama-3.1-8b-instant",
+];
+
+const OPENROUTER_FALLBACK_MODELS = [
+  "openai/gpt-4o-mini",
+  "google/gemma-2-9b-it:free",
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "meta-llama/llama-3.2-3b-instruct:free",
+];
+
 function loadEnvKey(key) {
   if (process.env[key]) return process.env[key];
 
@@ -54,66 +64,68 @@ function loadEnvKey(key) {
   return null;
 }
 
-// =============================================
-// STREAM (SAFE VERCEL SSE)
-// =============================================
-async function streamModel(model, messages, apiKey, res) {
+function uniqueModels(list) {
+  const seen = new Set();
+  const out = [];
+  for (const m of list) {
+    if (!m || seen.has(m)) continue;
+    seen.add(m);
+    out.push(m);
+  }
+  return out;
+}
+
+/**
+ * Stream OpenAI-compatible chat completions (Groq, OpenRouter, Hugging Face router).
+ */
+async function streamChatCompletions(url, apiKey, model, messages, extraHeaders, res) {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 25000);
+  const timeout = setTimeout(() => controller.abort(), 60000);
 
   try {
-    const hfRes = await fetch(
-      "https://router.huggingface.co/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        signal: controller.signal,
-        body: JSON.stringify({
-          model,
-          messages,
-          temperature: 0.8,
-          max_tokens: 2000,
-          stream: true,
-        }),
-      }
-    );
+    const upstream = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        ...extraHeaders,
+      },
+      signal: controller.signal,
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature: 0.55,
+        top_p: 0.9,
+        max_tokens: 2048,
+        stream: true,
+      }),
+    });
 
-    if (!hfRes.ok || !hfRes.body) {
-      const txt = await hfRes.text().catch(() => "");
-      throw new Error(txt || "HF error");
+    if (!upstream.ok || !upstream.body) {
+      const txt = await upstream.text().catch(() => "");
+      throw new Error(txt || `HTTP ${upstream.status}`);
     }
 
-    // SSE HEADERS
     res.writeHead(200, {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
       Connection: "keep-alive",
     });
 
-    const reader = hfRes.body.getReader();
-    const decoder = new TextDecoder();
-
+    const reader = upstream.body.getReader();
     let hasData = false;
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-
       hasData = true;
-
-      const chunk = decoder.decode(value, { stream: true });
-
-      res.write(`data: ${chunk}\n\n`);
+      res.write(Buffer.from(value));
     }
 
     if (!hasData) throw new Error("Empty stream");
 
     res.write(`data: [DONE]\n\n`);
     res.end();
-
     return true;
   } catch (err) {
     console.warn("STREAM FAIL:", model, err.message);
@@ -123,9 +135,6 @@ async function streamModel(model, messages, apiKey, res) {
   }
 }
 
-// =============================================
-// MAIN HANDLER (Vercel API)
-// =============================================
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -137,65 +146,43 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Messages requis" });
   }
 
-  // limiter mémoire
   messages = messages.slice(-15);
 
-  const apiKey =
-    loadEnvKey("HUGGINGFACE_API_KEY") ||
-    loadEnvKey("HF_API_KEY");
+  const groqKey = loadEnvKey("GROQ_API_KEY");
+  const openrouterKey = loadEnvKey("OPENROUTER_API_KEY");
+  const hfKey = loadEnvKey("HUGGINGFACE_API_KEY") || loadEnvKey("HF_API_KEY");
 
-  if (!apiKey) {
+  if (!groqKey && !openrouterKey && !hfKey) {
     return res.status(500).json({
-      error: "Missing HUGGINGFACE_API_KEY",
+      error:
+        "Aucune clé API configurée. Ajoute dans .env une des options gratuites : GROQ_API_KEY (groq.com), OPENROUTER_API_KEY (openrouter.ai, modèles :free), ou HUGGINGFACE_API_KEY.",
     });
   }
 
-  const envModel = loadEnvKey("HF_MODEL");
-  const primaryModel = envModel || FALLBACK_MODELS[0];
+  const systemPrompt = `Tu es Luau AI, assistant expert Roblox Studio et langage Luau.
 
-  const models = [
-    primaryModel,
-    ...FALLBACK_MODELS.filter((m) => m !== primaryModel),
-  ];
+Langue : réponds en français naturel et clair.
 
-  // =============================================
-  // SYSTEM PROMPT 😎🔥
-  // =============================================
-  const systemPrompt = `
-Tu es Luau AI 😎🔥
+Ton et emojis : tu peux utiliser des emojis avec parcimonie dans tes messages pour être chaleureux et lisible (jamais à la place d’explications techniques).
 
-Expert Roblox Studio + Luau.
+Code :
+- fournis du code Luau uniquement quand c’est utile ;
+- blocs toujours en markdown avec le fence \`\`\`lua ;
+- code compatible avec les APIs Roblox documentées, sans inventer de services ou propriétés.
 
-STYLE:
-- Français naturel
-- clair
-- emojis modérés 😄🔥
+Objectif : réponses précises, actionnables, orientées Studio (scripts serveur/client, RemoteEvents, performance, UI, débogage).`;
 
-CODE:
-- uniquement si nécessaire
-- toujours entre \`\`\`lua
-- optimisé Roblox Studio
-
-RÈGLES:
-- ne pas inventer d’API Roblox inexistantes
-- réponses utiles et précises
-`;
-
-  // =============================================
-  // BUILD MESSAGES
-  // =============================================
-  const chatMessages = [
-    { role: "system", content: systemPrompt },
-  ];
+  const chatMessages = [{ role: "system", content: systemPrompt }];
 
   for (const m of messages) {
-    const role = m.role === "assistant" ? "assistant" : "user";
+    const role =
+      m.role === "assistant" || m.role === "ai" ? "assistant" : "user";
+
+    const text = (m.text || "").trim();
+    if (!text && !m.imageBase64) continue;
 
     if (m.imageBase64 && role === "user") {
-      const base64 = m.imageBase64.replace(
-        /^data:[^;]+;base64,/,
-        ""
-      );
+      const base64 = m.imageBase64.replace(/^data:[^;]+;base64,/, "");
 
       chatMessages.push({
         role,
@@ -208,34 +195,85 @@ RÈGLES:
           },
           {
             type: "text",
-            text: m.text || "Analyse cette image Roblox",
+            text: text || "Analyse cette image Roblox",
           },
         ],
       });
     } else {
       chatMessages.push({
         role,
-        content: m.text || "",
+        content: text,
       });
     }
   }
 
-  // =============================================
-  // FALLBACK MODELS LOOP 🔥
-  // =============================================
-  for (const model of models) {
-    console.log("TRY MODEL:", model);
+  const tryOrder = [];
 
-    const ok = await streamModel(model, chatMessages, apiKey, res);
+  if (groqKey) {
+    const primary = loadEnvKey("GROQ_MODEL");
+    tryOrder.push({
+      name: "groq",
+      url: "https://api.groq.com/openai/v1/chat/completions",
+      key: groqKey,
+      models: uniqueModels(
+        [primary, ...GROQ_FALLBACK_MODELS].filter(Boolean)
+      ),
+      extraHeaders: {},
+    });
+  }
 
-    if (ok) {
-      console.log("SUCCESS MODEL:", model);
-      return;
+  if (openrouterKey) {
+    const primary = loadEnvKey("OPENROUTER_MODEL");
+    const site = loadEnvKey("OPENROUTER_SITE_URL") || "https://luau-ai.local";
+    tryOrder.push({
+      name: "openrouter",
+      url: "https://openrouter.ai/api/v1/chat/completions",
+      key: openrouterKey,
+      models: uniqueModels(
+        [primary, ...OPENROUTER_FALLBACK_MODELS].filter(Boolean)
+      ),
+      extraHeaders: {
+        "HTTP-Referer": site,
+        "X-Title": "Luau AI",
+      },
+    });
+  }
+
+  if (hfKey) {
+    const envModel = loadEnvKey("HF_MODEL");
+    const primaryModel = envModel || HF_FALLBACK_MODELS[0];
+    tryOrder.push({
+      name: "huggingface",
+      url: "https://router.huggingface.co/v1/chat/completions",
+      key: hfKey,
+      models: uniqueModels([
+        primaryModel,
+        ...HF_FALLBACK_MODELS.filter((m) => m !== primaryModel),
+      ]),
+      extraHeaders: {},
+    });
+  }
+
+  for (const provider of tryOrder) {
+    for (const model of provider.models) {
+      if (!model) continue;
+      console.log("TRY", provider.name, model);
+      const ok = await streamChatCompletions(
+        provider.url,
+        provider.key,
+        model,
+        chatMessages,
+        provider.extraHeaders,
+        res
+      );
+      if (ok) {
+        console.log("OK", provider.name, model);
+        return;
+      }
     }
   }
 
-  // ❌ ALL FAILED
   return res.status(500).json({
-    error: "All models failed",
+    error: "Tous les modèles ont échoué. Vérifie ta clé API et les quotas (Groq / OpenRouter / Hugging Face).",
   });
 }

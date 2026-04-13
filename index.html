@@ -5,25 +5,60 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Luau AI</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%231f6feb'/%3E%3Cstop offset='100%25' stop-color='%2339d0d8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Ctext x='32' y='45' font-size='38' text-anchor='middle' font-family='Arial' font-weight='bold' fill='white'%3EL%3C/text%3E%3Ccircle cx='47' cy='17' r='8' fill='%2339d0d8' opacity='0.95'/%3E%3Ccircle cx='47' cy='17' r='4' fill='white'/%3E%3C/svg%3E">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg0: #0d1117; --bg1: #161b22; --bg2: #1c2333; --bg3: #21262d; --bg4: #2d333b;
-    --border: #30363d; --border2: #3d444d;
-    --blue0: #0969da; --blue1: #1f6feb; --blue2: #388bfd; --blue3: #79c0ff; --blue4: #cae8ff;
-    --cyan: #39d0d8; --cyan2: #a5f3fc;
-    --text0: #e6edf3; --text1: #8b949e; --text2: #6e7681;
-    --green: #3fb950; --green2: #7ee787;
-    --amber: #d29922; --amber2: #ffa657;
-    --purple: #8b5cf6; --pink: #f778ba;
-    --red: #f85149;
-    --radius: 8px; --radius-lg: 12px;
+    --bg0: #06080d;
+    --bg1: #0b0f14;
+    --bg2: #111820;
+    --bg3: #161d28;
+    --bg4: #1c2533;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --blue0: #4f6ef7;
+    --blue1: #5b7cfa;
+    --blue2: #7c9cff;
+    --blue3: #a8bcff;
+    --blue4: #dce4ff;
+    --cyan: #22d3ee;
+    --cyan2: #a5f3fc;
+    --text0: #eef2f7;
+    --text1: #9aa4b2;
+    --text2: #6b7280;
+    --green: #34d399;
+    --green2: #6ee7b7;
+    --amber: #fbbf24;
+    --amber2: #fcd34d;
+    --purple: #a78bfa;
+    --pink: #f472b6;
+    --red: #fb7185;
+    --radius: 10px;
+    --radius-lg: 16px;
+    --font: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg0); color: var(--text0); font-family: 'Outfit', sans-serif; height: 100vh; overflow: hidden; }
+  body {
+    background-color: var(--bg0);
+    background-image:
+      radial-gradient(ellipse 100% 80% at 50% -30%, rgba(91, 124, 250, 0.14), transparent 55%),
+      radial-gradient(ellipse 50% 40% at 100% 0%, rgba(34, 211, 238, 0.08), transparent 50%);
+    color: var(--text0);
+    font-family: var(--font);
+    height: 100vh;
+    overflow: hidden;
+  }
   ::-webkit-scrollbar { width: 5px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 10px; }
+
+  .ico {
+    width: 18px; height: 18px; flex-shrink: 0;
+    stroke: currentColor; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .ico-sm { width: 15px; height: 15px; }
+  .ico-lg { width: 22px; height: 22px; }
 
   @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
   @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
@@ -62,9 +97,11 @@
   .auth-logo-icon {
     width: 50px; height: 50px;
     background: linear-gradient(135deg, var(--blue1), var(--cyan));
-    border-radius: 12px; display:flex; align-items:center; justify-content:center;
-    font-size: 26px; animation: glow 3s ease infinite;
+    border-radius: 14px; display:flex; align-items:center; justify-content:center;
+    animation: glow 3s ease infinite;
+    color: #fff;
   }
+  .auth-logo-icon svg { width: 26px; height: 26px; }
   .auth-logo-text { font-size: 30px; font-weight: 700; letter-spacing: -0.5px; }
   .auth-logo-text span { color: var(--blue3); }
   .auth-tagline { text-align:center; color:var(--text1); font-size:14px; margin-bottom:36px; line-height:1.5; }
@@ -80,7 +117,7 @@
     background: linear-gradient(135deg, #c62626, #e03030);
     border: none; color: white; font-size: 15px; font-weight: 700;
     cursor: pointer; display:flex; align-items:center; justify-content:center; gap:10px;
-    transition: all 0.2s; font-family: 'Outfit', sans-serif;
+    transition: all 0.2s; font-family: var(--font);
     box-shadow: 0 2px 12px rgba(198,38,38,0.4);
   }
   .roblox-oauth-btn:hover { filter:brightness(1.12); transform:translateY(-1px); box-shadow:0 6px 20px rgba(198,38,38,0.5); }
@@ -104,7 +141,7 @@
   .auth-input {
     width:100%; padding:11px 14px; border-radius:var(--radius);
     background:var(--bg3); border:1px solid var(--border);
-    color:var(--text0); font-size:14px; font-family:'Outfit',sans-serif;
+    color:var(--text0); font-size:14px; font-family:var(--font);
     outline:none; transition:border-color 0.2s; margin-bottom:10px;
   }
   .auth-input:focus { border-color:var(--blue2); background:var(--bg2); }
@@ -113,7 +150,7 @@
     width:100%; padding:12px; border-radius:var(--radius);
     background:var(--blue1); border:none; color:white;
     font-size:14px; font-weight:600; cursor:pointer; transition:all 0.2s;
-    font-family:'Outfit',sans-serif;
+    font-family:var(--font);
   }
   .auth-submit:hover { background:var(--blue2); }
 
@@ -160,7 +197,7 @@
     width:100%; padding:12px; border-radius:var(--radius);
     background:var(--green); border:none; color:#0d1117;
     font-size:14px; font-weight:700; cursor:pointer;
-    font-family:'Outfit',sans-serif; transition:all 0.2s;
+    font-family:var(--font); transition:all 0.2s;
   }
   .confirm-btn:hover { background:var(--green2); }
   .cancel-link { text-align:center; font-size:12px; color:var(--text2); margin-top:10px; cursor:pointer; }
@@ -177,9 +214,13 @@
 
   /* SIDEBAR */
   .sidebar {
-    width:264px; min-width:264px; background:var(--bg1);
-    border-right:1px solid var(--border); display:flex; flex-direction:column;
-    height:100vh; overflow:hidden;
+    width: 272px; min-width: 272px;
+    background: rgba(11, 15, 20, 0.72);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    height: 100vh; overflow: hidden;
   }
   .sidebar-header {
     padding:14px 16px; border-bottom:1px solid var(--border);
@@ -187,9 +228,10 @@
   }
   .s-logo { display:flex; align-items:center; gap:9px; }
   .s-logo-icon {
-    width:30px; height:30px; background:linear-gradient(135deg,var(--blue1),var(--cyan));
-    border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:15px;
+    width: 32px; height: 32px; background: linear-gradient(135deg, var(--blue1), var(--cyan));
+    border-radius: 9px; display: flex; align-items: center; justify-content: center; color: #fff;
   }
+  .s-logo-icon svg { width: 17px; height: 17px; }
   .s-logo-text { font-size:16px; font-weight:700; }
   .s-logo-text span { color:var(--blue3); }
   .new-btn {
@@ -201,11 +243,11 @@
 
   .s-search { padding:10px 14px; }
   .s-search-inner { position:relative; }
-  .s-search-icon { position:absolute; left:9px; top:50%; transform:translateY(-50%); font-size:13px; color:var(--text2); }
+  .s-search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--text2); display:flex; }
   .s-search-input {
     width:100%; padding:7px 10px 7px 30px; background:var(--bg2);
     border:1px solid var(--border); border-radius:var(--radius);
-    color:var(--text0); font-size:13px; font-family:'Outfit',sans-serif; outline:none;
+    color:var(--text0); font-size:13px; font-family:var(--font); outline:none;
   }
   .s-search-input:focus { border-color:var(--blue2); }
   .s-search-input::placeholder { color:var(--text2); }
@@ -218,7 +260,8 @@
   }
   .s-nav-item:hover { background:var(--bg3); color:var(--text0); }
   .s-nav-item.active { background:var(--bg3); color:var(--blue3); }
-  .s-nav-item .ni { font-size:15px; width:19px; text-align:center; }
+  .s-nav-item .ni { width:22px; display:flex; align-items:center; justify-content:center; color:var(--text2); }
+  .s-nav-item.active .ni { color: var(--blue3); }
   .s-badge {
     margin-left:auto; font-size:10px; font-weight:700;
     padding:2px 7px; border-radius:10px; background:var(--blue1); color:white;
@@ -260,16 +303,18 @@
   .t-tab {
     padding:5px 13px; border-radius:6px; cursor:pointer; font-size:13px;
     font-weight:500; color:var(--text1); transition:all 0.15s;
-    border:none; background:none; font-family:'Outfit',sans-serif;
+    border:none; background:none; font-family:var(--font);
   }
   .t-tab:hover { background:var(--bg3); color:var(--text0); }
   .t-tab.active { background:var(--bg3); color:var(--blue3); }
   .top-bar-right { margin-left:auto; display:flex; align-items:center; gap:8px; }
   .credits-chip {
-    display:flex; align-items:center; gap:5px; padding:5px 11px;
-    background:var(--bg2); border:1px solid var(--border); border-radius:20px;
-    font-size:12px; font-weight:600; cursor:pointer; transition:all 0.15s;
+    display: flex; align-items: center; gap: 8px; padding: 6px 14px;
+    background: rgba(17, 24, 32, 0.75); border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s;
   }
+  .credits-chip .cr-ico { color: var(--cyan); opacity: 0.9; }
   .credits-chip:hover { border-color:var(--blue2); color:var(--blue3); }
   .model-chip {
     display:flex; align-items:center; gap:6px; padding:5px 11px;
@@ -291,10 +336,14 @@
     padding:40px 20px; animation:fadeIn 0.5s ease;
   }
   .welcome-icon {
-    width:64px; height:64px; background:linear-gradient(135deg,var(--blue1),var(--cyan));
-    border-radius:16px; display:flex; align-items:center; justify-content:center;
-    font-size:32px; margin-bottom:22px; animation:glow 3s ease infinite;
+    width: 72px; height: 72px;
+    background: linear-gradient(135deg, var(--blue1), var(--cyan));
+    border-radius: 20px; display: flex; align-items: center; justify-content: center;
+    margin-bottom: 24px; animation: glow 3s ease infinite;
+    color: #fff;
+    box-shadow: 0 12px 40px rgba(91, 124, 250, 0.25);
   }
+  .welcome-icon svg { width: 36px; height: 36px; }
   .welcome-title { font-size:30px; font-weight:700; text-align:center; margin-bottom:8px; }
   .welcome-title span { color:var(--blue3); }
   .welcome-sub { font-size:15px; color:var(--text1); margin-bottom:36px; text-align:center; }
@@ -304,7 +353,15 @@
     padding:14px 15px; cursor:pointer; transition:all 0.2s;
   }
   .sug-card:hover { border-color:var(--blue2); background:var(--bg3); transform:translateY(-1px); }
-  .sug-card .si { font-size:20px; margin-bottom:7px; }
+  .sug-card .si {
+    width: 40px; height: 40px; border-radius: 11px; margin-bottom: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; letter-spacing: 0.02em; color: #fff;
+  }
+  .sug-card .si.a { background: linear-gradient(135deg, #5b7cfa, #22d3ee); }
+  .sug-card .si.b { background: linear-gradient(135deg, #a78bfa, #f472b6); }
+  .sug-card .si.c { background: linear-gradient(135deg, #34d399, #22d3ee); }
+  .sug-card .si.d { background: linear-gradient(135deg, #fb923c, #fbbf24); }
   .sug-card .st { font-size:13px; font-weight:600; margin-bottom:3px; }
   .sug-card .sd { font-size:12px; color:var(--text2); }
 
@@ -312,11 +369,29 @@
   .msg { display:flex; gap:12px; animation:fadeIn 0.3s ease; max-width:800px; margin:0 auto; width:100%; }
   .msg.user { flex-direction:row-reverse; }
   .msg-av { width:34px; height:34px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:15px; overflow:hidden; }
-  .msg-av.ai { background:linear-gradient(135deg,var(--blue1),var(--cyan)); }
+  .msg-av.ai {
+    background: linear-gradient(135deg, var(--blue1), var(--cyan));
+    color: #fff; font-size: 12px; font-weight: 800; letter-spacing: -0.03em;
+  }
   .msg-av img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
-  .msg-bubble { max-width:calc(100% - 50px); padding:11px 15px; border-radius:12px; font-size:14px; line-height:1.65; }
-  .msg.ai .msg-bubble { background:var(--bg2); border:1px solid var(--border); border-radius:4px 12px 12px 12px; }
-  .msg.user .msg-bubble { background:var(--blue1); color:white; border-radius:12px 4px 12px 12px; }
+  .msg-bubble {
+    max-width: calc(100% - 50px);
+    padding: 13px 17px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.65;
+  }
+  .msg.ai .msg-bubble {
+    background: rgba(17, 24, 32, 0.92);
+    border: 1px solid var(--border);
+    border-radius: 6px 16px 16px 16px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  }
+  .msg.user .msg-bubble {
+    background: linear-gradient(135deg, var(--blue1), #4f46e5);
+    color: #fff;
+    border-radius: 16px 6px 16px 16px;
+  }
   .msg-time { font-size:10px; color:var(--text2); margin-top:4px; }
   .msg.user .msg-time { text-align:right; }
   .typing-dots { display:flex; gap:4px; align-items:center; }
@@ -334,13 +409,13 @@
   }
   .code-lang-tag {
     font-size: 11px; font-weight: 600; color: var(--text1);
-    font-family: 'Outfit', sans-serif; display: flex; align-items: center; gap: 6px;
+    font-family: var(--font); display: flex; align-items: center; gap: 6px;
   }
   .code-lang-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); flex-shrink:0; }
   .copy-btn {
     display: flex; align-items: center; gap: 5px; padding: 3px 10px;
     background: var(--bg4); border: 1px solid var(--border2); border-radius: 5px;
-    color: var(--text1); font-size: 11px; font-family: 'Outfit', sans-serif;
+    color: var(--text1); font-size: 11px; font-family: var(--font);
     cursor: pointer; transition: all 0.15s; white-space: nowrap;
   }
   .copy-btn:hover { background: var(--bg2); color: var(--blue3); border-color: var(--blue2); }
@@ -382,13 +457,21 @@
     flex-shrink:0; flex-grow:0;
   }
   .input-wrap {
-    max-width:800px; margin:0 auto; background:var(--bg2); border:1px solid var(--border);
-    border-radius:var(--radius-lg); overflow:hidden; transition:border-color 0.2s, box-shadow 0.2s;
+    max-width: 800px; margin: 0 auto;
+    background: rgba(17, 24, 32, 0.65);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    backdrop-filter: blur(8px);
   }
-  .input-wrap:focus-within { border-color:var(--blue2); box-shadow:0 0 0 3px rgba(56,139,253,0.1); }
+  .input-wrap:focus-within {
+    border-color: rgba(124, 156, 255, 0.45);
+    box-shadow: 0 0 0 3px rgba(91, 124, 250, 0.12);
+  }
   .chat-ta {
     width:100%; padding:13px 15px 8px; background:transparent;
-    border:none; color:var(--text0); font-size:14px; font-family:'Outfit',sans-serif;
+    border:none; color:var(--text0); font-size:14px; font-family:var(--font);
     resize:none; outline:none; min-height:50px; max-height:200px; line-height:1.6;
   }
   .chat-ta::placeholder { color:var(--text2); }
@@ -399,13 +482,13 @@
   .act-btn {
     padding:5px 10px; border-radius:6px; background:var(--bg3);
     border:1px solid var(--border); color:var(--text1); font-size:12px;
-    cursor:pointer; transition:all 0.15s; font-family:'Outfit',sans-serif;
+    cursor:pointer; transition:all 0.15s; font-family:var(--font);
   }
   .act-btn:hover { color:var(--text0); border-color:var(--border2); }
   .send-btn {
     margin-left:auto; padding:7px 16px; border-radius:7px;
     background:var(--blue1); border:none; color:white; font-size:13px;
-    font-weight:600; cursor:pointer; transition:all 0.2s; font-family:'Outfit',sans-serif;
+    font-weight:600; cursor:pointer; transition:all 0.2s; font-family:var(--font);
   }
   .send-btn:hover { background:var(--blue2); }
   .send-btn:disabled { opacity:0.5; cursor:not-allowed; }
@@ -437,7 +520,15 @@
     background:var(--blue1); color:white; font-size:11px; font-weight:700;
     padding:3px 14px; border-radius:20px; white-space:nowrap;
   }
-  .plan-icon { font-size:30px; margin-bottom:14px; }
+  .plan-icon {
+    width: 48px; height: 48px; border-radius: 14px; margin-bottom: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 800; color: #fff;
+    letter-spacing: 0.02em;
+  }
+  .plan-icon.starter { background: linear-gradient(135deg, #34d399, #22d3ee); }
+  .plan-icon.pro { background: linear-gradient(135deg, #5b7cfa, #22d3ee); }
+  .plan-icon.ent { background: linear-gradient(135deg, #a78bfa, #f472b6); }
   .plan-name { font-size:19px; font-weight:700; margin-bottom:3px; }
   .plan-desc { font-size:13px; color:var(--text1); margin-bottom:18px; }
   .plan-price { display:flex; align-items:baseline; gap:4px; margin-bottom:5px; }
@@ -449,16 +540,17 @@
     background:var(--bg2); border-radius:var(--radius); margin-bottom:18px;
     border:1px solid var(--border); font-size:13px;
   }
-  .pcr-icon { font-size:17px; }
+  .pcr-icon { display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .pcr-amount { font-weight:700; font-size:15px; color:var(--blue3); }
   .plan-feats { list-style:none; margin-bottom:22px; display:flex; flex-direction:column; gap:7px; }
   .plan-feats li { display:flex; align-items:center; gap:7px; font-size:13px; color:var(--text1); }
-  .ck { color:var(--green2); }
-  .cx { color:var(--text2); }
+  .ck, .cx { display: inline-flex; align-items: center; justify-content: center; width: 7px; height: 7px; border-radius: 50%; margin-right: 8px; flex-shrink: 0; vertical-align: middle; }
+  .ck { background: var(--green2); box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.2); }
+  .cx { background: var(--text2); opacity: 0.45; }
   .plan-btn {
     width:100%; padding:11px; border-radius:var(--radius);
     font-size:14px; font-weight:600; cursor:pointer;
-    transition:all 0.2s; font-family:'Outfit',sans-serif;
+    transition:all 0.2s; font-family:var(--font);
     display:flex; align-items:center; justify-content:center; gap:7px;
   }
   .plan-btn.free { background:var(--bg3); border:1px solid var(--border); color:var(--text0); }
@@ -474,7 +566,12 @@
     background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg);
     display:flex; align-items:flex-start; gap:14px; font-size:13px;
   }
-  .gp-icon { font-size:28px; flex-shrink:0; }
+  .gp-icon {
+    width: 44px; height: 44px; flex-shrink: 0; border-radius: 12px;
+    background: rgba(91, 124, 250, 0.12); border: 1px solid rgba(91, 124, 250, 0.25);
+    display: flex; align-items: center; justify-content: center; color: var(--blue3);
+  }
+  .gp-icon svg { width: 22px; height: 22px; }
   .gp-text { color:var(--text1); line-height:1.6; }
   .gp-text strong { color:var(--text0); }
   .gp-link { color:var(--blue3); cursor:pointer; text-decoration:underline; }
@@ -509,24 +606,33 @@
   .set-ctrl { flex-shrink:0; }
   .set-select {
     background:var(--bg3); border:1px solid var(--border); color:var(--text0);
-    padding:7px 12px; border-radius:var(--radius); font-family:'Outfit',sans-serif;
+    padding:7px 12px; border-radius:var(--radius); font-family:var(--font);
     font-size:13px; outline:none;
   }
   .logout-btn {
     background:none; border:none; color:var(--red); font-size:14px; font-weight:500;
-    cursor:pointer; font-family:'Outfit',sans-serif; padding:0;
+    cursor:pointer; font-family:var(--font); padding:0;
   }
 
   /* TOAST */
   .toast {
-    position:fixed; bottom:22px; right:22px; z-index:9999;
-    background:var(--bg2); border:1px solid var(--green2);
-    border-radius:var(--radius); padding:11px 16px; font-size:13px; color:var(--green2);
-    animation:slideUp 0.3s ease; box-shadow:0 4px 20px rgba(0,0,0,0.5);
-    display:flex; align-items:center; gap:8px;
+    position: fixed; bottom: 22px; right: 22px; z-index: 9999;
+    background: rgba(17, 24, 32, 0.95);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green2);
+    border-radius: var(--radius);
+    padding: 12px 18px;
+    font-size: 13px;
+    color: var(--text0);
+    animation: slideUp 0.3s ease;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+    display: flex; align-items: center; gap: 10px;
+    backdrop-filter: blur(10px);
   }
-  .toast.error { border-color:var(--red); color:var(--red); }
-  .toast.info { border-color:var(--blue3); color:var(--blue3); }
+  .toast .toast-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text2); min-width: 52px; }
+  .toast.error { border-left-color: var(--red); }
+  .toast.info { border-left-color: var(--blue3); }
+  .toast.success { border-left-color: var(--green2); }
 </style>
 </head>
 <body>
@@ -543,15 +649,17 @@
   <div class="auth-glow"></div>
   <div class="auth-card">
     <div class="auth-logo">
-      <div class="auth-logo-icon">🤖</div>
+      <div class="auth-logo-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18l6-6-6-6"/><path d="M8 6l-6 6 6 6"/></svg>
+      </div>
       <div class="auth-logo-text">Luau<span>AI</span></div>
     </div>
-    <p class="auth-tagline">L'IA nouvelle génération pour Roblox Studio<br><span style="color:var(--blue3);">Assisté par Claude · Alimenté par Luau</span></p>
+    <p class="auth-tagline">Assistant IA pour Roblox Studio<br><span style="color:var(--blue3);">Modèles gratuits (Groq / OpenRouter) · Luau</span></p>
 
     <!-- ROBLOX OAUTH -->
     <div id="oauth-section">
       <div class="oauth-box">
-        <div class="oauth-title">🔐 Connexion Roblox OAuth</div>
+        <div class="oauth-title">Connexion Roblox OAuth</div>
         <button class="roblox-oauth-btn" id="roblox-auth-btn" onclick="startRobloxOAuth()">
           <svg class="roblox-svg" viewBox="0 0 24 24"><path d="M5.065 0L0 18.94l13.93 5.06L19 5.062zm8.603 14.42l-4.51-1.64.52-4.326 4.51 1.636z"/></svg>
           Se connecter avec Roblox
@@ -562,9 +670,9 @@
             <li>Clique sur le bouton ci-dessus</li>
             <li>Tu es redirigé vers <strong>roblox.com/login</strong></li>
             <li>Autorise Luau AI à accéder à ton profil</li>
-            <li>Tu reviens ici connecté avec ton vrai compte ✓</li>
+            <li>Tu reviens ici connecté avec ton compte Roblox</li>
           </ol>
-          <div style="margin-top:8px;color:var(--text2);">ℹ️ Nous récupérons uniquement : username, userId, et avatar headshot. Aucun mot de passe.</div>
+          <div style="margin-top:8px;color:var(--text2);">Nous récupérons uniquement : username, userId, et avatar headshot. Aucun mot de passe.</div>
         </div>
       </div>
     </div><!-- fin oauth-section -->
@@ -574,7 +682,7 @@
     <!-- Manual fallback -->
     <div id="manual-section">
       <input class="auth-input" type="text" id="manual-username" placeholder="Username Roblox (ex: Builderman)">
-      <button class="auth-submit" onclick="lookupRobloxUser()">Rechercher mon compte Roblox →</button>
+      <button class="auth-submit" type="button" onclick="lookupRobloxUser()">Rechercher mon compte Roblox</button>
       <div id="lookup-error" style="font-size:12px;color:var(--red);margin-top:8px;display:none;"></div>
     </div>
 
@@ -593,8 +701,8 @@
         <div id="confirm-username" class="confirm-username"></div>
         <div id="confirm-id" class="confirm-id"></div>
 
-        <div style="font-size:12px;color:var(--green2);margin-top:6px;">
-          ✓ Compte Roblox vérifié
+        <div style="font-size:12px;color:var(--green2);margin-top:6px;font-weight:600;">
+          Compte Roblox vérifié
         </div>
       </div>
     </div>
@@ -604,7 +712,7 @@
     </button>
 
     <div class="cancel-link" onclick="cancelConfirm()">
-      ← Changer de compte
+      Changer de compte
     </div>
   </div>
 </div>
@@ -615,31 +723,33 @@
   <div class="sidebar">
     <div class="sidebar-header">
       <div class="s-logo">
-        <div class="s-logo-icon">🤖</div>
+        <div class="s-logo-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18l6-6-6-6"/><path d="M8 6l-6 6 6 6"/></svg>
+        </div>
         <div class="s-logo-text">Luau<span>AI</span></div>
       </div>
-      <div class="new-btn" onclick="newChat()" title="Nouveau chat">＋</div>
+      <div class="new-btn" onclick="newChat()" title="Nouveau chat">+</div>
     </div>
     <div class="s-search">
       <div class="s-search-inner">
-        <span class="s-search-icon">🔍</span>
+        <span class="s-search-icon" aria-hidden="true"><svg class="ico ico-sm" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
         <input class="s-search-input" placeholder="Rechercher...">
       </div>
     </div>
     <div class="s-nav">
       <div class="s-nav-item active" id="nav-chat" onclick="showView('chat')">
-        <span class="ni">💬</span> Chat IA
+        <span class="ni" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span> Chat IA
         <span class="s-badge green">EN LIGNE</span>
       </div>
       <div class="s-nav-item" id="nav-shop" onclick="showView('shop')">
-        <span class="ni">🛒</span> Boutique
+        <span class="ni" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span> Boutique
       </div>
       <div class="s-nav-item" id="nav-studio" onclick="showStudio()">
-        <span class="ni">🎮</span> Studio Tools
+        <span class="ni" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h.01M10 12h.01"/></svg></span> Studio Tools
         <span class="s-badge">BÊTA</span>
       </div>
       <div class="s-nav-item" id="nav-settings" onclick="showView('settings')">
-        <span class="ni">⚙️</span> Paramètres
+        <span class="ni" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span> Paramètres
       </div>
     </div>
     <div class="s-section-label">Récent</div>
@@ -655,10 +765,10 @@
         <div class="s-user-name" id="s-username">—</div>
         <div class="s-user-meta">
           <span class="s-user-plan" id="s-plan">Starter</span>
-          <span class="s-credits" id="s-credits">💎 100 cr</span>
+          <span class="s-credits" id="s-credits">100 cr</span>
         </div>
       </div>
-      <span style="font-size:14px;color:var(--text2);">⚙️</span>
+      <span class="s-user-chevron" aria-hidden="true"><svg class="ico ico-sm" style="color:var(--text2)" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></span>
     </div>
   </div>
 
@@ -670,12 +780,14 @@
       <button class="t-tab" id="tab-studio" onclick="switchModel('studio')">Studio Assist</button>
       <button class="t-tab" id="tab-debug" onclick="switchModel('debug')">Debug</button>
       <div class="top-bar-right">
-        <div class="credits-chip" onclick="showView('shop')">
-          💎 <span id="credits-display">100</span> crédits
+        <div class="credits-chip" onclick="showView('shop')" title="Crédits">
+          <svg class="ico cr-ico" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <span id="credits-display">100</span> crédits
         </div>
         <div class="model-chip">
           <div class="m-dot"></div>
-          <span id="model-display">Luau AI 2.0</span> ▾
+          <span id="model-display">Luau AI 2.0</span>
+          <svg class="ico ico-sm" style="opacity:0.5" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
         </div>
       </div>
     </div>
@@ -683,21 +795,23 @@
     <!-- CHAT VIEW -->
     <div id="chat-view">
       <div class="welcome" id="welcome-screen">
-        <div class="welcome-icon">🤖</div>
+        <div class="welcome-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18l6-6-6-6"/><path d="M8 6l-6 6 6 6"/></svg>
+        </div>
         <div class="welcome-title">Bonjour, <span id="w-name">—</span> !</div>
         <p class="welcome-sub">Que souhaitez-vous créer dans Roblox Studio ?</p>
         <div class="sug-grid">
           <div class="sug-card" onclick="suggest('Écris un script Luau pour un système de téléportation entre serveurs Roblox')">
-            <div class="si">⚡</div><div class="st">Script Luau</div><div class="sd">Génère du code Roblox Studio</div>
+            <div class="si a">Lua</div><div class="st">Script Luau</div><div class="sd">Génère du code Roblox Studio</div>
           </div>
           <div class="sug-card" onclick="suggest('Comment optimiser les performances de mon jeu Roblox pour réduire la latence et améliorer les FPS ?')">
-            <div class="si">🚀</div><div class="st">Optimisation</div><div class="sd">Améliore FPS et latence</div>
+            <div class="si b">FPS</div><div class="st">Optimisation</div><div class="sd">Améliore FPS et latence</div>
           </div>
           <div class="sug-card" onclick="suggest('Comment créer un système de GUI complet avec ScreenGui, Frame et boutons animés dans Roblox ?')">
-            <div class="si">🎨</div><div class="st">Interface GUI</div><div class="sd">Menus et interfaces joueur</div>
+            <div class="si c">GUI</div><div class="st">Interface GUI</div><div class="sd">Menus et interfaces joueur</div>
           </div>
           <div class="sug-card" onclick="suggest('Comment déboguer une erreur RemoteEvent dans Roblox Studio ? Donne-moi les meilleures pratiques.')">
-            <div class="si">🔧</div><div class="st">Débogage</div><div class="sd">Résous les bugs Studio</div>
+            <div class="si d">Fix</div><div class="st">Débogage</div><div class="sd">Résous les bugs Studio</div>
           </div>
         </div>
       </div>
@@ -707,14 +821,14 @@
           <textarea class="chat-ta" id="chat-ta" placeholder="Demande à Luau AI... (Entrée pour envoyer, Shift+Entrée pour nouvelle ligne)" rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
           <div class="input-actions">
             <input type="file" id="file-input" style="display:none" multiple accept="image/*,.lua,.txt,.json,.rbxl,.rbxlx" onchange="handleFileAttach(event)">
-            <button class="act-btn" onclick="document.getElementById('file-input').click()">📎 Joindre</button>
-            <button class="act-btn" onclick="showStudio()">🎮 Plugin Studio</button>
-            <button class="act-btn" onclick="pasteCode()">📋 Coller du code</button>
-            <button class="send-btn" id="send-btn" onclick="sendMsg()">Envoyer ↗</button>
+            <button class="act-btn" type="button" onclick="document.getElementById('file-input').click()">Joindre un fichier</button>
+            <button class="act-btn" type="button" onclick="showStudio()">Plugin Studio</button>
+            <button class="act-btn" type="button" onclick="pasteCode()">Coller du code</button>
+            <button class="send-btn" id="send-btn" type="button" onclick="sendMsg()">Envoyer</button>
           </div>
           <div id="attach-preview" class="attach-preview" style="display:none"></div>
         </div>
-        <div class="input-footer">Luau AI · Chaque message utilise ~1 crédit · Propulsé par Claude</div>
+        <div class="input-footer">Luau AI · Environ 1 crédit par message · Backend Groq, OpenRouter (:free) ou Hugging Face</div>
       </div>
     </div>
 
@@ -733,59 +847,59 @@
       <div class="plans-grid">
         <!-- STARTER -->
         <div class="plan-card">
-          <div class="plan-icon">🌱</div>
+          <div class="plan-icon starter" aria-hidden="true">S</div>
           <div class="plan-name">Starter</div>
           <div class="plan-desc">Parfait pour débuter avec l'IA</div>
           <div class="plan-price"><span class="price-num">0</span><span class="price-unit">R$/mois</span></div>
-          <div class="plan-credits-box"><span class="pcr-icon">💎</span><div><div class="pcr-amount">100</div><div style="font-size:11px;color:var(--text2)">crédits offerts / mois</div></div><div style="margin-left:auto;font-size:11px;color:var(--text2)">Renouvelable</div></div>
+          <div class="plan-credits-box"><span class="pcr-icon" aria-hidden="true"><svg class="ico" style="color:var(--cyan)" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><div><div class="pcr-amount">100</div><div style="font-size:11px;color:var(--text2)">crédits offerts / mois</div></div><div style="margin-left:auto;font-size:11px;color:var(--text2)">Renouvelable</div></div>
           <ul class="plan-feats">
-            <li><span class="ck">✓</span> 100 crédits gratuits/mois</li>
-            <li><span class="ck">✓</span> Modèle Luau AI Standard</li>
-            <li><span class="ck">✓</span> Historique 7 jours</li>
-            <li><span class="ck">✓</span> Génération de scripts</li>
-            <li><span class="cx">✗</span> <span style="color:var(--text2)">Priorité serveur</span></li>
-            <li><span class="cx">✗</span> <span style="color:var(--text2)">Plugin Studio</span></li>
+            <li><span class="ck"></span> 100 crédits gratuits/mois</li>
+            <li><span class="ck"></span> Modèle Luau AI Standard</li>
+            <li><span class="ck"></span> Historique 7 jours</li>
+            <li><span class="ck"></span> Génération de scripts</li>
+            <li><span class="cx"></span> <span style="color:var(--text2)">Priorité serveur</span></li>
+            <li><span class="cx"></span> <span style="color:var(--text2)">Plugin Studio</span></li>
           </ul>
-          <button class="plan-btn cur" id="starter-btn">✓ Plan actuel</button>
+          <button class="plan-btn cur" id="starter-btn">Plan actuel</button>
         </div>
         <!-- PRO -->
         <div class="plan-card featured">
-          <div class="top-badge">⭐ Plus populaire</div>
-          <div class="plan-icon">🚀</div>
+          <div class="top-badge">Plus populaire</div>
+          <div class="plan-icon pro" aria-hidden="true">P</div>
           <div class="plan-name" style="color:var(--blue3)">Pro</div>
           <div class="plan-desc">Pour les développeurs sérieux</div>
           <div class="plan-price"><span class="price-num" id="pro-price">800</span><span class="price-unit">R$/mois</span><span class="price-strike" id="pro-strike" style="display:none">1000</span></div>
-          <div class="plan-credits-box"><span class="pcr-icon">💎</span><div><div class="pcr-amount">2 500</div><div style="font-size:11px;color:var(--text2)">crédits / mois</div></div><div style="margin-left:auto;font-size:11px;color:var(--blue3);font-weight:600">+500 bonus</div></div>
+          <div class="plan-credits-box"><span class="pcr-icon" aria-hidden="true"><svg class="ico" style="color:var(--cyan)" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><div><div class="pcr-amount">2 500</div><div style="font-size:11px;color:var(--text2)">crédits / mois</div></div><div style="margin-left:auto;font-size:11px;color:var(--blue3);font-weight:600">+500 bonus</div></div>
           <ul class="plan-feats">
-            <li><span class="ck">✓</span> 2 500 crédits/mois</li>
-            <li><span class="ck">✓</span> Luau AI Pro (modèle avancé)</li>
-            <li><span class="ck">✓</span> Historique illimité</li>
-            <li><span class="ck">✓</span> Plugin Studio (bientôt)</li>
-            <li><span class="ck">✓</span> Priorité serveur</li>
-            <li><span class="cx">✗</span> <span style="color:var(--text2)">API access</span></li>
+            <li><span class="ck"></span> 2 500 crédits/mois</li>
+            <li><span class="ck"></span> Luau AI Pro (modèle avancé)</li>
+            <li><span class="ck"></span> Historique illimité</li>
+            <li><span class="ck"></span> Plugin Studio (bientôt)</li>
+            <li><span class="ck"></span> Priorité serveur</li>
+            <li><span class="cx"></span> <span style="color:var(--text2)">API access</span></li>
           </ul>
-          <button class="plan-btn blue" onclick="buyGamepass('Pro',800)">🎮 Acheter via Gamepass</button>
+          <button class="plan-btn blue" onclick="buyGamepass('Pro',800)">Acheter via Gamepass</button>
         </div>
         <!-- ENTERPRISE -->
         <div class="plan-card">
-          <div class="plan-icon">👑</div>
+          <div class="plan-icon ent" aria-hidden="true">E</div>
           <div class="plan-name" style="color:var(--purple)">Enterprise</div>
           <div class="plan-desc">Pour les studios et équipes</div>
           <div class="plan-price"><span class="price-num" id="ent-price">2 500</span><span class="price-unit">R$/mois</span><span class="price-strike" id="ent-strike" style="display:none">3000</span></div>
-          <div class="plan-credits-box"><span class="pcr-icon">💎</span><div><div class="pcr-amount">∞</div><div style="font-size:11px;color:var(--text2)">crédits illimités</div></div><div style="margin-left:auto;font-size:11px;color:var(--purple);font-weight:600">Illimité</div></div>
+          <div class="plan-credits-box"><span class="pcr-icon" aria-hidden="true"><svg class="ico" style="color:var(--cyan)" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><div><div class="pcr-amount">∞</div><div style="font-size:11px;color:var(--text2)">crédits illimités</div></div><div style="margin-left:auto;font-size:11px;color:var(--purple);font-weight:600">Illimité</div></div>
           <ul class="plan-feats">
-            <li><span class="ck">✓</span> Crédits illimités</li>
-            <li><span class="ck">✓</span> Luau AI Ultra</li>
-            <li><span class="ck">✓</span> API Access (10K req/j)</li>
-            <li><span class="ck">✓</span> Plugin Studio complet</li>
-            <li><span class="ck">✓</span> Support prioritaire 24/7</li>
-            <li><span class="ck">✓</span> Équipe jusqu'à 10 membres</li>
+            <li><span class="ck"></span> Crédits illimités</li>
+            <li><span class="ck"></span> Luau AI Ultra</li>
+            <li><span class="ck"></span> API Access (10K req/j)</li>
+            <li><span class="ck"></span> Plugin Studio complet</li>
+            <li><span class="ck"></span> Support prioritaire 24/7</li>
+            <li><span class="ck"></span> Équipe jusqu'à 10 membres</li>
           </ul>
-          <button class="plan-btn prem" onclick="buyGamepass('Enterprise',2500)">👑 Acheter via Gamepass</button>
+          <button class="plan-btn prem" onclick="buyGamepass('Enterprise',2500)">Acheter via Gamepass</button>
         </div>
       </div>
       <div class="gp-notice">
-        <div class="gp-icon">🎮</div>
+        <div class="gp-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h.01M10 12h.01"/></svg></div>
         <div class="gp-text">
           <strong>Paiement sécurisé via Roblox Gamepass</strong><br>
           Achetez le Gamepass correspondant sur <span class="gp-link" id="gp-link">notre page Roblox</span>. Votre plan se met à jour automatiquement après l'achat. Aucune carte bancaire requise — paiement 100% en Robux.
@@ -797,10 +911,10 @@
         <tbody>
           <tr><td>Crédits / mois</td><td>100</td><td class="hl">2 500</td><td class="hl">∞ Illimité</td></tr>
           <tr><td>Modèle IA</td><td>Standard</td><td class="hl">Pro</td><td class="hl">Ultra</td></tr>
-          <tr><td>Génération Luau</td><td class="tk">✓</td><td class="tk">✓</td><td class="tk">✓</td></tr>
+          <tr><td>Génération Luau</td><td class="tk">Oui</td><td class="tk">Oui</td><td class="tk">Oui</td></tr>
           <tr><td>Historique chats</td><td>7 jours</td><td class="hl">Illimité</td><td class="hl">Illimité</td></tr>
-          <tr><td>Plugin Roblox Studio</td><td class="nx">✗</td><td class="tk">✓</td><td class="tk">✓</td></tr>
-          <tr><td>API Access</td><td class="nx">✗</td><td class="nx">✗</td><td class="tk">✓</td></tr>
+          <tr><td>Plugin Roblox Studio</td><td class="nx">Non</td><td class="tk">Oui</td><td class="tk">Oui</td></tr>
+          <tr><td>API Access</td><td class="nx">Non</td><td class="nx">Non</td><td class="tk">Oui</td></tr>
           <tr><td>Support</td><td>Communauté</td><td>Email</td><td class="hl">24/7 Prioritaire</td></tr>
           <tr><td>Membres équipe</td><td>1</td><td>1</td><td class="hl">Jusqu'à 10</td></tr>
         </tbody>
@@ -817,7 +931,7 @@
           <div class="set-umeta" id="set-umeta">Plan Starter · 100 crédits</div>
           <div class="set-uid" id="set-uid">ID Roblox: —</div>
         </div>
-        <button style="margin-left:auto;padding:8px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text0);font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif;" onclick="showView('shop')">Gérer le plan</button>
+        <button style="margin-left:auto;padding:8px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text0);font-size:13px;cursor:pointer;font-family:var(--font);" onclick="showView('shop')">Gérer le plan</button>
       </div>
       <div class="set-group">
         <div class="set-row">
@@ -963,7 +1077,7 @@ function startRobloxOAuth() {
   showToast('Entre ton username Roblox');
 }
 
-// ⚠️ IMPORTANT: name must match HTML onclick
+// IMPORTANT: name must match HTML onclick
 async function lookupRobloxUser() {
   const username = document.getElementById('manual-username').value.trim();
 
@@ -1066,7 +1180,7 @@ function updateUI() {
   document.getElementById('s-username').textContent = currentUser.username;
   document.getElementById('s-avatar').src = currentUser.avatarUrl;
   document.getElementById('s-plan').textContent = currentUser.plan;
-  document.getElementById('s-credits').textContent = '💎 ' + cr + ' cr';
+  document.getElementById('s-credits').textContent = cr + ' cr';
   document.getElementById('credits-display').textContent = cr;
 
   const wname = document.getElementById('w-name');
@@ -1160,7 +1274,7 @@ function formatMessage(text) {
     return '<div class="code-wrap">'
       + '<div class="code-header">'
       + '<span class="code-lang-tag"><span class="code-lang-dot"></span>Luau</span>'
-      + '<button class="copy-btn" onclick="copyCode(\'' + id + '\')">📋 Copier</button>'
+      + '<button type="button" class="copy-btn" onclick="copyCode(\'' + id + '\')">Copier</button>'
       + '</div>'
       + '<pre class="code-body" id="' + id + '">' + escapeHtml(code.trim()) + '</pre>'
       + '</div>';
@@ -1197,7 +1311,7 @@ function renderMessages() {
     var avatarSrc = (currentUser && currentUser.avatarUrl) ? currentUser.avatarUrl : '';
     var avatarHtml = isUser
       ? '<div class="msg-av"><img src="' + avatarSrc + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"></div>'
-      : '<div class="msg-av ai">\uD83E\uDD16</div>';
+      : '<div class="msg-av ai" aria-hidden="true">L</div>';
     var raw = m.text || '';
     /* Pendant le flux SSE : texte brut seulement (évite regex markdown sur texte coupé + moins de lag) */
     var streamingLast = isTyping && !isUser && idx === messages.length - 1;
@@ -1281,7 +1395,7 @@ async function sendMsg() {
       }
 
       if (!(aiMsg.text || '').trim()) {
-        aiMsg.text = 'Je n’ai pas reçu de texte du modèle. Réessaie dans un instant, ou vérifie la clé API / le modèle (HF_MODEL) côté serveur.';
+        aiMsg.text = 'Je n’ai pas reçu de texte du modèle. Réessaie dans un instant, ou vérifie les clés API dans .env (GROQ_API_KEY, OPENROUTER_API_KEY ou HUGGINGFACE_API_KEY) et les noms de modèles.';
         scheduleStreamRender();
         showToast('Réponse vide du modèle', 'error');
       }
@@ -1346,8 +1460,9 @@ function generateFallbackAvatar(name) {
 
 function showToast(msg, type = 'info') {
   const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  toast.innerHTML = `<span>${type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️'}</span><span>${msg}</span>`;
+  toast.className = 'toast ' + type;
+  var label = type === 'error' ? 'Erreur' : type === 'success' ? 'OK' : 'Info';
+  toast.innerHTML = '<span class="toast-label">' + label + '</span><span>' + escapeHtml(msg) + '</span>';
   document.body.appendChild(toast);
   
   setTimeout(() => toast.remove(), 3000);
@@ -1422,26 +1537,30 @@ function autoResize(textarea) {
 function handleFileAttach(event) {
   const files = Array.from(event.target.files);
   attachedFiles = attachedFiles.concat(files);
-  
+  event.target.value = '';
+
   const preview = document.getElementById('attach-preview');
   preview.style.display = 'flex';
-  preview.innerHTML = files.map(f => `
+  preview.innerHTML = attachedFiles.map((file, i) => `
     <div class="attach-chip">
-      <span>📎 ${f.name}</span>
+      <span>Fichier : ${escapeHtml(file.name)}</span>
+      <button type="button" class="attach-remove" onclick="removeFileAt(${i})">×</button>
     </div>
   `).join('');
 }
 
-function removeFile(filename) {
-  attachedFiles = attachedFiles.filter((file, index) => file.name !== filename);
+function removeFileAt(index) {
+  if (index < 0 || index >= attachedFiles.length) return;
+  attachedFiles.splice(index, 1);
   const preview = document.getElementById('attach-preview');
   if (attachedFiles.length === 0) {
     preview.style.display = 'none';
+    preview.innerHTML = '';
   } else {
-    preview.innerHTML = attachedFiles.map((file, index) => `
+    preview.innerHTML = attachedFiles.map((file, i) => `
       <div class="attach-chip">
-        <span>📎 ${file.name}</span>
-        <button class="attach-remove" onclick="removeFile('${file.name}')">×</button>
+        <span>Fichier : ${escapeHtml(file.name)}</span>
+        <button type="button" class="attach-remove" onclick="removeFileAt(${i})">×</button>
       </div>
     `).join('');
   }
@@ -1533,7 +1652,13 @@ window.addEventListener('DOMContentLoaded', () => {
     text-align:center; box-shadow:0 24px 64px rgba(0,0,0,0.7);
     animation:slideUp 0.3s ease;
   }
-  .ncm-icon { font-size:48px; margin-bottom:14px; }
+  .ncm-icon {
+    width: 56px; height: 56px; margin: 0 auto 14px; border-radius: 16px;
+    background: linear-gradient(135deg, rgba(251, 113, 133, 0.2), rgba(251, 191, 36, 0.15));
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 800; color: var(--amber2); letter-spacing: 0.04em;
+  }
   .ncm-title { font-size:20px; font-weight:700; margin-bottom:8px; }
   .ncm-sub { font-size:14px; color:var(--text1); margin-bottom:20px; line-height:1.6; }
   .ncm-bar { height:4px; border-radius:2px; background:var(--bg3); margin-bottom:22px; }
@@ -1554,7 +1679,7 @@ window.addEventListener('DOMContentLoaded', () => {
 </style>
 <div id="no-credits-modal" onclick="if(event.target===this)closeNoCredits()">
   <div class="ncm-card">
-    <div class="ncm-icon">💎</div>
+    <div class="ncm-icon" aria-hidden="true">!</div>
     <div class="ncm-title">Crédits épuisés</div>
     <div class="ncm-bar"><div class="ncm-bar-fill"></div></div>
     <div class="ncm-sub">
@@ -1563,22 +1688,22 @@ window.addEventListener('DOMContentLoaded', () => {
     </div>
     <div class="ncm-plans">
       <div class="ncm-plan" onclick="closeNoCredits();showView('shop')">
-        <div class="ncm-plan-name">🌱 Starter</div>
+        <div class="ncm-plan-name">Starter</div>
         <div class="ncm-plan-cr">100</div>
         <div class="ncm-plan-price">Gratuit / mois</div>
       </div>
       <div class="ncm-plan highlight" onclick="closeNoCredits();buyGamepass('Pro',800)">
-        <div class="ncm-plan-name" style="color:var(--blue3)">🚀 Pro</div>
+        <div class="ncm-plan-name" style="color:var(--blue3)">Pro</div>
         <div class="ncm-plan-cr">2 500</div>
         <div class="ncm-plan-price">800 R$/mois</div>
       </div>
       <div class="ncm-plan" onclick="closeNoCredits();buyGamepass('Enterprise',2500)">
-        <div class="ncm-plan-name" style="color:var(--purple)">👑 Enterprise</div>
+        <div class="ncm-plan-name" style="color:var(--purple)">Enterprise</div>
         <div class="ncm-plan-cr">∞</div>
         <div class="ncm-plan-price">2500 R$/mois</div>
       </div>
     </div>
-    <div class="ncm-dismiss" onclick="closeNoCredits()">← Retour au chat</div>
+    <div class="ncm-dismiss" onclick="closeNoCredits()">Retour au chat</div>
   </div>
 </div>
 
