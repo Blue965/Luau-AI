@@ -94,7 +94,6 @@ async function streamModel(model, messages, apiKey, res) {
     });
 
     const reader = hfRes.body.getReader();
-    const decoder = new TextDecoder();
 
     let hasData = false;
 
@@ -103,10 +102,8 @@ async function streamModel(model, messages, apiKey, res) {
       if (done) break;
 
       hasData = true;
-
-      const chunk = decoder.decode(value, { stream: true });
-
-      res.write(`data: ${chunk}\n\n`);
+      /* Relayer le flux SSE tel quel (déjà au format data: {...}\n\n) — ne pas ré-envelopper en "data: " */
+      res.write(Buffer.from(value));
     }
 
     if (!hasData) throw new Error("Empty stream");

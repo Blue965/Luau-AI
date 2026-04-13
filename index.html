@@ -1219,13 +1219,15 @@ async function sendMsg() {
         const { done, value } = await reader.read();
         if (done) break;
 
-        buffer += decoder.decode(value);
+        buffer += decoder.decode(value, { stream: true });
         const parts = buffer.split('\n\n');
+        buffer = parts.pop() || '';
 
-        for (const p of parts) {
-          if (!p.startsWith('data:')) continue;
+        for (const raw of parts) {
+          const line = raw.trim();
+          if (!line.startsWith('data:')) continue;
 
-          const data = p.replace('data: ', '');
+          const data = line.replace(/^data:\s*/, '').trim();
           if (data === '[DONE]') continue;
 
           try {
@@ -1236,8 +1238,25 @@ async function sendMsg() {
               aiMsg.text += token;
               renderMessages();
             }
-          } catch {}
+          } catch (e) {}
         }
+      }
+
+      buffer += decoder.decode();
+      const tail = buffer.split('\n\n');
+      for (const raw of tail) {
+        const line = raw.trim();
+        if (!line.startsWith('data:')) continue;
+        const data = line.replace(/^data:\s*/, '').trim();
+        if (data === '[DONE]') continue;
+        try {
+          const json = JSON.parse(data);
+          const token = json.choices?.[0]?.delta?.content;
+          if (token) {
+            aiMsg.text += token;
+            renderMessages();
+          }
+        } catch (e) {}
       }
     } else {
       throw new Error('Backend non disponible');
