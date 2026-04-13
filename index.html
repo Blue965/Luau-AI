@@ -127,9 +127,26 @@
   .spinner { width:40px; height:40px; border:3px solid var(--border); border-top-color:var(--blue2); border-radius:50%; animation:spin 0.8s linear infinite; }
   .loading-text { font-size:14px; color:var(--text1); }
 
-  /* User info panel (shown after Roblox lookup) */
-  #user-confirm { display:none; }
-  #user-confirm.show { display:block; animation:fadeIn 0.4s ease; }
+  /* User info panel (shown after Roblox lookup) — must sit above #auth-screen (z-index 1000) */
+  #user-confirm {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(13, 17, 23, 0.92);
+    flex-direction: column;
+  }
+  #user-confirm.show {
+    display: flex;
+    animation: fadeIn 0.4s ease;
+  }
+  .user-confirm-inner {
+    width: 100%;
+    max-width: 460px;
+  }
   .confirm-card {
     background:var(--bg2); border:1px solid var(--green2);
     border-radius:var(--radius-lg); padding:16px 18px;
@@ -137,7 +154,8 @@
   }
   .confirm-avatar { width:52px; height:52px; border-radius:50%; border:2px solid var(--green2); object-fit:cover; }
   .confirm-name { font-size:16px; font-weight:700; }
-  .confirm-id { font-size:12px; color:var(--text2); }
+  .confirm-username { font-size:13px; color:var(--text1); margin-top:2px; }
+  .confirm-id { font-size:12px; color:var(--text2); margin-top:4px; }
   .confirm-btn {
     width:100%; padding:12px; border-radius:var(--radius);
     background:var(--green); border:none; color:#0d1117;
@@ -560,27 +578,30 @@
   </div>
 </div>
 
-<!-- Confirm after lookup -->
+<!-- Confirm after lookup (fixed overlay so it is not hidden under #auth-screen) -->
 <div id="user-confirm">
-  <div class="confirm-card">
-    <img id="confirm-avatar">
+  <div class="user-confirm-inner">
+    <div class="confirm-card">
+      <img id="confirm-avatar" class="confirm-avatar" alt="">
 
-    <div>
-      <div id="confirm-name"></div>
-      <div id="confirm-id"></div>
+      <div>
+        <div id="confirm-name" class="confirm-name"></div>
+        <div id="confirm-username" class="confirm-username"></div>
+        <div id="confirm-id" class="confirm-id"></div>
 
-      <div style="font-size:12px;color:var(--green2);margin-top:4px;">
-        ✓ Compte Roblox vérifié
+        <div style="font-size:12px;color:var(--green2);margin-top:6px;">
+          ✓ Compte Roblox vérifié
+        </div>
       </div>
     </div>
-  </div>
 
-  <button class="confirm-btn" onclick="confirmLogin()">
-    Confirmer et entrer dans Luau AI
-  </button>
+    <button type="button" class="confirm-btn" onclick="confirmLogin()">
+      Confirmer et entrer dans Luau AI
+    </button>
 
-  <div class="cancel-link" onclick="cancelConfirm()">
-    ← Changer de compte
+    <div class="cancel-link" onclick="cancelConfirm()">
+      ← Changer de compte
+    </div>
   </div>
 </div>
 
@@ -951,6 +972,8 @@ function confirmLogin() {
   
   loadChatHistory();
 
+  document.getElementById('user-confirm').classList.remove('show');
+
   // Masquer l'écran d'authentification
   document.getElementById('auth-screen').style.display = 'none';
   
@@ -984,8 +1007,10 @@ function cancelConfirm() {
 
 function showUserConfirm(user) {
   document.getElementById('confirm-avatar').src = user.avatarUrl;
-  document.getElementById('confirm-name').textContent = user.displayName;
-  document.getElementById('confirm-id').textContent = 'ID: ' + user.id;
+  document.getElementById('confirm-name').textContent = user.displayName || user.username;
+  var uEl = document.getElementById('confirm-username');
+  if (uEl) uEl.textContent = '@' + user.username;
+  document.getElementById('confirm-id').textContent = 'ID Roblox: ' + user.id;
   document.getElementById('user-confirm').classList.add('show');
 }
 
