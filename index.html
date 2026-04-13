@@ -870,6 +870,26 @@ function scheduleStreamRender() {
   });
 }
 
+function appendTokenFromSSEDataLine(line, aiMsg) {
+  var t = line.trim();
+  if (!t.startsWith('data:')) return;
+  var data = t.replace(/^data:\s*/, '').trim();
+  if (data === '[DONE]') return;
+  var json;
+  try {
+    json = JSON.parse(data);
+  } catch (err) {
+    return;
+  }
+  if (json.error) return;
+  var delta = json.choices && json.choices[0] && json.choices[0].delta;
+  var token = delta && typeof delta.content === 'string' ? delta.content : '';
+  if (token) {
+    aiMsg.text += token;
+    scheduleStreamRender();
+  }
+}
+
 // =============================================
 // VIEW SYSTEM (FIX IMPORTANT)
 // =============================================
@@ -1217,10 +1237,15 @@ async function sendMsg() {
 
   try {
     // Essayer l'API backend d'abord
+    var messagesForApi = messages.filter(function (m) {
+      if (m.imageBase64) return true;
+      return (m.text || '').trim().length > 0;
+    });
+
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages })
+      body: JSON.stringify({ messages: messagesForApi })
     });
 
     if (res.ok) {
@@ -1233,43 +1258,32 @@ async function sendMsg() {
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
+        buffer = buffer.replace(/\r\n/g, '\n');
         const parts = buffer.split('\n\n');
         buffer = parts.pop() || '';
 
         for (const raw of parts) {
-          const line = raw.trim();
-          if (!line.startsWith('data:')) continue;
-
-          const data = line.replace(/^data:\s*/, '').trim();
-          if (data === '[DONE]') continue;
-
-          try {
-            const json = JSON.parse(data);
-            const token = json.choices?.[0]?.delta?.content;
-
-            if (token) {
-              aiMsg.text += token;
-              scheduleStreamRender();
-            }
-          } catch (e) {}
+          const lines = raw.split('\n');
+          for (let li = 0; li < lines.length; li++) {
+            appendTokenFromSSEDataLine(lines[li], aiMsg);
+          }
         }
       }
 
       buffer += decoder.decode();
-      const tail = buffer.split('\n\n');
-      for (const raw of tail) {
-        const line = raw.trim();
-        if (!line.startsWith('data:')) continue;
-        const data = line.replace(/^data:\s*/, '').trim();
-        if (data === '[DONE]') continue;
-        try {
-          const json = JSON.parse(data);
-          const token = json.choices?.[0]?.delta?.content;
-          if (token) {
-            aiMsg.text += token;
-            scheduleStreamRender();
-          }
-        } catch (e) {}
+      buffer = buffer.replace(/\r\n/g, '\n');
+      const tailParts = buffer.split('\n\n');
+      for (const raw of tailParts) {
+        const lines = raw.split('\n');
+        for (let li = 0; li < lines.length; li++) {
+          appendTokenFromSSEDataLine(lines[li], aiMsg);
+        }
+      }
+
+      if (!(aiMsg.text || '').trim()) {
+        aiMsg.text = 'Je n’ai pas reçu de texte du modèle. Réessaie dans un instant, ou vérifie la clé API / le modèle (HF_MODEL) côté serveur.';
+        scheduleStreamRender();
+        showToast('Réponse vide du modèle', 'error');
       }
     } else {
       throw new Error('Backend non disponible');
