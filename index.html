@@ -1442,7 +1442,7 @@ function downloadPlugin() {
     'button.Click:Connect(function()',
     '    widget.Enabled = not widget.Enabled',
     'end)',
-  ].join('\\n');
+  ].join('\n');
 
   var blob = new Blob([code], { type: 'text/plain' });
   var url = URL.createObjectURL(blob);
