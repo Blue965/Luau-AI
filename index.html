@@ -992,6 +992,11 @@ function escapeHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// =============================================
+// BUG FIX: formatMessage est maintenant TOUJOURS utilise,
+// meme pendant le streaming. Ca corrige l'affichage du code
+// en ligne droite au lieu de blocs formates.
+// =============================================
 function formatMessage(text) {
   // Blocs de code ```lua ou ```luau
   text = text.replace(/```(?:lua|luau)?\n?([\s\S]*?)```/g, function(_, code) {
@@ -1032,7 +1037,8 @@ function patchStreamingAiBubble() {
   if (!lastRow.classList.contains('ai')) return false;
   var bubble = lastRow.querySelector('.msg-bubble');
   if (!bubble) return false;
-  bubble.innerHTML = escapeHtml(last.text || '').replace(/\n/g, '<br>');
+  // FIX: utilise formatMessage au lieu de escapeHtml + replace \n
+  bubble.innerHTML = formatMessage(last.text || '');
   msgsEl.scrollTop = msgsEl.scrollHeight;
   return true;
 }
@@ -1076,7 +1082,6 @@ function renderMessages() {
       ? '<div class="msg-av"><img src="' + avatarSrc + '" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"></div>'
       : '<div class="msg-av ai"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18l6-6-6-6"/><path d="M8 6l-6 6 6 6"/></svg></div>';
     var raw = m.text || '';
-    var streamingLast = isTyping && !isUser && idx === messages.length - 1;
     var html;
     if (isUser) {
       var imgs = '';
@@ -1087,7 +1092,9 @@ function renderMessages() {
       }
       html = imgs + escapeHtml(raw).replace(/\n/g, '<br>');
     } else {
-      html = streamingLast ? escapeHtml(raw).replace(/\n/g, '<br>') : formatMessage(raw);
+      // FIX: on utilise TOUJOURS formatMessage pour les messages IA,
+      // que ce soit en streaming ou non. Corrige le code en ligne droite.
+      html = formatMessage(raw);
     }
     return '<div class="msg ' + (isUser ? 'user' : 'ai') + '">'
       + avatarHtml
@@ -1491,14 +1498,11 @@ function downloadPlugin() {
 
   var blob = new Blob([code], { type: 'text/plain' });
   var url = URL.createObjectURL(blob);
-
   var a = document.createElement('a');
   a.href = url;
   a.download = 'LuauAI.lua';
   a.click();
-
   URL.revokeObjectURL(url);
-
   showToast('Plugin telecharge ! Installe-le dans Studio > Plugins > Plugin Manager', 'success');
 }
 
