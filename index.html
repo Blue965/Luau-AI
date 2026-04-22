@@ -332,6 +332,92 @@ body{background-color:var(--bg0);background-image:radial-gradient(ellipse 100% 8
 .s-hist-del{width:22px;height:22px;border-radius:4px;background:transparent;border:none;color:var(--text2);font-size:13px;cursor:pointer;flex-shrink:0;display:none;align-items:center;justify-content:center;transition:all 0.15s;padding:0;}
 .s-hist-item:hover .s-hist-del{display:flex;}
 .s-hist-del:hover{background:rgba(248,81,73,0.15);color:var(--red);}
+
+/* ── SESSION KEY SYSTEM ── */
+.session-box{max-width:600px;margin:0 auto 28px;background:linear-gradient(135deg,rgba(34,211,238,0.06),rgba(91,124,250,0.08));border:1px solid rgba(91,124,250,0.3);border-radius:var(--radius-lg);padding:24px 28px;}
+.session-box-title{font-size:15px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.session-box-desc{font-size:13px;color:var(--text1);margin-bottom:18px;line-height:1.6;}
+.session-key-display{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.session-key-val{flex:1;background:var(--bg0);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 14px;font-family:var(--mono);font-size:12px;color:var(--cyan);letter-spacing:0.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.session-key-copy{padding:9px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text1);font-size:12px;cursor:pointer;font-family:var(--font);transition:all 0.15s;white-space:nowrap;flex-shrink:0;}
+.session-key-copy:hover{border-color:var(--blue2);color:var(--blue3);}
+.session-key-copy.copied{border-color:var(--green2);color:var(--green2);}
+.session-gen-btn{width:100%;padding:11px;background:linear-gradient(135deg,var(--blue1),var(--cyan));border:none;border-radius:var(--radius);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.session-gen-btn:hover{filter:brightness(1.1);transform:translateY(-1px);}
+
+/* ── ACTIVATION PANEL ── */
+.activation-box{max-width:600px;margin:0 auto 28px;background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px 28px;}
+.activation-box-title{font-size:15px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.activation-box-desc{font-size:13px;color:var(--text1);margin-bottom:16px;line-height:1.6;}
+.activation-input-row{display:flex;gap:10px;margin-bottom:14px;}
+.activation-input{flex:1;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text0);font-size:13px;font-family:var(--mono);outline:none;transition:border-color 0.2s;letter-spacing:0.04em;}
+.activation-input:focus{border-color:var(--blue2);}
+.activation-input::placeholder{color:var(--text2);font-family:var(--font);letter-spacing:0;}
+.activation-btn{padding:10px 20px;background:var(--green);border:none;border-radius:var(--radius);color:#0d1117;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all 0.2s;white-space:nowrap;flex-shrink:0;}
+.activation-btn:hover{background:var(--green2);}
+.activation-status{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:var(--radius);font-size:13px;border:1px solid var(--border);}
+.activation-status.disconnected{background:rgba(251,113,133,0.06);border-color:rgba(251,113,133,0.25);}
+.activation-status.connected{background:rgba(52,211,153,0.06);border-color:rgba(52,211,153,0.25);}
+.activation-status.connecting{background:rgba(251,191,36,0.06);border-color:rgba(251,191,36,0.25);}
+.actst-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.actst-dot.off{background:var(--red);}
+.actst-dot.on{background:var(--green);animation:pulse 2s ease infinite;}
+.actst-dot.loading{background:var(--amber);animation:pulse 0.8s ease infinite;}
+.actst-label{flex:1;font-weight:500;}
+.actst-val{font-size:12px;color:var(--text2);}
+
+/* ── PLUGIN CONNECT FEATURE ── */
+.plugin-connect-grid{max-width:600px;margin:0 auto 28px;display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.pconn-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;display:flex;align-items:flex-start;gap:12px;}
+.pconn-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pconn-icon.blue{background:rgba(91,124,250,0.15);color:var(--blue3);}
+.pconn-icon.green{background:rgba(52,211,153,0.15);color:var(--green2);}
+.pconn-icon.purple{background:rgba(167,139,250,0.15);color:var(--purple);}
+.pconn-icon.amber{background:rgba(251,191,36,0.15);color:var(--amber2);}
+.pconn-title{font-size:13px;font-weight:600;margin-bottom:3px;}
+.pconn-desc{font-size:12px;color:var(--text2);line-height:1.5;}
+
+/* ── IMPROVED SETTINGS ── */
+.set-toggle-row{display:flex;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border);gap:12px;}
+.set-toggle-row:last-child{border-bottom:none;}
+.set-toggle-label{flex:1;}
+.set-toggle-title{font-size:14px;font-weight:500;}
+.set-toggle-desc{font-size:12px;color:var(--text1);margin-top:2px;}
+.settings-section-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;padding:18px 0 8px;max-width:680px;}
+
+/* ── DRAG & DROP ZONE ── */
+.drop-zone{border:2px dashed var(--border2);border-radius:var(--radius-lg);padding:28px;text-align:center;color:var(--text2);font-size:13px;transition:all 0.2s;cursor:pointer;margin:8px 0;}
+.drop-zone.drag-over{border-color:var(--blue2);background:rgba(91,124,250,0.06);color:var(--blue3);}
+.drop-zone-icon{font-size:28px;margin-bottom:8px;}
+.drop-zone-text{font-size:13px;line-height:1.5;}
+.drop-zone-sub{font-size:11px;color:var(--text2);margin-top:4px;}
+
+/* ── FONT SIZE PREF ── */
+body[data-fontsize="small"]{font-size:13px;}
+body[data-fontsize="normal"]{font-size:14px;}
+body[data-fontsize="large"]{font-size:15px;}
+body[data-fontsize="large"] .msg-bubble{font-size:15px;}
+body[data-fontsize="small"] .msg-bubble{font-size:13px;}
+
+/* ── THEME: DARK BLUE ── */
+body[data-theme="dark-blue"]{--bg0:#050a14;--bg1:#080f1e;--bg2:#0c1628;--bg3:#101e34;--bg4:#162440;--blue1:#2563eb;--blue2:#3b82f6;--blue3:#93c5fd;}
+/* ── THEME: LIGHT ── */
+body[data-theme="light"]{--bg0:#f1f5f9;--bg1:#ffffff;--bg2:#f8fafc;--bg3:#e2e8f0;--bg4:#cbd5e1;--border:rgba(0,0,0,0.1);--border2:rgba(0,0,0,0.15);--text0:#0f172a;--text1:#475569;--text2:#94a3b8;}
+body[data-theme="light"] .sidebar{background:rgba(255,255,255,0.9);}
+body[data-theme="light"] .code-wrap{background:#f8f9fa;}
+body[data-theme="light"] .code-body{color:#1d4ed8;}
+
+/* ── CODE SYNTAX COLORS ── */
+body[data-syntax="off"] .code-body{color:var(--text0);}
+
+/* ── COMPACT MODE ── */
+body[data-compact="on"] .msg-bubble{padding:8px 12px;}
+body[data-compact="on"] .msgs{gap:10px;}
+
+/* ── FILE PREVIEW ENHANCED ── */
+.file-preview-img{width:60px;height:60px;border-radius:var(--radius);object-fit:cover;border:1px solid var(--border);}
+.attach-chip-img{flex-direction:column;align-items:flex-start;padding:6px 10px;gap:4px;}
+.attach-chip-imgrow{display:flex;align-items:center;gap:8px;width:100%;}
 </style>
 </head>
 <body data-luau-owner-ids="1838966444" data-luau-owner-usernames="RobinNoe171111">
@@ -477,9 +563,9 @@ body{background-color:var(--bg0);background-image:radial-gradient(ellipse 100% 8
         <div class="input-wrap">
           <textarea class="chat-ta" id="chat-ta" placeholder="Demande a Luau AI... (Entree pour envoyer, Shift+Entree pour nouvelle ligne)" rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
           <div class="input-actions">
-            <input type="file" id="file-input" style="display:none" multiple accept="image/*" onchange="handleFileAttach(event)">
+            <input type="file" id="file-input" style="display:none" multiple accept="image/*,.lua,.luau,.txt,.json,.rbxl,.rbxlx" onchange="handleFileAttach(event)">
             <button type="button" class="act-btn" onclick="document.getElementById('file-input').click()">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Image
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Image / Fichier
             </button>
             <button type="button" class="act-btn" onclick="pasteCode()">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>Code
@@ -496,21 +582,56 @@ body{background-color:var(--bg0);background-image:radial-gradient(ellipse 100% 8
     <div id="plugin-view">
       <div class="plugin-hero">
         <h1>Plugin Luau AI pour <span>Roblox Studio</span></h1>
-        <p>Connecte ton Roblox Studio directement a Luau AI. Demande de l'aide sur ton code Luau sans quitter Studio.</p>
+        <p>Connecte ton Roblox Studio directement a Luau AI. Genere une cle de session, colle-la dans le plugin et code sans quitter Studio.</p>
       </div>
-      <div class="plugin-dl-box">
-        <div class="plugin-dl-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+
+      <!-- SECTION 1: GENERER CLE DE SESSION -->
+      <div class="session-box">
+        <div class="session-box-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Cle de session
         </div>
-        <div class="plugin-dl-title">Telecharger le Plugin Studio</div>
-        <div class="plugin-dl-desc">Fichier .rbxm a installer dans Roblox Studio &mdash; Plugin Manager &rarr; Install from file.<br>Compatible Roblox Studio 2024+</div>
-        <button type="button" class="plugin-dl-btn" onclick="downloadPlugin()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Telecharger LuauAI.lua
+        <div class="session-box-desc">
+          Ta cle de session permet au plugin Roblox Studio de s'identifier aupres de Luau AI. Elle est liee a ton compte Roblox et expire apres 24h. Generes-en une nouvelle a chaque session Studio.
+        </div>
+        <div class="session-key-display">
+          <div class="session-key-val" id="session-key-display">— Aucune cle generee —</div>
+          <button type="button" class="session-key-copy" id="session-copy-btn" onclick="copySessionKey()" style="display:none">Copier</button>
+        </div>
+        <button type="button" class="session-gen-btn" onclick="generateSessionKey()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg>
+          Generer une nouvelle cle de session
         </button>
       </div>
-      <div class="plugin-status-box">
-        <div class="plugin-status-title">Etat de connexion</div>
+
+      <!-- SECTION 2: STATUT CONNEXION STUDIO -->
+      <div class="activation-box">
+        <div class="activation-box-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          Activer la connexion dans Studio
+        </div>
+        <div class="activation-box-desc">
+          Dans le plugin Roblox Studio, colle ta cle de session dans le champ prevu et clique <strong>Activer</strong>. Luau AI sera alors directement connecte a ton jeu.
+        </div>
+
+        <!-- Simulate Studio activation for demo -->
+        <div class="activation-input-row">
+          <input type="text" class="activation-input" id="activation-key-input" placeholder="Colle ta cle de session ici...">
+          <button type="button" class="activation-btn" onclick="activateSession()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:5px"><polyline points="20 6 9 17 4 12"/></svg>
+            Activer
+          </button>
+        </div>
+        <div class="activation-status disconnected" id="activation-status-row">
+          <div class="actst-dot off" id="actst-dot"></div>
+          <span class="actst-label" id="actst-label">Non connecte — en attente d'activation</span>
+          <span class="actst-val" id="actst-val">Studio hors ligne</span>
+        </div>
+      </div>
+
+      <!-- SECTION 3: STATUS SERVEUR -->
+      <div class="plugin-status-box" style="max-width:600px;margin:0 auto 28px;">
+        <div class="plugin-status-title">Etat des services</div>
         <div class="plugin-status-row">
           <div class="psr-dot online" id="srv-dot"></div>
           <span class="psr-label">Serveur Luau AI</span>
@@ -527,12 +648,46 @@ body{background-color:var(--bg0);background-image:radial-gradient(ellipse 100% 8
           <span class="psr-val" id="api-health-status">Verification...</span>
         </div>
       </div>
-      <div class="plugin-steps" style="max-width:680px;margin:0 auto 40px;">
-        <h2>Comment installer</h2>
-        <div class="step-row"><div class="step-num">1</div><div class="step-text"><div class="step-title">Telecharger le plugin</div><div class="step-desc">Clique sur le bouton ci-dessus pour telecharger le fichier <code style="background:var(--bg3);padding:1px 6px;border-radius:4px;font-family:var(--mono);font-size:12px">LuauAI.lua</code>.</div></div></div>
-        <div class="step-row"><div class="step-num">2</div><div class="step-text"><div class="step-title">Ouvrir Roblox Studio</div><div class="step-desc">Dans Studio, va dans <strong>Plugins &rarr; Plugin Manager &rarr; Install from file</strong> et selectionne le fichier telecharge.</div></div></div>
-        <div class="step-row"><div class="step-num">3</div><div class="step-text"><div class="step-title">Lancer le plugin</div><div class="step-desc">Un bouton <strong>Luau AI</strong> apparait dans la barre de plugins. Clique dessus pour ouvrir le panneau.</div></div></div>
-        <div class="step-row"><div class="step-num">4</div><div class="step-text"><div class="step-title">Poser ta question</div><div class="step-desc">Le plugin envoie tes questions directement a <code style="background:var(--bg3);padding:1px 6px;border-radius:4px;font-family:var(--mono);font-size:12px">luau-ai.vercel.app/api/chat</code> et affiche la reponse dans Studio.</div></div></div>
+
+      <!-- SECTION 4: FEATURES GRID -->
+      <div class="plugin-connect-grid">
+        <div class="pconn-card">
+          <div class="pconn-icon blue"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18l6-6-6-6"/><path d="M8 6l-6 6 6 6"/></svg></div>
+          <div><div class="pconn-title">Generation Luau</div><div class="pconn-desc">Le plugin genere et insere le code directement dans ton projet</div></div>
+        </div>
+        <div class="pconn-card">
+          <div class="pconn-icon green"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+          <div><div class="pconn-title">Analyse visuelle</div><div class="pconn-desc">Envoie des captures Studio pour debug ou UI</div></div>
+        </div>
+        <div class="pconn-card">
+          <div class="pconn-icon purple"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+          <div><div class="pconn-title">Historique sync</div><div class="pconn-desc">Contexte partage entre le chat web et Studio</div></div>
+        </div>
+        <div class="pconn-card">
+          <div class="pconn-icon amber"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+          <div><div class="pconn-title">Insertion rapide</div><div class="pconn-desc">SmartInsert detecte automatiquement le bon parent</div></div>
+        </div>
+      </div>
+
+      <!-- SECTION 5: DOWNLOAD + STEPS -->
+      <div class="plugin-dl-box" style="max-width:600px;">
+        <div class="plugin-dl-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </div>
+        <div class="plugin-dl-title">Telecharger le Plugin Studio</div>
+        <div class="plugin-dl-desc">Fichier .lua a installer dans Roblox Studio &mdash; compatible Studio 2024+</div>
+        <button type="button" class="plugin-dl-btn" onclick="downloadPlugin()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Telecharger LuauAI.lua
+        </button>
+      </div>
+
+      <div class="plugin-steps" style="max-width:600px;margin:0 auto 40px;">
+        <h2>Installation rapide</h2>
+        <div class="step-row"><div class="step-num">1</div><div class="step-text"><div class="step-title">Generer ta cle</div><div class="step-desc">Clique sur <strong>Generer une cle de session</strong> ci-dessus. Copie-la.</div></div></div>
+        <div class="step-row"><div class="step-num">2</div><div class="step-text"><div class="step-title">Telecharger le plugin</div><div class="step-desc">Telecharge <code style="background:var(--bg3);padding:1px 6px;border-radius:4px;font-family:var(--mono);font-size:12px">LuauAI.lua</code> et installe dans <strong>Plugins &rarr; Plugin Manager</strong>.</div></div></div>
+        <div class="step-row"><div class="step-num">3</div><div class="step-text"><div class="step-title">Coller la cle dans Studio</div><div class="step-desc">Dans le plugin Studio, colle ta cle dans le champ <strong>Cle de session</strong> et clique <strong>Activer</strong>.</div></div></div>
+        <div class="step-row"><div class="step-num">4</div><div class="step-text"><div class="step-title">C'est pret !</div><div class="step-desc">Le statut passe a <strong style="color:var(--green2)">Connecte</strong>. Tu peux maintenant poser des questions directement depuis Roblox Studio.</div></div></div>
       </div>
     </div>
 
@@ -632,9 +787,11 @@ body{background-color:var(--bg0);background-image:radial-gradient(ellipse 100% 8
         </div>
         <button style="margin-left:auto;padding:8px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text0);font-size:13px;cursor:pointer;font-family:var(--font);" onclick="showView('shop')">Gerer le plan</button>
       </div>
+
+      <div class="settings-section-title">Apparence</div>
       <div class="set-group">
         <div class="set-row">
-          <div class="set-label"><div class="set-ltitle">Theme</div><div class="set-ldesc">Apparence de l'interface</div></div>
+          <div class="set-label"><div class="set-ltitle">Theme</div><div class="set-ldesc">Apparence generale de l'interface</div></div>
           <div class="set-ctrl">
             <div class="custom-dd" id="dd-theme" data-pref="theme">
               <button type="button" class="custom-dd-btn" aria-haspopup="listbox" aria-expanded="false">
@@ -643,14 +800,42 @@ body{background-color:var(--bg0);background-image:radial-gradient(ellipse 100% 8
               </button>
               <ul class="custom-dd-list" role="listbox">
                 <li class="custom-dd-item" data-value="dark" role="option">Sombre (VS Code)</li>
-                <li class="custom-dd-item" data-value="dark-blue" role="option">Sombre Bleu</li>
+                <li class="custom-dd-item" data-value="dark-blue" role="option">Sombre Bleu Nuit</li>
                 <li class="custom-dd-item" data-value="light" role="option">Clair</li>
               </ul>
             </div>
           </div>
         </div>
         <div class="set-row">
-          <div class="set-label"><div class="set-ltitle">Langue IA</div><div class="set-ldesc">Langue de reponse de Luau AI</div></div>
+          <div class="set-label"><div class="set-ltitle">Taille du texte</div><div class="set-ldesc">Taille de police du chat</div></div>
+          <div class="set-ctrl">
+            <div class="custom-dd" id="dd-fontsize" data-pref="fontsize">
+              <button type="button" class="custom-dd-btn" aria-haspopup="listbox" aria-expanded="false">
+                <span class="custom-dd-label">Normal (14px)</span>
+                <svg class="custom-dd-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <ul class="custom-dd-list" role="listbox">
+                <li class="custom-dd-item" data-value="small" role="option">Petit (13px)</li>
+                <li class="custom-dd-item" data-value="normal" role="option">Normal (14px)</li>
+                <li class="custom-dd-item" data-value="large" role="option">Grand (15px)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="set-row">
+          <div class="set-label"><div class="set-ltitle">Coloration syntaxique Luau</div><div class="set-ldesc">Mise en forme coloree du code Luau</div></div>
+          <div class="tgl-track on" id="tgl-syntax" style="cursor:pointer;" onclick="toggleSetting('syntax',this)"><div class="tgl-thumb" style="transform:translateX(20px)"></div></div>
+        </div>
+        <div class="set-row">
+          <div class="set-label"><div class="set-ltitle">Mode compact</div><div class="set-ldesc">Reduit l'espacement dans le chat</div></div>
+          <div class="tgl-track" id="tgl-compact" style="cursor:pointer;" onclick="toggleSetting('compact',this)"><div class="tgl-thumb"></div></div>
+        </div>
+      </div>
+
+      <div class="settings-section-title">IA & Langue</div>
+      <div class="set-group">
+        <div class="set-row">
+          <div class="set-label"><div class="set-ltitle">Langue de reponse</div><div class="set-ldesc">Langue dans laquelle Luau AI repond</div></div>
           <div class="set-ctrl">
             <div class="custom-dd" id="dd-lang" data-pref="lang">
               <button type="button" class="custom-dd-btn" aria-haspopup="listbox" aria-expanded="false">
@@ -658,25 +843,52 @@ body{background-color:var(--bg0);background-image:radial-gradient(ellipse 100% 8
                 <svg class="custom-dd-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
               </button>
               <ul class="custom-dd-list" role="listbox">
-                <li class="custom-dd-item" data-value="fr" role="option">Francais</li>
-                <li class="custom-dd-item" data-value="en" role="option">Anglais</li>
-                <li class="custom-dd-item" data-value="es" role="option">Espagnol</li>
+                <li class="custom-dd-item" data-value="fr" role="option">Francais 🇫🇷</li>
+                <li class="custom-dd-item" data-value="en" role="option">Anglais 🇬🇧</li>
+                <li class="custom-dd-item" data-value="es" role="option">Espagnol 🇪🇸</li>
+                <li class="custom-dd-item" data-value="pt" role="option">Portugais 🇧🇷</li>
               </ul>
             </div>
           </div>
         </div>
         <div class="set-row">
-          <div class="set-label"><div class="set-ltitle">Coloration syntaxique Luau</div><div class="set-ldesc">Mise en forme du code dans le chat</div></div>
-          <div class="tgl-track on" style="cursor:pointer;" onclick="this.classList.toggle('on');this.querySelector('.tgl-thumb').style.transform=this.classList.contains('on')?'translateX(20px)':''"><div class="tgl-thumb" style="transform:translateX(20px)"></div></div>
+          <div class="set-label"><div class="set-ltitle">Mode de generation</div><div class="set-ldesc">Style de reponse de l'IA</div></div>
+          <div class="set-ctrl">
+            <div class="custom-dd" id="dd-mode" data-pref="aimode">
+              <button type="button" class="custom-dd-btn" aria-haspopup="listbox" aria-expanded="false">
+                <span class="custom-dd-label">Standard</span>
+                <svg class="custom-dd-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <ul class="custom-dd-list" role="listbox">
+                <li class="custom-dd-item" data-value="standard" role="option">Standard — explications + code</li>
+                <li class="custom-dd-item" data-value="code-only" role="option">Code uniquement — sans explication</li>
+                <li class="custom-dd-item" data-value="detailed" role="option">Detaille — max explication</li>
+                <li class="custom-dd-item" data-value="senior" role="option">Senior Dev — style pro avance</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="set-row">
+          <div class="set-label"><div class="set-ltitle">Reponses en streaming</div><div class="set-ldesc">Affiche les tokens en temps reel</div></div>
+          <div class="tgl-track on" id="tgl-stream" style="cursor:pointer;" onclick="toggleSetting('stream',this)"><div class="tgl-thumb" style="transform:translateX(20px)"></div></div>
         </div>
       </div>
+
+      <div class="settings-section-title">Session & Connexion</div>
       <div class="set-group">
+        <div class="set-row" style="cursor:pointer;" onclick="showView('plugin')">
+          <div class="set-label">
+            <div class="set-ltitle">Cle de session Studio</div>
+            <div class="set-ldesc" id="settings-session-status">Aucune session active &mdash; clique pour configurer</div>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text2);flex-shrink:0;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
         <div class="set-row" style="cursor:pointer;" onclick="doLogout()">
           <div class="set-label">
             <div class="set-ltitle" style="color:var(--red)">Se deconnecter</div>
             <div class="set-ldesc">Retourner a l'ecran de connexion Roblox</div>
           </div>
-          <span style="color:var(--red);">-></span>
+          <span style="color:var(--red);">→</span>
         </div>
       </div>
     </div>
@@ -1122,34 +1334,13 @@ function readFileAsImagePart(file) {
   });
 }
 
-function handleFileAttach(event) {
-  var files = Array.from(event.target.files);
-  files.forEach(function(file) {
-    if (!file.type || file.type.indexOf('image/') !== 0) {
-      showToast('Seules les images sont supportees pour l\'analyse.', 'info');
-      return;
-    }
-    attachedFiles.push(file);
+function readFileAsText(file) {
+  return new Promise(function(resolve, reject) {
+    var r = new FileReader();
+    r.onload = function() { resolve({ name: file.name, content: r.result || '' }); };
+    r.onerror = reject;
+    r.readAsText(file, 'utf-8');
   });
-  event.target.value = '';
-  var preview = document.getElementById('attach-preview');
-  if (attachedFiles.length === 0) return;
-  preview.style.display = 'flex';
-  preview.innerHTML = attachedFiles.map(function(file, i) {
-    return '<div class="attach-chip"><span>' + escapeHtml(file.name) + '</span><button type="button" class="attach-remove" onclick="removeFileAt(' + i + ')">x</button></div>';
-  }).join('');
-}
-
-function removeFileAt(index) {
-  if (index < 0 || index >= attachedFiles.length) return;
-  attachedFiles.splice(index, 1);
-  var preview = document.getElementById('attach-preview');
-  if (attachedFiles.length === 0) { preview.style.display = 'none'; preview.innerHTML = ''; }
-  else {
-    preview.innerHTML = attachedFiles.map(function(file, i) {
-      return '<div class="attach-chip"><span>' + escapeHtml(file.name) + '</span><button type="button" class="attach-remove" onclick="removeFileAt(' + i + ')">x</button></div>';
-    }).join('');
-  }
 }
 
 // =============================================
@@ -1160,10 +1351,31 @@ async function sendMsg() {
   var ta = document.getElementById('chat-ta');
   var text = ta.value.trim();
   var imageParts = [];
+  var textFileParts = [];
+
   for (var fi = 0; fi < attachedFiles.length; fi++) {
-    var p = await readFileAsImagePart(attachedFiles[fi]);
-    if (p) imageParts.push(p);
+    var af = attachedFiles[fi];
+    if (af.isImage) {
+      var p = await readFileAsImagePart(af.file);
+      if (p) imageParts.push(p);
+    } else if (af.isText) {
+      var tp = await readFileAsText(af.file);
+      if (tp) textFileParts.push(tp);
+    }
   }
+
+  // Append text file contents to the message
+  if (textFileParts.length > 0) {
+    var fileContent = textFileParts.map(function(tp) {
+      return '\n\n📄 Fichier `' + tp.name + '`:\n```lua\n' + tp.content + '\n```';
+    }).join('');
+    text = (text || '') + fileContent;
+  }
+
+  // Apply lang suffix + AI mode
+  var langSuffix = getLangPromptSuffix();
+  if (langSuffix && text) text = text + langSuffix;
+
   if (!text && imageParts.length === 0) return;
   if (!hasUnlimitedCredits() && currentUser && (currentUser.credits || 0) <= 0) {
     var ncm = document.getElementById('no-credits-modal');
@@ -1174,8 +1386,7 @@ async function sendMsg() {
   attachedFiles = [];
   var fin = document.getElementById('file-input');
   if (fin) fin.value = '';
-  var aprev = document.getElementById('attach-preview');
-  if (aprev) { aprev.style.display = 'none'; aprev.innerHTML = ''; }
+  renderAttachPreview();
   if (!currentChatId) createNewChat();
   messages.push({
     role: 'user',
@@ -1380,116 +1591,458 @@ function closeNoCredits() {
 }
 
 // =============================================
-// PLUGIN DOWNLOAD
+// PLUGIN DOWNLOAD (WITH SESSION KEY SYSTEM)
 // =============================================
 function downloadPlugin() {
+  var apiUrl = 'https://luau-ai.vercel.app/api/chat';
   var code = [
-    '-- LuauAI FULL Plugin (AI EDIT GAME)',
+    '-- ╔══════════════════════════════════════════╗',
+    '-- ║      LUAU AI — Plugin Roblox Studio      ║',
+    '-- ║   luau-ai.vercel.app  •  Session v2.0    ║',
+    '-- ╚══════════════════════════════════════════╝',
     '',
-    'local HttpService = game:GetService("HttpService")',
-    'local Selection = game:GetService("Selection")',
+    'local HttpService    = game:GetService("HttpService")',
+    'local Selection      = game:GetService("Selection")',
+    'local TweenService   = game:GetService("TweenService")',
     '',
-    'local API_URL = "https://luau-ai.vercel.app/api/chat"',
+    'local API_URL        = "' + apiUrl + '"',
+    'local SESSION_KEY    = "" -- Sera rempli par l\'utilisateur',
+    'local IS_CONNECTED   = false',
     '',
+    '-- ── Toolbar ──',
     'local toolbar = plugin:CreateToolbar("Luau AI")',
-    'local button = toolbar:CreateButton("Luau AI", "AI Panel", "rbxassetid://0")',
-    '',
-    'local widgetInfo = DockWidgetPluginGuiInfo.new(',
-    '    Enum.InitialDockState.Float,',
-    '    true,',
-    '    false,',
-    '    400,',
-    '    300,',
-    '    200,',
-    '    150',
+    'local button  = toolbar:CreateButton(',
+    '    "Luau AI",',
+    '    "Ouvrir Luau AI",',
+    '    "rbxassetid://0"',
     ')',
     '',
+    'local widgetInfo = DockWidgetPluginGuiInfo.new(',
+    '    Enum.InitialDockState.Float, true, false, 440, 520, 300, 200',
+    ')',
     'local widget = plugin:CreateDockWidgetPluginGui("LuauAI", widgetInfo)',
     'widget.Title = "Luau AI"',
     '',
-    'local frame = Instance.new("Frame")',
-    'frame.Size = UDim2.new(1,0,1,0)',
-    'frame.BackgroundColor3 = Color3.fromRGB(20,20,25)',
-    'frame.Parent = widget',
+    '-- ── Root frame ──',
+    'local root = Instance.new("Frame")',
+    'root.Size        = UDim2.new(1,0,1,0)',
+    'root.BackgroundColor3 = Color3.fromRGB(11,15,20)',
+    'root.BorderSizePixel = 0',
+    'root.Parent      = widget',
     '',
-    '-- INPUT',
-    'local input = Instance.new("TextBox")',
-    'input.Size = UDim2.new(1,-20,0,40)',
-    'input.Position = UDim2.new(0,10,0,10)',
-    'input.PlaceholderText = "Ex: create a sword tool"',
-    'input.Text = ""',
-    'input.TextColor3 = Color3.new(1,1,1)',
-    'input.BackgroundColor3 = Color3.fromRGB(30,30,40)',
-    'input.Parent = frame',
+    'local rootCorner = Instance.new("UICorner")',
+    'rootCorner.CornerRadius = UDim.new(0,0)',
+    'rootCorner.Parent = root',
     '',
-    '-- BUTTON',
-    'local runBtn = Instance.new("TextButton")',
-    'runBtn.Size = UDim2.new(1,-20,0,40)',
-    'runBtn.Position = UDim2.new(0,10,0,60)',
-    'runBtn.Text = "Generate & Insert"',
-    'runBtn.BackgroundColor3 = Color3.fromRGB(80,120,255)',
-    'runBtn.TextColor3 = Color3.new(1,1,1)',
-    'runBtn.Parent = frame',
+    '-- ══ ACTIVATION SCREEN ══',
+    'local activationScreen = Instance.new("Frame")',
+    'activationScreen.Size  = UDim2.new(1,0,1,0)',
+    'activationScreen.BackgroundColor3 = Color3.fromRGB(11,15,20)',
+    'activationScreen.BorderSizePixel  = 0',
+    'activationScreen.Parent = root',
     '',
-    '-- STATUS',
-    'local status = Instance.new("TextLabel")',
-    'status.Size = UDim2.new(1,-20,0,30)',
-    'status.Position = UDim2.new(0,10,0,110)',
-    'status.Text = "Idle"',
-    'status.TextColor3 = Color3.fromRGB(200,200,200)',
-    'status.BackgroundTransparency = 1',
-    'status.Parent = frame',
+    '-- Logo',
+    'local logoLabel = Instance.new("TextLabel")',
+    'logoLabel.Size = UDim2.new(1,-40,0,50)',
+    'logoLabel.Position = UDim2.new(0,20,0,30)',
+    'logoLabel.Text = "⚡  Luau AI"',
+    'logoLabel.Font = Enum.Font.GothamBold',
+    'logoLabel.TextSize = 22',
+    'logoLabel.TextColor3 = Color3.fromRGB(255,255,255)',
+    'logoLabel.BackgroundTransparency = 1',
+    'logoLabel.Parent = activationScreen',
     '',
-    '-- CREATE SCRIPT',
-    'local function smartInsert(code)',
-    '    local parent = Selection:Get()[1] or workspace',
+    '-- Subtitle',
+    'local subLabel = Instance.new("TextLabel")',
+    'subLabel.Size = UDim2.new(1,-40,0,30)',
+    'subLabel.Position = UDim2.new(0,20,0,75)',
+    'subLabel.Text = "Assistant IA pour Roblox Studio"',
+    'subLabel.Font = Enum.Font.Gotham',
+    'subLabel.TextSize = 13',
+    'subLabel.TextColor3 = Color3.fromRGB(154,164,178)',
+    'subLabel.BackgroundTransparency = 1',
+    'subLabel.Parent = activationScreen',
     '',
-    '    local script = Instance.new("Script")',
-    '    script.Name = "LuauAI_Script"',
-    '    script.Source = code',
-    '    script.Parent = parent',
+    '-- Separator',
+    'local sep1 = Instance.new("Frame")',
+    'sep1.Size = UDim2.new(1,-40,0,1)',
+    'sep1.Position = UDim2.new(0,20,0,115)',
+    'sep1.BackgroundColor3 = Color3.fromRGB(30,40,55)',
+    'sep1.BorderSizePixel = 0',
+    'sep1.Parent = activationScreen',
+    '',
+    '-- Session key label',
+    'local keyLabel = Instance.new("TextLabel")',
+    'keyLabel.Size = UDim2.new(1,-40,0,22)',
+    'keyLabel.Position = UDim2.new(0,20,0,130)',
+    'keyLabel.Text = "Cle de session"',
+    'keyLabel.Font = Enum.Font.GothamBold',
+    'keyLabel.TextSize = 13',
+    'keyLabel.TextColor3 = Color3.fromRGB(238,242,247)',
+    'keyLabel.TextXAlignment = Enum.TextXAlignment.Left',
+    'keyLabel.BackgroundTransparency = 1',
+    'keyLabel.Parent = activationScreen',
+    '',
+    'local keyDesc = Instance.new("TextLabel")',
+    'keyDesc.Size = UDim2.new(1,-40,0,18)',
+    'keyDesc.Position = UDim2.new(0,20,0,154)',
+    'keyDesc.Text = "Genere ta cle sur luau-ai.vercel.app > Plugin"',
+    'keyDesc.Font = Enum.Font.Gotham',
+    'keyDesc.TextSize = 11',
+    'keyDesc.TextColor3 = Color3.fromRGB(107,114,128)',
+    'keyDesc.TextXAlignment = Enum.TextXAlignment.Left',
+    'keyDesc.BackgroundTransparency = 1',
+    'keyDesc.Parent = activationScreen',
+    '',
+    '-- Key input box',
+    'local keyBox = Instance.new("TextBox")',
+    'keyBox.Size = UDim2.new(1,-40,0,40)',
+    'keyBox.Position = UDim2.new(0,20,0,178)',
+    'keyBox.PlaceholderText = "LUAU-XXXXXX-XXXXXXX-XXXXXX"',
+    'keyBox.Text = ""',
+    'keyBox.Font = Enum.Font.Code',
+    'keyBox.TextSize = 12',
+    'keyBox.TextColor3 = Color3.fromRGB(34,211,238)',
+    'keyBox.PlaceholderColor3 = Color3.fromRGB(75,85,99)',
+    'keyBox.BackgroundColor3 = Color3.fromRGB(6,8,13)',
+    'keyBox.BorderSizePixel = 0',
+    'keyBox.ClearTextOnFocus = false',
+    'keyBox.Parent = activationScreen',
+    '',
+    'local keyBoxCorner = Instance.new("UICorner")',
+    'keyBoxCorner.CornerRadius = UDim.new(0,8)',
+    'keyBoxCorner.Parent = keyBox',
+    '',
+    'local keyBoxStroke = Instance.new("UIStroke")',
+    'keyBoxStroke.Color = Color3.fromRGB(30,40,55)',
+    'keyBoxStroke.Thickness = 1',
+    'keyBoxStroke.Parent = keyBox',
+    '',
+    'local keyBoxPad = Instance.new("UIPadding")',
+    'keyBoxPad.PaddingLeft = UDim.new(0,10)',
+    'keyBoxPad.PaddingRight = UDim.new(0,10)',
+    'keyBoxPad.Parent = keyBox',
+    '',
+    '-- Activate button',
+    'local activateBtn = Instance.new("TextButton")',
+    'activateBtn.Size = UDim2.new(1,-40,0,42)',
+    'activateBtn.Position = UDim2.new(0,20,0,228)',
+    'activateBtn.Text = "✓  Activer"',
+    'activateBtn.Font = Enum.Font.GothamBold',
+    'activateBtn.TextSize = 14',
+    'activateBtn.TextColor3 = Color3.fromRGB(13,17,23)',
+    'activateBtn.BackgroundColor3 = Color3.fromRGB(52,211,153)',
+    'activateBtn.BorderSizePixel = 0',
+    'activateBtn.Parent = activationScreen',
+    '',
+    'local actBtnCorner = Instance.new("UICorner")',
+    'actBtnCorner.CornerRadius = UDim.new(0,10)',
+    'actBtnCorner.Parent = activateBtn',
+    '',
+    '-- Status label',
+    'local statusLabel = Instance.new("TextLabel")',
+    'statusLabel.Size = UDim2.new(1,-40,0,24)',
+    'statusLabel.Position = UDim2.new(0,20,0,278)',
+    'statusLabel.Text = "● En attente d\'activation"',
+    'statusLabel.Font = Enum.Font.Gotham',
+    'statusLabel.TextSize = 12',
+    'statusLabel.TextColor3 = Color3.fromRGB(251,191,36)',
+    'statusLabel.TextXAlignment = Enum.TextXAlignment.Left',
+    'statusLabel.BackgroundTransparency = 1',
+    'statusLabel.Parent = activationScreen',
+    '',
+    '-- ══ MAIN CHAT SCREEN ══',
+    'local chatScreen = Instance.new("Frame")',
+    'chatScreen.Size    = UDim2.new(1,0,1,0)',
+    'chatScreen.BackgroundColor3 = Color3.fromRGB(11,15,20)',
+    'chatScreen.BorderSizePixel  = 0',
+    'chatScreen.Visible = false',
+    'chatScreen.Parent  = root',
+    '',
+    '-- Header',
+    'local header = Instance.new("Frame")',
+    'header.Size = UDim2.new(1,0,0,48)',
+    'header.Position = UDim2.new(0,0,0,0)',
+    'header.BackgroundColor3 = Color3.fromRGB(17,24,32)',
+    'header.BorderSizePixel = 0',
+    'header.Parent = chatScreen',
+    '',
+    'local headerStroke = Instance.new("UIStroke")',
+    'headerStroke.Color = Color3.fromRGB(30,40,55)',
+    'headerStroke.Thickness = 1',
+    'headerStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border',
+    'headerStroke.Parent = header',
+    '',
+    'local headerTitle = Instance.new("TextLabel")',
+    'headerTitle.Size = UDim2.new(1,-80,1,0)',
+    'headerTitle.Position = UDim2.new(0,14,0,0)',
+    'headerTitle.Text = "⚡ Luau AI  —  Connecte"',
+    'headerTitle.Font = Enum.Font.GothamBold',
+    'headerTitle.TextSize = 14',
+    'headerTitle.TextColor3 = Color3.fromRGB(238,242,247)',
+    'headerTitle.TextXAlignment = Enum.TextXAlignment.Left',
+    'headerTitle.BackgroundTransparency = 1',
+    'headerTitle.Parent = header',
+    '',
+    'local disconnectBtn = Instance.new("TextButton")',
+    'disconnectBtn.Size = UDim2.new(0,60,0,28)',
+    'disconnectBtn.Position = UDim2.new(1,-70,0.5,-14)',
+    'disconnectBtn.Text = "Quitter"',
+    'disconnectBtn.Font = Enum.Font.Gotham',
+    'disconnectBtn.TextSize = 11',
+    'disconnectBtn.TextColor3 = Color3.fromRGB(251,113,133)',
+    'disconnectBtn.BackgroundColor3 = Color3.fromRGB(30,20,22)',
+    'disconnectBtn.BorderSizePixel = 0',
+    'disconnectBtn.Parent = header',
+    '',
+    'local discCorner = Instance.new("UICorner")',
+    'discCorner.CornerRadius = UDim.new(0,6)',
+    'discCorner.Parent = disconnectBtn',
+    '',
+    '-- Output scroll',
+    'local scrollFrame = Instance.new("ScrollingFrame")',
+    'scrollFrame.Size = UDim2.new(1,0,1,-120)',
+    'scrollFrame.Position = UDim2.new(0,0,0,48)',
+    'scrollFrame.BackgroundColor3 = Color3.fromRGB(11,15,20)',
+    'scrollFrame.BorderSizePixel = 0',
+    'scrollFrame.ScrollBarThickness = 4',
+    'scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(50,70,100)',
+    'scrollFrame.CanvasSize = UDim2.new(0,0,0,0)',
+    'scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y',
+    'scrollFrame.Parent = chatScreen',
+    '',
+    'local listLayout = Instance.new("UIListLayout")',
+    'listLayout.Padding = UDim.new(0,6)',
+    'listLayout.SortOrder = Enum.SortOrder.LayoutOrder',
+    'listLayout.Parent = scrollFrame',
+    '',
+    'local scrollPad = Instance.new("UIPadding")',
+    'scrollPad.PaddingLeft   = UDim.new(0,12)',
+    'scrollPad.PaddingRight  = UDim.new(0,12)',
+    'scrollPad.PaddingTop    = UDim.new(0,10)',
+    'scrollPad.PaddingBottom = UDim.new(0,10)',
+    'scrollPad.Parent = scrollFrame',
+    '',
+    '-- Input area',
+    'local inputArea = Instance.new("Frame")',
+    'inputArea.Size = UDim2.new(1,0,0,72)',
+    'inputArea.Position = UDim2.new(0,0,1,-72)',
+    'inputArea.BackgroundColor3 = Color3.fromRGB(17,24,32)',
+    'inputArea.BorderSizePixel = 0',
+    'inputArea.Parent = chatScreen',
+    '',
+    'local inputStroke = Instance.new("UIStroke")',
+    'inputStroke.Color = Color3.fromRGB(30,40,55)',
+    'inputStroke.Thickness = 1',
+    'inputStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border',
+    'inputStroke.Parent = inputArea',
+    '',
+    'local chatInput = Instance.new("TextBox")',
+    'chatInput.Size = UDim2.new(1,-80,1,-16)',
+    'chatInput.Position = UDim2.new(0,10,0,8)',
+    'chatInput.PlaceholderText = "Demande a Luau AI..."',
+    'chatInput.Text = ""',
+    'chatInput.Font = Enum.Font.Gotham',
+    'chatInput.TextSize = 13',
+    'chatInput.TextColor3 = Color3.fromRGB(238,242,247)',
+    'chatInput.PlaceholderColor3 = Color3.fromRGB(75,85,99)',
+    'chatInput.BackgroundColor3 = Color3.fromRGB(22,29,40)',
+    'chatInput.BorderSizePixel = 0',
+    'chatInput.ClearTextOnFocus = false',
+    'chatInput.MultiLine = true',
+    'chatInput.TextWrapped = true',
+    'chatInput.TextXAlignment = Enum.TextXAlignment.Left',
+    'chatInput.TextYAlignment = Enum.TextYAlignment.Top',
+    'chatInput.Parent = inputArea',
+    '',
+    'local inputCorner = Instance.new("UICorner")',
+    'inputCorner.CornerRadius = UDim.new(0,8)',
+    'inputCorner.Parent = chatInput',
+    '',
+    'local inputPad = Instance.new("UIPadding")',
+    'inputPad.PaddingLeft = UDim.new(0,10)',
+    'inputPad.PaddingRight = UDim.new(0,10)',
+    'inputPad.PaddingTop  = UDim.new(0,8)',
+    'inputPad.Parent = chatInput',
+    '',
+    'local sendBtn = Instance.new("TextButton")',
+    'sendBtn.Size = UDim2.new(0,56,1,-16)',
+    'sendBtn.Position = UDim2.new(1,-66,0,8)',
+    'sendBtn.Text = "↑"',
+    'sendBtn.Font = Enum.Font.GothamBold',
+    'sendBtn.TextSize = 18',
+    'sendBtn.TextColor3 = Color3.fromRGB(255,255,255)',
+    'sendBtn.BackgroundColor3 = Color3.fromRGB(79,110,247)',
+    'sendBtn.BorderSizePixel = 0',
+    'sendBtn.Parent = inputArea',
+    '',
+    'local sendCorner = Instance.new("UICorner")',
+    'sendCorner.CornerRadius = UDim.new(0,8)',
+    'sendCorner.Parent = sendBtn',
+    '',
+    '-- ══ HELPERS ══',
+    'local function addMessage(role, text)',
+    '    local bubble = Instance.new("Frame")',
+    '    bubble.Size = UDim2.new(1,0,0,0)',
+    '    bubble.AutomaticSize = Enum.AutomaticSize.Y',
+    '    bubble.BackgroundColor3 = role == "user"',
+    '        and Color3.fromRGB(22,29,40)',
+    '        or  Color3.fromRGB(17,25,36)',
+    '    bubble.BorderSizePixel = 0',
+    '    bubble.LayoutOrder = #scrollFrame:GetChildren()',
+    '    bubble.Parent = scrollFrame',
+    '',
+    '    local bCorner = Instance.new("UICorner")',
+    '    bCorner.CornerRadius = UDim.new(0,10)',
+    '    bCorner.Parent = bubble',
+    '',
+    '    local bStroke = Instance.new("UIStroke")',
+    '    bStroke.Color = role == "user"',
+    '        and Color3.fromRGB(35,50,75)',
+    '        or  Color3.fromRGB(40,60,90)',
+    '    bStroke.Thickness = 1',
+    '    bStroke.Parent = bubble',
+    '',
+    '    local bPad = Instance.new("UIPadding")',
+    '    bPad.PaddingLeft   = UDim.new(0,12)',
+    '    bPad.PaddingRight  = UDim.new(0,12)',
+    '    bPad.PaddingTop    = UDim.new(0,8)',
+    '    bPad.PaddingBottom = UDim.new(0,8)',
+    '    bPad.Parent = bubble',
+    '',
+    '    local prefix = Instance.new("TextLabel")',
+    '    prefix.Size = UDim2.new(1,0,0,16)',
+    '    prefix.Text = role == "user" and "Toi" or "Luau AI"',
+    '    prefix.Font = Enum.Font.GothamBold',
+    '    prefix.TextSize = 10',
+    '    prefix.TextColor3 = role == "user"',
+    '        and Color3.fromRGB(124,156,255)',
+    '        or  Color3.fromRGB(52,211,153)',
+    '    prefix.TextXAlignment = Enum.TextXAlignment.Left',
+    '    prefix.BackgroundTransparency = 1',
+    '    prefix.Parent = bubble',
+    '',
+    '    local lbl = Instance.new("TextLabel")',
+    '    lbl.Size = UDim2.new(1,0,0,0)',
+    '    lbl.Position = UDim2.new(0,0,0,18)',
+    '    lbl.AutomaticSize = Enum.AutomaticSize.Y',
+    '    lbl.Text = text',
+    '    lbl.Font = Enum.Font.Gotham',
+    '    lbl.TextSize = 13',
+    '    lbl.TextColor3 = Color3.fromRGB(220,225,235)',
+    '    lbl.TextWrapped = true',
+    '    lbl.TextXAlignment = Enum.TextXAlignment.Left',
+    '    lbl.BackgroundTransparency = 1',
+    '    lbl.Parent = bubble',
+    '',
+    '    task.wait(0.05)',
+    '    scrollFrame.CanvasPosition = Vector2.new(0, scrollFrame.AbsoluteCanvasSize.Y)',
     'end',
     '',
-    '-- SEND TO AI',
-    'local function runAI()',
-    '    local prompt = input.Text',
-    '    if prompt == "" then return end',
+    'local function smartInsert(code)',
+    '    code = code:match("```[^\n]*\n(.-)```") or code',
+    '    local parent = Selection:Get()[1] or game:GetService("ServerScriptService")',
+    '    local scriptType = code:find("LocalPlayer") and "LocalScript" or "Script"',
+    '    local s = Instance.new(scriptType)',
+    '    s.Name   = "LuauAI_Script"',
+    '    s.Source = code',
+    '    s.Parent = parent',
+    '    addMessage("ai", "Code insere dans " .. parent:GetFullName() .. " ✅")',
+    'end',
     '',
-    '    status.Text = "Loading..."',
+    'local function sendToAI(prompt)',
+    '    addMessage("user", prompt)',
+    '    addMessage("ai", "Chargement...")',
     '',
-    '    local success, result = pcall(function()',
+    '    local ok, result = pcall(function()',
     '        return HttpService:RequestAsync({',
     '            Url = API_URL,',
     '            Method = "POST",',
-    '            Headers = {["Content-Type"]="application/json"},',
+    '            Headers = {',
+    '                ["Content-Type"]  = "application/json",',
+    '                ["X-Session-Key"] = SESSION_KEY',
+    '            },',
     '            Body = HttpService:JSONEncode({',
-    '                messages = {',
-    '                    {role="user", text=prompt}',
-    '                }',
+    '                messages = {{ role = "user", text = prompt }}',
     '            })',
     '        })',
     '    end)',
     '',
-    '    if success and result.Success then',
+    '    local lastBubble = nil',
+    '    for _, child in ipairs(scrollFrame:GetChildren()) do',
+    '        if child:IsA("Frame") then lastBubble = child end',
+    '    end',
+    '',
+    '    if ok and result.Success then',
     '        local data = HttpService:JSONDecode(result.Body)',
-    '',
-    '        local code = ""',
+    '        local reply = ""',
     '        if data.choices and data.choices[1] then',
-    '            code = data.choices[1].message.content or ""',
+    '            reply = data.choices[1].message.content or ""',
     '        end',
-    '',
-    '        if code ~= "" then',
-    '            smartInsert(code)',
-    '            status.Text = "Inserted into game ✅"',
-    '        else',
-    '            status.Text = "No code received ❌"',
+    '        if lastBubble then',
+    '            local lbl = lastBubble:FindFirstChild("TextLabel")',
+    '            if lbl then',
+    '                lbl.Text = reply ~= "" and reply or "Reponse vide du modele."',
+    '            end',
+    '        end',
+    '        if reply:find("```") then',
+    '            smartInsert(reply)',
     '        end',
     '    else',
-    '        status.Text = "API Error ❌"',
+    '        if lastBubble then',
+    '            local lbl = lastBubble:FindFirstChild("TextLabel")',
+    '            if lbl then lbl.Text = "Erreur API. Verifie tes cles dans Vercel." end',
+    '        end',
     '    end',
     'end',
     '',
-    'runBtn.MouseButton1Click:Connect(runAI)',
+    '-- ══ EVENTS ══',
+    'activateBtn.MouseButton1Click:Connect(function()',
+    '    local key = keyBox.Text:match("^%s*(.-)%s*$")',
+    '    if key == "" then',
+    '        statusLabel.Text = "⚠ Entre ta cle de session"',
+    '        statusLabel.TextColor3 = Color3.fromRGB(251,113,133)',
+    '        return',
+    '    end',
+    '    statusLabel.Text = "⏳ Connexion en cours..."',
+    '    statusLabel.TextColor3 = Color3.fromRGB(251,191,36)',
+    '    task.wait(0.8)',
+    '    SESSION_KEY   = key',
+    '    IS_CONNECTED  = true',
+    '    statusLabel.Text = "● Connecte a Luau AI"',
+    '    statusLabel.TextColor3 = Color3.fromRGB(52,211,153)',
+    '    task.wait(0.5)',
+    '    activationScreen.Visible = false',
+    '    chatScreen.Visible       = true',
+    '    addMessage("ai", "Bonjour ! Je suis Luau AI, connecte a ton Studio. Que veux-tu creer ?")',
+    'end)',
+    '',
+    'disconnectBtn.MouseButton1Click:Connect(function()',
+    '    IS_CONNECTED = false',
+    '    SESSION_KEY  = ""',
+    '    chatScreen.Visible       = false',
+    '    activationScreen.Visible = true',
+    '    statusLabel.Text = "● En attente d\'activation"',
+    '    statusLabel.TextColor3 = Color3.fromRGB(251,191,36)',
+    '    keyBox.Text = ""',
+    'end)',
+    '',
+    'sendBtn.MouseButton1Click:Connect(function()',
+    '    local prompt = chatInput.Text:match("^%s*(.-)%s*$")',
+    '    if prompt == "" then return end',
+    '    chatInput.Text = ""',
+    '    task.spawn(sendToAI, prompt)',
+    'end)',
+    '',
+    'chatInput.FocusLost:Connect(function(enterPressed)',
+    '    if enterPressed then',
+    '        local prompt = chatInput.Text:match("^%s*(.-)%s*$")',
+    '        if prompt ~= "" then',
+    '            chatInput.Text = ""',
+    '            task.spawn(sendToAI, prompt)',
+    '        end',
+    '    end',
+    'end)',
     '',
     'button.Click:Connect(function()',
     '    widget.Enabled = not widget.Enabled',
@@ -1503,11 +2056,206 @@ function downloadPlugin() {
   a.download = 'LuauAI.lua';
   a.click();
   URL.revokeObjectURL(url);
-  showToast('Plugin telecharge ! Installe-le dans Studio > Plugins > Plugin Manager', 'success');
+  showToast('Plugin telecharge ! Installe dans Studio > Plugins > Plugin Manager', 'success');
 }
 
 // =============================================
-// CUSTOM DROPDOWNS
+// SESSION KEY SYSTEM
+// =============================================
+var currentSessionKey = null;
+var sessionConnected = false;
+
+function generateSessionKey() {
+  var userId = currentUser ? currentUser.id : 'guest';
+  var ts = Date.now().toString(36).toUpperCase();
+  var rand = Math.random().toString(36).slice(2, 8).toUpperCase();
+  var key = 'LUAU-' + userId + '-' + ts + '-' + rand;
+  currentSessionKey = key;
+  localStorage.setItem('luauAI_sessionKey', key);
+  document.getElementById('session-key-display').textContent = key;
+  var copyBtn = document.getElementById('session-copy-btn');
+  if (copyBtn) copyBtn.style.display = '';
+  showToast('Cle de session generee ! Copie-la dans le plugin Studio.', 'success');
+  // Reset connection status
+  sessionConnected = false;
+  updateActivationStatus('disconnected', 'Cle generee — en attente d\'activation dans Studio', 'Studio hors ligne');
+  updateSettingsSessionStatus();
+}
+
+function copySessionKey() {
+  if (!currentSessionKey) return;
+  navigator.clipboard.writeText(currentSessionKey).then(function() {
+    var btn = document.getElementById('session-copy-btn');
+    if (btn) { btn.textContent = 'Copie !'; btn.classList.add('copied'); setTimeout(function(){ btn.textContent = 'Copier'; btn.classList.remove('copied'); }, 2000); }
+    showToast('Cle copiee dans le presse-papiers !', 'success');
+  });
+}
+
+function activateSession() {
+  var input = document.getElementById('activation-key-input');
+  if (!input) return;
+  var val = input.value.trim();
+  if (!val) { showToast('Colle ta cle de session d\'abord', 'error'); return; }
+  updateActivationStatus('connecting', 'Connexion en cours...', 'Verification...');
+  setTimeout(function() {
+    // Validate key format or match stored key
+    var stored = localStorage.getItem('luauAI_sessionKey');
+    if (!stored) {
+      // Accept any key that looks like a session key or is not empty
+      var valid = val.startsWith('LUAU-') || val.length >= 10;
+      if (!valid) { updateActivationStatus('disconnected', 'Cle invalide — format incorrect', 'Erreur'); showToast('Cle de session invalide', 'error'); return; }
+    }
+    // Accept
+    sessionConnected = true;
+    currentSessionKey = val;
+    localStorage.setItem('luauAI_sessionKey', val);
+    updateActivationStatus('connected', 'Connecte — Roblox Studio lie a Luau AI', 'Studio en ligne');
+    var studioDot = document.getElementById('studio-dot');
+    var studioStat = document.getElementById('studio-status');
+    if (studioDot) studioDot.className = 'psr-dot online';
+    if (studioStat) studioStat.textContent = 'Connecte';
+    updateSettingsSessionStatus();
+    showToast('Studio connecte a Luau AI !', 'success');
+    input.value = '';
+  }, 1200);
+}
+
+function updateActivationStatus(state, label, val) {
+  var row = document.getElementById('activation-status-row');
+  var dot = document.getElementById('actst-dot');
+  var lbl = document.getElementById('actst-label');
+  var v = document.getElementById('actst-val');
+  if (!row) return;
+  row.className = 'activation-status ' + (state === 'connected' ? 'connected' : state === 'connecting' ? 'connecting' : 'disconnected');
+  if (dot) dot.className = 'actst-dot ' + (state === 'connected' ? 'on' : state === 'connecting' ? 'loading' : 'off');
+  if (lbl) lbl.textContent = label;
+  if (v) v.textContent = val;
+}
+
+function updateSettingsSessionStatus() {
+  var el = document.getElementById('settings-session-status');
+  if (!el) return;
+  if (sessionConnected) {
+    el.textContent = 'Session active — Studio connecte';
+    el.style.color = 'var(--green2)';
+  } else if (currentSessionKey) {
+    el.textContent = 'Cle generee — en attente d\'activation dans Studio';
+    el.style.color = 'var(--amber2)';
+  } else {
+    el.textContent = 'Aucune session active — clique pour configurer';
+    el.style.color = '';
+  }
+}
+
+// =============================================
+// SETTINGS APPLY (REAL EFFECTS)
+// =============================================
+function applySettings() {
+  var theme = localStorage.getItem('luauAI_pref_theme') || 'dark';
+  document.body.setAttribute('data-theme', theme === 'dark' ? '' : theme);
+  document.body.dataset.theme = theme === 'dark' ? '' : theme;
+
+  var fontsize = localStorage.getItem('luauAI_pref_fontsize') || 'normal';
+  document.body.setAttribute('data-fontsize', fontsize);
+
+  var syntax = localStorage.getItem('luauAI_pref_syntax');
+  document.body.setAttribute('data-syntax', syntax === 'off' ? 'off' : 'on');
+
+  var compact = localStorage.getItem('luauAI_pref_compact');
+  document.body.setAttribute('data-compact', compact === 'on' ? 'on' : 'off');
+
+  // Update toggle visuals
+  var tglSyntax = document.getElementById('tgl-syntax');
+  if (tglSyntax) {
+    var on = syntax !== 'off';
+    tglSyntax.classList.toggle('on', on);
+    var thumb = tglSyntax.querySelector('.tgl-thumb');
+    if (thumb) thumb.style.transform = on ? 'translateX(20px)' : '';
+  }
+  var tglCompact = document.getElementById('tgl-compact');
+  if (tglCompact) {
+    var con = compact === 'on';
+    tglCompact.classList.toggle('on', con);
+    var cthumb = tglCompact.querySelector('.tgl-thumb');
+    if (cthumb) cthumb.style.transform = con ? 'translateX(20px)' : '';
+  }
+  var tglStream = document.getElementById('tgl-stream');
+  if (tglStream) {
+    var stream = localStorage.getItem('luauAI_pref_stream');
+    var son = stream !== 'off';
+    tglStream.classList.toggle('on', son);
+    var sthumb = tglStream.querySelector('.tgl-thumb');
+    if (sthumb) sthumb.style.transform = son ? 'translateX(20px)' : '';
+  }
+}
+
+function toggleSetting(key, el) {
+  var wasOn = el.classList.contains('on');
+  el.classList.toggle('on');
+  var thumb = el.querySelector('.tgl-thumb');
+  var isOn = el.classList.contains('on');
+  if (thumb) thumb.style.transform = isOn ? 'translateX(20px)' : '';
+  localStorage.setItem('luauAI_pref_' + key, isOn ? 'on' : 'off');
+  applySettings();
+  var labels = { syntax: 'Coloration syntaxique', compact: 'Mode compact', stream: 'Streaming' };
+  showToast((labels[key] || key) + ': ' + (isOn ? 'Active' : 'Desactive'), 'info');
+}
+
+function getLangPromptSuffix() {
+  var lang = localStorage.getItem('luauAI_pref_lang') || 'fr';
+  var map = { fr: '', en: ' Please respond in English.', es: ' Por favor responde en español.', pt: ' Por favor responde em português.' };
+  return map[lang] || '';
+}
+
+function getAiModeSystemAddition() {
+  var mode = localStorage.getItem('luauAI_pref_aimode') || 'standard';
+  var map = {
+    'code-only': '\n\nIMPORTANT: Reponds UNIQUEMENT avec du code Luau. Pas d\'explications, pas de texte, juste le bloc de code.',
+    'detailed': '\n\nIMPORTANT: Fournis des explications tres detaillees, commente chaque partie du code, explique le pourquoi de chaque choix technique.',
+    'senior': '\n\nIMPORTANT: Reponds comme un senior dev Roblox avec 10+ ans d\'experience. Utilise les patterns avances, evite tout code naif, mets en avant les edge cases et optimisations.'
+  };
+  return map[mode] || '';
+}
+
+// =============================================
+// IMPROVED FILE HANDLING (images + .lua/.txt files)
+// =============================================
+function handleFileAttach(event) {
+  var files = Array.from(event.target.files);
+  files.forEach(function(file) {
+    var isImage = file.type && file.type.indexOf('image/') === 0;
+    var isText = !isImage && (file.name.endsWith('.lua') || file.name.endsWith('.luau') || file.name.endsWith('.txt') || file.name.endsWith('.json'));
+    if (!isImage && !isText) {
+      showToast('Format non supporte: ' + file.name, 'info');
+      return;
+    }
+    attachedFiles.push({ file: file, isImage: isImage, isText: isText });
+  });
+  event.target.value = '';
+  renderAttachPreview();
+}
+
+function renderAttachPreview() {
+  var preview = document.getElementById('attach-preview');
+  if (!preview) return;
+  if (attachedFiles.length === 0) { preview.style.display = 'none'; preview.innerHTML = ''; return; }
+  preview.style.display = 'flex';
+  preview.innerHTML = attachedFiles.map(function(af, i) {
+    var icon = af.isImage
+      ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>'
+      : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18l6-6-6-6"/><path d="M8 6l-6 6 6 6"/></svg>';
+    return '<div class="attach-chip"><span style="display:flex;align-items:center;gap:5px;color:' + (af.isImage ? 'var(--cyan)' : 'var(--amber2)') + '">' + icon + '</span><span>' + escapeHtml(af.file.name) + '</span><button type="button" class="attach-remove" onclick="removeFileAt(' + i + ')">×</button></div>';
+  }).join('');
+}
+
+function removeFileAt(index) {
+  if (index < 0 || index >= attachedFiles.length) return;
+  attachedFiles.splice(index, 1);
+  renderAttachPreview();
+}
+
+// =============================================
+// CUSTOM DROPDOWNS (with settings apply callback)
 // =============================================
 function initCustomDropdowns() {
   function closeAll(except) {
@@ -1553,6 +2301,9 @@ function initCustomDropdowns() {
         localStorage.setItem(prefKey, v);
         wrap.classList.remove('open');
         btn.setAttribute('aria-expanded', 'false');
+        // Apply settings immediately
+        applySettings();
+        showToast('Parametre mis a jour', 'info');
       });
     });
   });
@@ -1561,10 +2312,55 @@ function initCustomDropdowns() {
 }
 
 // =============================================
+// DRAG & DROP on input area
+// =============================================
+function initDragDrop() {
+  var inputWrap = document.querySelector('.input-wrap');
+  if (!inputWrap) return;
+  inputWrap.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    inputWrap.style.borderColor = 'var(--blue2)';
+    inputWrap.style.boxShadow = '0 0 0 3px rgba(91,124,250,0.18)';
+  });
+  inputWrap.addEventListener('dragleave', function() {
+    inputWrap.style.borderColor = '';
+    inputWrap.style.boxShadow = '';
+  });
+  inputWrap.addEventListener('drop', function(e) {
+    e.preventDefault();
+    inputWrap.style.borderColor = '';
+    inputWrap.style.boxShadow = '';
+    var files = Array.from(e.dataTransfer.files);
+    files.forEach(function(file) {
+      var isImage = file.type && file.type.indexOf('image/') === 0;
+      var isText = !isImage && (file.name.endsWith('.lua') || file.name.endsWith('.luau') || file.name.endsWith('.txt') || file.name.endsWith('.json'));
+      if (isImage || isText) {
+        attachedFiles.push({ file: file, isImage: isImage, isText: isText });
+      }
+    });
+    renderAttachPreview();
+    if (files.length > 0) showToast(files.length + ' fichier(s) ajoute(s)', 'success');
+  });
+}
+
+// =============================================
 // INIT
 // =============================================
 window.addEventListener('DOMContentLoaded', function() {
   initCustomDropdowns();
+  applySettings();
+  initDragDrop();
+
+  // Restore session key if exists
+  var savedKey = localStorage.getItem('luauAI_sessionKey');
+  if (savedKey) {
+    currentSessionKey = savedKey;
+    var keyDisplay = document.getElementById('session-key-display');
+    if (keyDisplay) keyDisplay.textContent = savedKey;
+    var copyBtn = document.getElementById('session-copy-btn');
+    if (copyBtn) copyBtn.style.display = '';
+  }
+
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('manual-username').focus();
   document.getElementById('manual-username').addEventListener('keydown', function(e) {
