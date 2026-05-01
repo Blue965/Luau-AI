@@ -3,32 +3,35 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const HF_FALLBACK_MODELS = [
-  "HuggingFaceH4/zephyr-7b-beta",
-  "mistralai/Mistral-7B-Instruct-v0.3",
+  // 🧠 coding HF stable
   "Qwen/Qwen2.5-Coder-7B-Instruct",
   "microsoft/Phi-3.5-mini-instruct",
 ];
 
 const GROQ_FALLBACK_MODELS = [
-  "openai/gpt-oss-120b",
+  // 🔥 gros modèles coding + reasoning
   "llama-3.3-70b-versatile",
   "qwen/qwen3-32b",
-  "openai/gpt-oss-20b",
   "llama-3.1-8b-instant",
 ];
 
 const OPENROUTER_FALLBACK_MODELS = [
+  // 🧠 TOP IA pour code + logique
   "anthropic/claude-3.5-sonnet",
   "anthropic/claude-3-opus",
   "openai/gpt-4o-mini",
+
+  // 🚀 coding spécialisé (très important)
+  "Qwen/Qwen2.5-Coder-32B-Instruct",
+
+  // ⚠️ SWE-STYLE (uniquement si dispo chez ton provider)
+  "SWE-1.5"
 ];
 
-/** Modèles capables vision (images) — Groq */
 const GROQ_VISION_FALLBACK_MODELS = [
   "meta-llama/llama-4-scout-17b-16e-instruct",
 ];
 
-/** Modèles vision — OpenRouter */
 const OPENROUTER_VISION_FALLBACK_MODELS = [
   "openai/gpt-4o-mini",
   "meta-llama/llama-3.2-11b-vision-instruct:free",
