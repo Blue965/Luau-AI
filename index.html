@@ -1521,73 +1521,93 @@ async function sendMsg() {
 
   if (!text && imageParts.length === 0) return;
   if (!hasUnlimitedCredits() && currentUser && (currentUser.credits || 0) <= 0) {
-    showToast('💎 Crédits insuffisants - Passez au plan Pro pour continuer !', 'error');
-    showView('shop');
+    showToast('❌ Crédits insuffisants', 'error');
     return;
   }
   
-  // Enhanced UI feedback
-  ta.value = '';
-  attachedFiles = [];
-  var fin = document.getElementById('file-input');
-  if (fin) fin.value = '';
-  renderAttachPreview();
-  if (!currentChatId) createNewChat();
-  
-  // Smart message enhancement
-  var enhancedText = enhanceUserMessage(text, context);
-  
-  messages.push({
+  // Add user message
+  var userMsg = {
+    id: Date.now().toString(),
     role: 'user',
-    text: enhancedText,
-    originalText: text,
-    context: context,
-    model: model,
-    images: imageParts.map(function(x){return{mime:x.mime,base64:x.base64,context:x.context};}),
-    imagePreviews: imageParts.map(function(x){return x.dataUrl;}),
-    timestamp: Date.now()
-  });
+    text: text,
+    timestamp: Date.now(),
+    attachments: currentAttachments || []
+  };
   
+  messages.push(userMsg);
+  ta.value = '';
+  currentAttachments = [];
   renderMessages();
-  var aiMsg = { role: 'ai', text: '⏳', model: model, context: context, startTime: Date.now() };
-  messages.push(aiMsg);
-  isTyping = true;
   
-  // Advanced credit management
-  var creditCost = calculateCreditCost(context, model, imageParts.length);
-  var creditConsumed = false;
-  function consumeCredit() {
-    if (creditConsumed) return;
-    creditConsumed = true;
-    if (currentUser && !hasUnlimitedCredits()) {
-      currentUser.credits = Math.max(0, (currentUser.credits || 0) - creditCost);
-      persistUserCredits(currentUser);
-      updateUI();
-      if (currentUser.credits <= 10) {
-        showToast('⚠️ Il vous reste ' + currentUser.credits + ' crédits !', 'warning');
+  // Show typing indicator
+  isTyping = true;
+  var aiMsg = {
+    id: Date.now().toString() + '_ai',
+    role: 'ai',
+    text: '',
+    timestamp: Date.now(),
+    startTime: Date.now()
+  };
+  messages.push(aiMsg);
+  renderMessages();
+  
+  // Analyze context
+  var context = analyzeContext(text);
+  
+  // Prepare image parts
+  var imageParts = [];
+  for (var i = 0; i < messages.length; i++) {
+    if (messages[i].attachments) {
+      for (var j = 0; j < messages[i].attachments.length; j++) {
+        var af = messages[i].attachments[j];
+        if (af.type === 'image' && af.file) {
+          try {
+            var base64 = await readFileAsImagePart(af.file);
+            imageParts.push({
+              mime: af.file.type,
+              base64: base64
+            });
+          } catch (e) {
+            console.warn('Failed to read image:', e);
+          }
+        }
       }
     }
   }
   
-  try {
-    // Advanced AI response generation
-    var response = await generateAIResponse(text, context, model, imageParts, textFileParts);
-    
-    // Streaming simulation with enhanced content
-    await simulateStreamingResponse(aiMsg, response, consumeCredit);
-    
-    // Smart follow-up suggestions
-    if (response.suggestions && response.suggestions.length > 0) {
-      setTimeout(function() {
-        showFollowUpSuggestions(response.suggestions);
-      }, 1000);
+  // Prepare text file parts
+  var textFileParts = [];
+  for (var i = 0; i < messages.length; i++) {
+    if (messages[i].attachments) {
+      for (var j = 0; j < messages[i].attachments.length; j++) {
+        var af = messages[i].attachments[j];
+        if (af.type === 'text' && af.file) {
+          try {
+            var content = await readFileAsText(af.file);
+            textFileParts.push({
+              name: af.file.name,
+              content: content
+            });
+          } catch (e) {
+            console.warn('Failed to read text file:', e);
+          }
+        }
+      }
     }
-    
+  }
+  
+  // Generate AI response with chat.js integration
+  try {
+    var response = await generateAIResponse(text, context, model, imageParts, textFileParts);
+    await simulateStreamingResponse(aiMsg, response, function() {
+      consumeCredits(1);
+      updateCurrentChat();
+    });
   } catch(e) {
     aiMsg.text = '❌ Erreur de connexion: ' + e.message + '\n\n🔄 Veuillez réessayer ou vérifier votre connexion.';
     renderMessages();
     showToast('🔌 Erreur API - Réessayez', 'error');
-    consumeCredit();
+    consumeCredits(1);
   }
   
   updateCurrentChat();
@@ -1881,17 +1901,92 @@ async function analyzeCodeContent(content, filename) {
 // CLAUDE-STYLE ULTRA-INTELLIGENT RESPONSE ENGINE
 // =============================================
 async function generateAIResponse(text, context, model, imageParts, textFileParts) {
-  // Simplified natural response generation for better UX
-  var naturalResponse = generateNaturalResponse(text, context, model);
-  
-  return {
-    text: naturalResponse.text,
-    suggestions: naturalResponse.suggestions,
-    model: model,
-    processingTime: Date.now(),
-    confidence: 0.9,
-    complexity: context.complexity
-  };
+  // Use chat.js API for real AI responses
+  try {
+    // Prepare messages for chat.js API
+    var messages = [
+      { role: 'user', text: text }
+    ];
+    
+    // Add image parts if any
+    if (imageParts && imageParts.length > 0) {
+      messages[0].images = imageParts;
+    }
+    
+    // Add text file parts if any
+    if (textFileParts && textFileParts.length > 0) {
+      messages[0].text += '\n\nFichiers attachés:\n' + 
+        textFileParts.map(function(file) {
+          return file.name + ':\n' + file.content;
+        }).join('\n\n');
+    }
+    
+    // Call chat.js API
+    var response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ messages: messages })
+    });
+    
+    if (!response.ok) {
+      throw new Error('API Error: ' + response.status);
+    }
+    
+    // Handle streaming response
+    var reader = response.body.getReader();
+    var decoder = new TextDecoder();
+    var fullText = '';
+    
+    while (true) {
+      var { done, value } = await reader.read();
+      if (done) break;
+      
+      var chunk = decoder.decode(value, { stream: true });
+      var lines = chunk.split('\n');
+      
+      for (var line of lines) {
+        if (line.startsWith('data: ')) {
+          var data = line.slice(6);
+          if (data === '[DONE]') continue;
+          
+          try {
+            var json = JSON.parse(data);
+            if (json.choices && json.choices[0] && json.choices[0].delta && json.choices[0].delta.content) {
+              fullText += json.choices[0].delta.content;
+            }
+          } catch (e) {
+            // Skip invalid JSON
+          }
+        }
+      }
+    }
+    
+    return {
+      text: fullText || 'Je suis là pour vous aider avec vos projets Roblox !',
+      suggestions: generateNaturalSuggestions(context),
+      model: model,
+      processingTime: Date.now(),
+      confidence: 0.9,
+      complexity: context.complexity
+    };
+    
+  } catch (error) {
+    console.warn('API Error, falling back to natural response:', error);
+    
+    // Fallback to natural response
+    var naturalResponse = generateNaturalResponse(text, context, model);
+    
+    return {
+      text: naturalResponse.text,
+      suggestions: naturalResponse.suggestions,
+      model: model,
+      processingTime: Date.now(),
+      confidence: 0.9,
+      complexity: context.complexity
+    };
+  }
 }
 
 function generateNaturalResponse(text, context, model) {
@@ -2826,80 +2921,52 @@ async function simulateStreamingResponse(aiMsg, response, consumeCredit) {
     return;
   }
   
-  // Ultra-intelligent streaming with variable speed based on content
+  // Natural streaming without spam
   var words = response.text.split(' ');
   var currentText = '';
-  var baseSpeed = 30; // milliseconds per word
-  var speedVariation = 20;
+  var baseSpeed = 50; // milliseconds per word
+  var speedVariation = 10;
   
   // Analyze content to adjust streaming speed
   var hasCodeBlocks = response.text.includes('```');
-  var hasComplexContent = response.text.length > 1000;
   
   for (var i = 0; i < words.length; i++) {
     var word = words[i];
     var delay = baseSpeed + Math.random() * speedVariation;
     
-    // Slow down for code blocks and important content
-    if (word === '```' || word === '⚡' || word === '🔍' || word === '💡') {
-      delay *= 2;
-    }
-    
-    // Speed up for simple words
-    if (word.length < 4 && !hasCodeBlocks) {
-      delay *= 0.5;
+    // Consistent speed - no spam
+    if (hasCodeBlocks && word === '```') {
+      delay = 100; // Slight pause for code blocks
     }
     
     currentText += (i > 0 ? ' ' : '') + word;
     
-    // Add typing indicator with animation
-    var indicator = '⏳';
-    if (i % 10 === 0) indicator = '💭';
-    if (i % 20 === 0) indicator = '🤖';
+    // Simple indicator without spam
+    var indicator = i < words.length - 1 ? '⏳' : '';
     
-    aiMsg.text = currentText + ' ' + indicator;
+    aiMsg.text = currentText + indicator;
     renderMessages();
     
-    // Enhanced scrolling with smooth behavior
+    // Smooth scrolling
     var msgsEl = document.getElementById('msgs');
     if (msgsEl) {
-      msgsEl.scrollTo({
-        top: msgsEl.scrollHeight,
-        behavior: 'smooth'
-      });
+      msgsEl.scrollTop = msgsEl.scrollHeight;
     }
     
     await new Promise(resolve => setTimeout(resolve, delay));
   }
   
-  // Remove typing indicator with fade effect
+  // Clean final text
   aiMsg.text = currentText;
   renderMessages();
-  
-  // Add completion animation
-  setTimeout(function() {
-    aiMsg.text = currentText + ' ✅';
-    renderMessages();
-  }, 200);
   
   isTyping = false;
   consumeCredit();
   
-  // Enhanced feedback
+  // Simple feedback
   var processingTime = Date.now() - aiMsg.startTime;
-  var complexity = response.complexity || 'medium';
-  
-  if (processingTime > 2000) {
-    showToast('🧠 Analyse approfondie terminée en ' + Math.round(processingTime/1000) + 's (complexité: ' + complexity + ')', 'info');
-  } else {
-    showToast('⚡ Réponse ultra-intelligente générée', 'success');
-  }
-  
-  // Show confidence score if high
-  if (response.confidence > 0.9) {
-    setTimeout(function() {
-      showToast('🎯 Confiance: ' + Math.round(response.confidence * 100) + '%', 'info');
-    }, 1000);
+  if (processingTime > 1000) {
+    showToast('⚡ Réponse générée', 'success');
   }
 }
 
