@@ -1278,7 +1278,7 @@ function syntaxHighlightLua(code) {
   var robloxFunctions = ['Wait', 'WaitForChild', 'FindFirstChild', 'FindFirstChildOfClass', 'FindFirstChildWhichIsA', 'GetChildren', 'GetDescendants', 'IsA', 'Clone', 'Destroy', 'Connect', 'Disconnect'];
   
   globalFunctions.forEach(function(fn) {
-    var regex = new RegExp('\\b' + fn + '\\b(?=\\s*\()', 'g');
+    var regex = new RegExp('\\b' + fn + '\\b(?=\\s*\\()', 'g');
     escaped = escaped.replace(regex, '<span class="lua-function-global" style="color:#dcdcaa;font-weight:500;">' + fn + '</span>');
   });
   
