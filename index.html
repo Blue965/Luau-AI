@@ -1199,6 +1199,14 @@ function escapeHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+function formatFileSize(bytes) {
+  if (bytes === 0) return '0 Bytes';
+  var k = 1024;
+  var sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  var i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
 // =============================================
 // BUG FIX: formatMessage est maintenant TOUJOURS utilise,
 // meme pendant le streaming. Ca corrige l'affichage du code
