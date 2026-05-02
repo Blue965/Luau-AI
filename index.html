@@ -1607,14 +1607,22 @@ async function sendMsg() {
   try {
     var response = await generateAIResponse(text, context, model, imageParts, textFileParts);
     await simulateStreamingResponse(aiMsg, response, function() {
-      consumeCredits(1);
+      if (currentUser && !currentUser.isOwner) {
+        currentUser.credits = Math.max(0, (currentUser.credits || 0) - 1);
+        persistUserCredits(currentUser);
+        updateUI();
+      }
       updateCurrentChat();
     });
   } catch(e) {
     aiMsg.text = '❌ Erreur de connexion: ' + e.message + '\n\n🔄 Veuillez réessayer ou vérifier votre connexion.';
     renderMessages();
     showToast('🔌 Erreur API - Réessayez', 'error');
-    consumeCredits(1);
+    if (currentUser && !currentUser.isOwner) {
+      currentUser.credits = Math.max(0, (currentUser.credits || 0) - 1);
+      persistUserCredits(currentUser);
+      updateUI();
+    }
   }
   
   updateCurrentChat();
