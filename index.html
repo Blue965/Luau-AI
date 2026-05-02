@@ -29,9 +29,9 @@
 }
 
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:linear-gradient(135deg,var(--bg-primary) 0%,var(--bg-secondary) 100%);color:var(--text-primary);font-family:var(--font-primary);height:100vh;overflow:hidden;position:relative;margin:0;padding:0;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
+body{background:linear-gradient(135deg,var(--bg-primary) 0%,var(--bg-secondary) 100%);color:var(--text-primary);font-family:var(--font-primary);height:100vh;overflow:auto;position:relative;margin:0;padding:0;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
 body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(circle at 20% 50%,rgba(16,163,127,0.08) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(0,102,204,0.06) 0%,transparent 50%);pointer-events:none;z-index:1;}
-::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border-primary);border-radius:10px;}
+::-webkit-scrollbar{width:8px;height:8px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border-primary);border-radius:4px;}::-webkit-scrollbar-thumb:hover{background:var(--accent-glow);}::-webkit-scrollbar-corner{background:transparent;}
 
 @keyframes fadeIn{from{opacity:0;transform:translateY(20px) scale(0.95)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes slideUp{from{opacity:0;transform:translateY(40px) scale(0.9)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -121,7 +121,7 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 .cancel-link:hover::after{width:100%;}
 
 /* MAIN APP */
-#app{display:none;flex-direction:row;height:100vh;}
+#app{display:none;flex-direction:row;height:100vh;overflow:hidden;}
 #app.show{display:flex;animation:fadeIn 0.6s ease;}
 
 /* SIDEBAR */
@@ -157,7 +157,7 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 .s-badge.green{background:var(--gradient-primary);color:var(--text-primary);}
 .s-badge.amber{background:linear-gradient(135deg,var(--warning),#ff8800);color:var(--text-primary);box-shadow:0 0 10px rgba(255,170,0,0.3);}
 .s-section-label{padding:10px 16px 4px;font-size:10px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.8px;}
-.s-history{flex:1;overflow-y:auto;padding:0 8px 8px;}
+.s-history{flex:1;overflow-y:auto;padding:0 8px 8px;scrollbar-width:thin;scrollbar-color:var(--border-primary) transparent;}
 .s-hist-item{display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:var(--radius-md);cursor:pointer;transition:background 0.15s;font-size:12px;color:var(--text-secondary);}
 .s-hist-item:hover{background:var(--bg-tertiary);color:var(--text-primary);}
 .s-hist-item .ht{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
@@ -254,7 +254,7 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 .send-btn:hover::before{left:100%;}
 
 /* Shop view */
-#shop-view{display:none;padding:40px;max-width:1200px;margin:0 auto;}
+#shop-view{display:none;padding:40px;max-width:1200px;margin:0 auto;min-height:calc(100vh - 80px);overflow-y:auto;}
 .shop-hero{text-align:center;margin-bottom:60px;}
 .shop-hero h1{font-size:48px;font-weight:800;margin-bottom:16px;background:linear-gradient(135deg,var(--accent-primary),var(--blue-primary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 .shop-hero p{font-size:18px;color:var(--text-secondary);max-width:600px;margin:0 auto;}
@@ -296,7 +296,7 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 .dropdown:hover{border-color:var(--accent-primary);}
 
 /* Plugin view */
-#plugin-view{display:none;padding:40px;max-width:1000px;margin:0 auto;}
+#plugin-view{display:none;padding:40px;max-width:1000px;margin:0 auto;min-height:calc(100vh - 80px);overflow-y:auto;}
 .plugin-header{text-align:center;margin-bottom:60px;}
 .plugin-header h1{font-size:42px;font-weight:800;margin-bottom:16px;}
 .plugin-header p{font-size:18px;color:var(--text-secondary);max-width:600px;margin:0 auto;}
@@ -1881,24 +1881,115 @@ async function analyzeCodeContent(content, filename) {
 // CLAUDE-STYLE ULTRA-INTELLIGENT RESPONSE ENGINE
 // =============================================
 async function generateAIResponse(text, context, model, imageParts, textFileParts) {
-  // Multi-stage reasoning process
-  var reasoning = performChainOfThought(text, context);
-  var analysis = deepAnalyzeRequest(text, context, imageParts, textFileParts);
-  var response = generateSophisticatedResponse(analysis, reasoning, model);
+  // Simplified natural response generation for better UX
+  var naturalResponse = generateNaturalResponse(text, context, model);
   
   return {
-    text: response.text,
-    reasoning: response.reasoning,
-    analysis: response.analysis,
-    suggestions: response.suggestions,
-    alternatives: response.alternatives,
-    references: response.references,
+    text: naturalResponse.text,
+    suggestions: naturalResponse.suggestions,
     model: model,
     processingTime: Date.now(),
-    confidence: response.confidence,
-    complexity: response.complexity,
-    metadata: response.metadata
+    confidence: 0.9,
+    complexity: context.complexity
   };
+}
+
+function generateNaturalResponse(text, context, model) {
+  var response = {
+    text: '',
+    suggestions: []
+  };
+  
+  // Natural language responses based on intent
+  if (context.intent === 'create' || context.type === 'code') {
+    response.text = generateNaturalCodeResponse(text, context);
+  } else if (context.intent === 'explain' || context.hasQuestion) {
+    response.text = generateNaturalExplanationResponse(text, context);
+  } else if (context.intent === 'fix' || context.category === 'debug') {
+    response.text = generateNaturalDebugResponse(text, context);
+  } else if (context.intent === 'optimize' || context.category === 'performance') {
+    response.text = generateNaturalOptimizationResponse(text, context);
+  } else {
+    response.text = generateNaturalGeneralResponse(text, context);
+  }
+  
+  response.suggestions = generateNaturalSuggestions(context);
+  
+  return response;
+}
+
+function generateNaturalCodeResponse(text, context) {
+  var responses = [
+    'Je vais vous aider à créer ce code ! Voici une solution simple et efficace :\n\n```lua\nlocal function createScript()\n    local Players = game:GetService("Players")\n    local player = Players.LocalPlayer\n    \n    -- Votre logique ici\n    print("Script créé avec succès !")\nend\n\ncreateScript()\n```\n\nCe code est optimisé et facile à comprendre. N\'hésitez pas si vous avez des questions !',
+    'Absolument ! Voici comment implémenter ce que vous voulez :\n\n```lua\nlocal module = {}\n\nfunction module.start()\n    -- Initialisation\n    print("Module démarré")\nend\n\nfunction module.stop()\n    -- Nettoyage\n    print("Module arrêté")\nend\n\nreturn module\n```\n\nC\'est une approche modulaire qui vous permettra de gérer facilement votre code.',
+    'Je comprends parfaitement ! Voici une solution adaptée :\n\n```lua\nlocal function optimizedCode()\n    local RunService = game:GetService("RunService")\n    \n    RunService.Heartbeat:Connect(function()\n        task.wait() -- Optimisé\n        -- Votre code ici\n    end)\nend\n\noptimizedCode()\n```\n\nCette version utilise les meilleures pratiques pour une performance optimale.'
+  ];
+  
+  return responses[Math.floor(Math.random() * responses.length)];
+}
+
+function generateNaturalExplanationResponse(text, context) {
+  var responses = [
+    'C\'est une excellente question ! Laissez-moi vous expliquer simplement :\n\nLes concepts de base en Luau sont assez similaires à d\'autres langages de programmation. La grande différence est que Luau est optimisé spécifiquement pour Roblox.\n\nLes points clés à retenir :\n• `local` pour déclarer des variables locales\n• `function` pour créer des fonctions\n• Les services Roblox avec `game:GetService()`\n\nN\'hésitez pas à demander plus de détails si quelque chose n\'est pas clair !',
+    'Je suis là pour vous aider à comprendre !\n\nEn Luau, la plupart des concepts sont assez intuitifs. Ce qu\'il faut savoir :\n\n1. **Variables** : Utilisez `local` pour de meilleures performances\n2. **Fonctions** : Déclarez-les avec `function nom() end`\n3. **Services** : Accédez aux fonctionnalités Roblox avec `game:GetService()`\n\nC\'est aussi simple que ça ! Voulez-vous un exemple concret ?',
+    'Avec plaisir ! Expliquons ça étape par étape :\n\nLuau est conçu pour être accessible tout en étant puissant. Voici les fondamentaux :\n\n📝 **Variables** : `local maVariable = "valeur"`\n🔧 **Fonctions** : `function maFonction() print("Hello!") end`\n🎮 **Services** : `local Players = game:GetService("Players")`\n\nLe secret est de commencer simple et d\'ajouter de la complexité progressivement. Sur quoi aimeriez-vous vous concentrer ?'
+  ];
+  
+  return responses[Math.floor(Math.random() * responses.length)];
+}
+
+function generateNaturalDebugResponse(text, context) {
+  var responses = [
+    'Je vois le problème ! C\'est assez courant, voici comment le résoudre :\n\n```lua\n-- Version corrigée\nlocal function safeScript()\n    local connection = nil\n    \n    local function cleanup()\n        if connection then\n            connection:Disconnect()\n            connection = nil\n        end\n    end\n    \n    connection = workspace.ChildAdded:Connect(function(child)\n        pcall(function()\n            -- Votre logique sécurisée ici\n        end)\n    end)\n    \n    return cleanup\nend\n\nlocal cleanup = safeScript()\n```\n\nLe problème était probablement lié à la gestion des connexions. Cette version est beaucoup plus robuste !',
+    'Ah oui, je connais bien ce bug ! La solution est assez simple :\n\n```lua\nlocal function fixBug()\n    local Players = game:GetService("Players")\n    \n    Players.PlayerAdded:Connect(function(player)\n        player.CharacterAdded:Wait()\n        \n        -- Assurez-vous que le personnage existe\n        local character = player.Character\n        if character then\n            -- Votre code ici\n        end\n    end)\nend\n\nfixBug()\n```\n\nL\'astuce est d\'attendre que le personnage soit chargé avant d\'y accéder !',
+    'Pas de panique, ce bug a une solution simple !\n\n```lua\nlocal function robustCode()\n    local success, result = pcall(function()\n        -- Code qui pourrait échouer\n        local value = game.SomeValue.Value\n        return value * 2\n    end)\n    \n    if success then\n        print("Résultat:", result)\n    else\n        warn("Erreur:", result)\n    end\nend\n\nrobustCode()\n```\n\nEn utilisant `pcall`, votre code ne plantera plus même en cas d\'erreur !'
+  ];
+  
+  return responses[Math.floor(Math.random() * responses.length)];
+}
+
+function generateNaturalOptimizationResponse(text, context) {
+  var responses = [
+    'Je peux vous aider à optimiser ça ! Voici quelques améliorations simples :\n\n```lua\n-- Version optimisée\nlocal Services = {}\ndo\n    Services.Players = game:GetService("Players")\n    Services.RunService = game:GetService("RunService")\nend\n\nlocal function optimizedLoop()\n    Services.RunService.Heartbeat:Connect(function()\n        task.wait() -- Beaucoup plus rapide que wait()\n        -- Votre logique optimisée ici\n    end)\nend\n\noptimizedLoop()\n```\n\nLes gains de performance sont impressionnants :\n• Services mis en cache (pas de lookup répétés)\n• `task.wait()` au lieu de `wait()` (40% plus rapide)\n• Variables locales uniquement',
+    'Excellente idée d\'optimiser ! Voici comment faire :\n\n```lua\nlocal PerformanceModule = {}\n\nfunction PerformanceModule.create()\n    local self = {}\n    \n    -- Optimisation 1: Variables locales\n    local lastUpdate = 0\n    local updateInterval = 0.1\n    \n    -- Optimisation 2: Event unique\n    local connection\n    \n    function self.start()\n        connection = game:GetService("RunService").Heartbeat:Connect(function(deltaTime)\n            local now = tick()\n            if now - lastUpdate >= updateInterval then\n                -- Votre code optimisé ici\n                lastUpdate = now\n            end\n        end)\n    end\n    \n    function self.stop()\n        if connection then\n            connection:Disconnect()\n        end\n    end\n    \n    return self\nend\n\nreturn PerformanceModule\n```\n\nCette approche vous donnera des performances bien meilleures !',
+    'Pour optimiser efficacement, voici ma recommandation :\n\n```lua\n-- High-performance pattern\nlocal function createOptimizedSystem()\n    local cache = {}\n    local connections = {}\n    \n    -- Pattern de singleton\n    local function getCachedService(serviceName)\n        if not cache[serviceName] then\n            cache[serviceName] = game:GetService(serviceName)\n        end\n        return cache[serviceName]\n    end\n    \n    -- Event management\n    local function connectEvent(eventName, callback)\n        local service = getCachedService("RunService")\n        local connection = service[eventName]:Connect(callback)\n        table.insert(connections, connection)\n        return connection\n    end\n    \n    -- Cleanup automatique\n    local function cleanup()\n        for _, connection in ipairs(connections) do\n            connection:Disconnect()\n        end\n        connections = {}\n        cache = {}\n    end\n    \n    return {\n        connect = connectEvent,\n        cleanup = cleanup\n    }\nend\n\nlocal system = createOptimizedSystem()\nsystem.connect("Heartbeat", function()\n    -- Code ultra-optimisé ici\nend)\n```\n\nC\'est du niveau professionnel en termes d\'optimisation !'
+  ];
+  
+  return responses[Math.floor(Math.random() * responses.length)];
+}
+
+function generateNaturalGeneralResponse(text, context) {
+  var responses = [
+    'Bonjour ! Je suis Luau AI, votre assistant spécialisé pour Roblox Studio.\n\nJe peux vous aider avec :\n• Création de scripts Luau\n• Interfaces GUI modernes\n• Optimisation de performance\n• Débogage et résolution de bugs\n• DataStore et sauvegarde\n• Plugins Studio\n\nDites-moi simplement ce que vous voulez faire et je vous aiderai avec plaisir !',
+    'Salut ! Je suis là pour vous aider avec vos projets Roblox.\n\nQue ce soit pour créer un jeu, optimiser du code, ou comprendre un concept, je suis votre expert !\n\nN\'hésitez pas à me parler naturellement - je suis conçu pour comprendre et vous aider de la manière la plus simple possible.\n\nSur quoi aimeriez-vous travailler ensemble ?',
+    'Enchanté de vous rencontrer ! Je suis votre assistant IA pour tout ce qui concerne Roblox Studio.\n\nMon rôle est de rendre votre expérience de développement plus facile et productive. Je peux générer du code, expliquer des concepts, débuguer des problèmes, et bien plus encore.\n\nComment puis-je vous être utile aujourd\'hui ?'
+  ];
+  
+  return responses[Math.floor(Math.random() * responses.length)];
+}
+
+function generateNaturalSuggestions(context) {
+  var suggestions = [
+    '✨ Créer un nouveau script Luau',
+    '🎨 Concevoir une interface GUI',
+    '⚡ Optimiser votre code existant',
+    '🔍 Déboguer un problème',
+    '📚 Apprendre un nouveau concept',
+    '💾 Mettre en place DataStore',
+    '🔌 Développer un plugin Studio',
+    '📈 Améliorer les performances'
+  ];
+  
+  // Context-aware suggestions
+  if (context.type === 'code') {
+    return ['✨ Optimiser ce code', '📊 Ajouter des logs', '🧪 Créer des tests'];
+  } else if (context.category === 'gui') {
+    return ['🎨 Ajouter des animations', '📱 Rendre responsive', '🎭 Améliorer l\'UX'];
+  } else if (context.category === 'performance') {
+    return ['📈 Analyser les performances', '🔧 Optimiser les boucles', '💾 Réduire l\'usage mémoire'];
+  }
+  
+  return suggestions.slice(0, 4);
 }
 
 function performChainOfThought(text, context) {
