@@ -912,24 +912,68 @@ async function lookupRobloxUser() {
 }
 
 function confirmLogin() {
-  if (!pendingUser) return;
-  currentUser = pendingUser;
-  pendingUser = null;
-  loadChats();
-  if (chats.length === 0) createNewChat(); else loadChat(chats[0].id);
-  loadChatHistory();
-  document.getElementById('user-confirm').classList.remove('show');
-  document.getElementById('auth-screen').style.display = 'none';
-  setTimeout(function() {
-    document.getElementById('app').classList.add('show');
-    showView('chat');
-    var ws = document.getElementById('welcome-screen');
-    var mc = document.getElementById('msgs');
-    if (ws && messages.length === 0) { ws.style.display = 'flex'; mc.style.display = 'none'; }
-    updateUI();
-    checkApiStatus();
-    showToast('Connecte: ' + currentUser.username, 'success');
-  }, 100);
+  if (!pendingUser) {
+    console.error('Aucun utilisateur en attente');
+    return;
+  }
+  
+  try {
+    currentUser = pendingUser;
+    pendingUser = null;
+    
+    // Initialiser les données utilisateur
+    persistUserCredits(currentUser);
+    loadChats();
+    
+    // Créer ou charger un chat
+    if (chats.length === 0) {
+      createNewChat();
+    } else {
+      loadChat(chats[0].id);
+    }
+    
+    loadChatHistory();
+    
+    // Masquer les écrans d'auth
+    document.getElementById('user-confirm').classList.remove('show');
+    document.getElementById('auth-screen').style.display = 'none';
+    
+    // Afficher l'application avec une transition fluide
+    setTimeout(function() {
+      var app = document.getElementById('app');
+      if (app) {
+        app.classList.add('show');
+        showView('chat');
+        
+        // Gérer l'affichage welcome/messages
+        var ws = document.getElementById('welcome-screen');
+        var mc = document.getElementById('msgs');
+        if (ws && mc) {
+          if (messages.length === 0) {
+            ws.style.display = 'flex';
+            mc.style.display = 'none';
+          } else {
+            ws.style.display = 'none';
+            mc.style.display = 'flex';
+          }
+        }
+        
+        // Mettre à jour l'interface
+        updateUI();
+        checkApiStatus();
+        
+        // Message de bienvenue
+        showToast('🎉 Bienvenue ' + currentUser.username + ' !', 'success');
+      }
+    }, 150);
+    
+  } catch (error) {
+    console.error('Erreur lors de la confirmation du login:', error);
+    showToast('Erreur lors de la connexion', 'error');
+    // En cas d'erreur, réafficher l'écran de login
+    document.getElementById('user-confirm').classList.remove('show');
+    document.getElementById('auth-screen').style.display = 'flex';
+  }
 }
 
 function cancelConfirm() {
@@ -982,47 +1026,108 @@ async function checkApiStatus() {
 // UI
 // =============================================
 function updateUI() {
-  if (!currentUser) return;
-  var cr = currentUser.isOwner ? 'inf' : (currentUser.credits >= 99999 ? 'inf' : String(currentUser.credits));
-  var crSidebar = currentUser.isOwner ? 'illimite' : cr + ' cr';
-  document.getElementById('s-username').textContent = currentUser.username;
-  document.getElementById('s-avatar').src = currentUser.avatarUrl;
-  document.getElementById('s-plan').textContent = currentUser.plan;
-  document.getElementById('s-credits').textContent = crSidebar;
-  document.getElementById('credits-display').textContent = cr;
-  var wname = document.getElementById('w-name');
-  if (wname) wname.textContent = currentUser.displayName || currentUser.username;
-  var setAv = document.getElementById('set-avatar');
-  if (setAv) setAv.src = currentUser.avatarUrl;
-  var setUname = document.getElementById('set-uname');
-  if (setUname) setUname.textContent = currentUser.username;
-  var setUid = document.getElementById('set-uid');
-  if (setUid) setUid.textContent = 'ID Roblox: ' + currentUser.id;
-  var setUmeta = document.getElementById('set-umeta');
-  if (setUmeta) setUmeta.textContent = currentUser.isOwner ? 'Proprietaire - credits illimites' : 'Plan ' + currentUser.plan + ' - ' + currentUser.credits + ' credits';
+  if (!currentUser) {
+    console.warn('Aucun utilisateur courant pour updateUI');
+    return;
+  }
+  
+  try {
+    var cr = currentUser.isOwner ? 'inf' : (currentUser.credits >= 99999 ? 'inf' : String(currentUser.credits));
+    var crSidebar = currentUser.isOwner ? 'illimite' : cr + ' cr';
+    
+    // Mettre à jour le sidebar
+    var usernameEl = document.getElementById('s-username');
+    if (usernameEl) usernameEl.textContent = currentUser.username;
+    
+    var avatarEl = document.getElementById('s-avatar');
+    if (avatarEl && currentUser.avatarUrl) avatarEl.src = currentUser.avatarUrl;
+    
+    var planEl = document.getElementById('s-plan');
+    if (planEl) planEl.textContent = currentUser.plan;
+    
+    var creditsEl = document.getElementById('s-credits');
+    if (creditsEl) creditsEl.textContent = crSidebar;
+    
+    // Mettre à jour le welcome screen
+    var wNameEl = document.getElementById('w-name');
+    if (wNameEl) wNameEl.textContent = currentUser.displayName || currentUser.username;
+    
+    // Mettre à jour les crédits dans la top bar
+    var creditsDisplayEl = document.getElementById('credits-display');
+    if (creditsDisplayEl) creditsDisplayEl.textContent = cr;
+    
+    // Mettre à jour les settings
+    var settingsAvatar = document.getElementById('set-avatar');
+    if (settingsAvatar && currentUser.avatarUrl) settingsAvatar.src = currentUser.avatarUrl;
+    
+    var settingsName = document.getElementById('set-uname');
+    if (settingsName) settingsName.textContent = currentUser.displayName || currentUser.username;
+    
+    var settingsUsername = document.getElementById('set-umeta');
+    if (settingsUsername) settingsUsername.textContent = '@' + currentUser.username;
+    
+    var settingsId = document.getElementById('set-uid');
+    if (settingsId) settingsId.textContent = 'ID: ' + currentUser.id;
+    
+  } catch (error) {
+    console.error('Erreur dans updateUI:', error);
+  }
 }
 
 // =============================================
 // VIEW
 // =============================================
 function showView(v) {
-  var views = ['chat', 'shop', 'settings', 'plugin'];
-  views.forEach(function(x) {
-    var el = document.getElementById(x + '-view');
-    if (!el || x === v) return;
-    el.style.display = 'none';
-  });
-  var navItems = ['chat', 'shop', 'settings', 'plugin'];
-  navItems.forEach(function(x) {
-    var n = document.getElementById('nav-' + x);
-    if (n) n.classList.toggle('active', x === v);
-  });
-  var target = document.getElementById(v + '-view');
-  if (!target) return;
-  if (v === 'chat') {
-    target.style.removeProperty('display');
-  } else {
-    target.style.display = 'block';
+  try {
+    var views = ['chat', 'shop', 'settings', 'plugin'];
+    
+    // Masquer toutes les vues
+    views.forEach(function(x) {
+      var el = document.getElementById(x + '-view');
+      if (el && x !== v) {
+        el.style.display = 'none';
+      }
+    });
+    
+    // Mettre à jour la navigation
+    var navItems = ['chat', 'shop', 'settings', 'plugin'];
+    navItems.forEach(function(x) {
+      var n = document.getElementById('nav-' + x);
+      if (n) {
+        n.classList.toggle('active', x === v);
+      }
+    });
+    
+    // Afficher la vue cible
+    var target = document.getElementById(v + '-view');
+    if (!target) {
+      console.warn('Vue non trouvée:', v + '-view');
+      return;
+    }
+    
+    if (v === 'chat') {
+      target.style.removeProperty('display');
+    } else {
+      target.style.display = 'block';
+    }
+    
+    // Actions spécifiques selon la vue
+    if (v === 'chat') {
+      var ws = document.getElementById('welcome-screen');
+      var mc = document.getElementById('msgs');
+      if (ws && mc) {
+        if (messages.length === 0) {
+          ws.style.display = 'flex';
+          mc.style.display = 'none';
+        } else {
+          ws.style.display = 'none';
+          mc.style.display = 'flex';
+        }
+      }
+    }
+    
+  } catch (error) {
+    console.error('Erreur dans showView:', error);
   }
 }
 
