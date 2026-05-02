@@ -437,36 +437,6 @@ body[data-compact="on"] .msgs{gap:10px;}
           <div class="sug-card" onclick="suggest('Comment deboguer une erreur RemoteEvent dans Roblox Studio ? Montre-moi les meilleures pratiques et erreurs courantes.')">
             <div class="si">🔍</div><div class="st">Debug &amp; Fix</div><div class="sd">Résous les bugs Studio</div>
           </div>
-          <div class="sug-card" onclick="suggest('Crée un système de DataStore complet avec sauvegarde automatique, gestion des erreurs pcall, et protection contre la perte de données.')">
-            <div class="si">💾</div><div class="st">DataStore Système</div><div class="sd">Sauvegarde sécurisée joueurs</div>
-          </div>
-          <div class="sug-card" onclick="suggest('Explique la différence entre Script, LocalScript et ModuleScript dans Roblox. Quand utiliser chaque type avec des exemples ?')">
-            <div class="si">📚</div><div class="st">Apprendre Luau</div><div class="sd">Concepts fondamentaux Roblox</div>
-          </div>
-        </div>
-      </div>
-      <div class="msgs" id="msgs" style="display:none;"></div>
-      <div class="input-area">
-        <div class="input-wrap">
-          <textarea class="chat-ta" id="chat-ta" placeholder="Demande a Luau AI... (Entree pour envoyer, Shift+Entree pour nouvelle ligne)" rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-          <div class="input-actions">
-            <input type="file" id="file-input" style="display:none" multiple accept="image/*,.lua,.luau,.txt,.json,.rbxl,.rbxlx" onchange="handleFileAttach(event)">
-            <button type="button" class="act-btn" onclick="document.getElementById('file-input').click()">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Image / Fichier
-            </button>
-            <button type="button" class="act-btn" onclick="pasteCode()">
-              📋 Coller Code
-            </button>
-            <button type="button" class="act-btn" id="btn-context" onclick="toggleContextMode()" title="Ajouter contexte Roblox Studio">
-              🎮 Contexte
-            </button>
-            <button type="button" class="send-btn" id="send-btn" onclick="sendMsg()">Envoyer ↑</button>
-          </div>
-          <div id="attach-preview" class="attach-preview" style="display:none"></div>
-        </div>
-        <div class="input-footer">⚡ Luau AI · ~1 crédit/message · Groq / OpenRouter / HuggingFace</div>
-      </div>
-    </div>
 
     <!-- PLUGIN VIEW -->
     <div id="plugin-view">
@@ -672,10 +642,9 @@ body[data-compact="on"] .msgs{gap:10px;}
         <img class="set-av" id="set-avatar" src="" alt="">
         <div>
           <div class="set-uname" id="set-uname">-</div>
-          <div class="set-umeta" id="set-umeta">Plan Starter &middot; 100 credits</div>
-          <div class="set-uid" id="set-uid">ID Roblox: -</div>
+          <div class="set-umeta" id="set-umeta">@-</div>
+          <div class="set-uid" id="set-uid">ID: -</div>
         </div>
-        <button style="margin-left:auto;padding:8px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text0);font-size:13px;cursor:pointer;font-family:var(--font);" onclick="showView('shop')">Gerer le plan</button>
       </div>
 
       <div class="settings-section-title">Apparence</div>
@@ -2379,7 +2348,7 @@ function initDragDrop() {
     var files = Array.from(e.dataTransfer.files);
     files.forEach(function(file) {
       var isImage = file.type && file.type.indexOf('image/') === 0;
-      var isText = !isImage && (file.name.endsWith('.lua') || file.name.endsWith('.luau') || file.name.endsWith('.txt') || file.name.endsWith('.json'));
+      var isText = !isImage && (file.name.endsWith('.lua') || file.name.endsWith('.luau') || file.name.endsWith('.txt') || file.name.endsWith('.json') || file.name.endsWith('.rbxl') || file.name.endsWith('.rbxlx') || file.name.endsWith('.xml') || file.name.endsWith('.css') || file.name.endsWith('.html') || file.name.endsWith('.js') || file.name.endsWith('.md'));
       if (isImage || isText) {
         attachedFiles.push({ file: file, isImage: isImage, isText: isText });
       }
