@@ -1483,6 +1483,12 @@ async function sendMsg() {
   if (isTyping) return;
   var ta = document.getElementById('chat-ta');
   var text = ta.value.trim();
+  
+  if (!text) {
+    showToast('⚠️ Veuillez écrire un message', 'warning');
+    return;
+  }
+  
   var imageParts = [];
   var textFileParts = [];
 
@@ -1490,6 +1496,7 @@ async function sendMsg() {
   var context = analyzeContext(text);
   var model = selectOptimalModel(context, currentModel);
   
+  // Process attached files
   for (var fi = 0; fi < attachedFiles.length; fi++) {
     var af = attachedFiles[fi];
     if (af.isImage) {
@@ -1531,12 +1538,12 @@ async function sendMsg() {
     role: 'user',
     text: text,
     timestamp: Date.now(),
-    attachments: currentAttachments || []
+    attachments: attachedFiles || []
   };
   
   messages.push(userMsg);
   ta.value = '';
-  currentAttachments = [];
+  attachedFiles = [];
   renderMessages();
   
   // Show typing indicator
